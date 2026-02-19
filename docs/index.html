@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Zero Pro — A browser-based writing suite for novelists">
+  <title>Zero Pro</title>
+
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/editor.css">
+
+  <!-- Sortable.js — drag-and-drop for the binder -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <!-- html-docx-js — client-side HTML → .docx conversion -->
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Top Toolbar ────────────────────────────────────────────────────────── -->
+  <header id="toolbar" role="banner">
+
+    <button class="btn btn-icon" id="btn-toggle-binder" title="Toggle Binder" aria-label="Toggle Binder">
+      <!-- sidebar icon -->
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3zm5 10h7V3H5v10z"/></svg>
+    </button>
+
+    <span class="toolbar-brand">Zero Pro</span>
+    <span class="toolbar-sep"></span>
+
+    <span id="project-title"
+          class="toolbar-project-title"
+          title="Double-click to rename"
+          role="button"
+          tabindex="0"
+          aria-label="Project title — double-click to rename"></span>
+
+    <span class="toolbar-spacer"></span>
+
+    <!-- Focus mode -->
+    <button class="btn" id="btn-focus" title="Focus Mode" aria-pressed="false">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 1h3v1H2v2.5H1V1.5A.5.5 0 0 1 1.5 1zm9 0h3a.5.5 0 0 1 .5.5V4h-1V2h-2.5V1zm-9 9H1v2.5a.5.5 0 0 0 .5.5H4v-1H2v-2zm9 2.5V11h1v2.5a.5.5 0 0 1-.5.5H8v-1h2.5a.5.5 0 0 0 .5-.5z"/></svg>
+      Focus
+    </button>
+
+    <span class="toolbar-sep"></span>
+
+    <!-- Export dropdown -->
+    <div class="toolbar-dropdown" id="export-menu">
+      <button class="btn" id="btn-export" title="Export document" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+        Export
+      </button>
+      <div class="dropdown-menu" id="export-dropdown" role="menu">
+        <button class="dropdown-item" id="btn-export-txt"  role="menuitem">Plain Text (.txt)</button>
+        <button class="dropdown-item" id="btn-export-md"   role="menuitem">Markdown (.md)</button>
+        <button class="dropdown-item" id="btn-export-docx" role="menuitem">Word Document (.docx)</button>
+        <button class="dropdown-item" id="btn-export-doc"  role="menuitem">Word 97–2003 (.doc)</button>
+      </div>
+    </div>
+
+    <span class="toolbar-sep"></span>
+
+    <!-- Theme toggle -->
+    <button class="btn btn-icon" id="btn-theme" title="Toggle Theme" aria-label="Toggle dark / light theme">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/></svg>
+    </button>
+
+    <!-- Toggle inspector -->
+    <button class="btn btn-icon" id="btn-toggle-inspector" title="Toggle Inspector" aria-label="Toggle Inspector">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3zm1 9v1a1 1 0 0 0 1 1h1v-2H2zm2 0v2h9v-2H3zm10 0v2h1a1 1 0 0 0 1-1v-1h-2zm2-1V4h-2v7h2zM1 11h2V4H1v7zm1-8v1h12V3a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1z"/></svg>
+    </button>
+
+  </header><!-- /toolbar -->
+
+  <!-- ── Three-Panel Workspace ───────────────────────────────────────────────── -->
+  <main id="workspace">
+
+    <!-- ── Binder (Left Panel) ──────────────────────────────────────────────── -->
+    <aside id="binder" aria-label="Document Binder">
+
+      <div id="binder-header">
+        <span id="binder-project-title" class="binder-project-title"></span>
+        <div class="binder-header-actions">
+          <button class="btn btn-icon" data-action="add-doc"
+                  title="Add Document" aria-label="Add new document">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2z"/></svg>
+          </button>
+          <button class="btn btn-icon" data-action="add-folder"
+                  title="Add Folder" aria-label="Add new folder">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M9.828 3h3.172a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2v-1a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H9.828a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 6.172 2H3.5a1.5 1.5 0 0 0-1.5 1.5v11h1v-11A.5.5 0 0 1 3.5 3h2.672a1 1 0 0 1 .707.293L7.707 4H2v9H1V3.5A2.5 2.5 0 0 1 3.5 1h2.672a3 3 0 0 1 2.121.879l.535.535A1 1 0 0 0 9.536 3z"/><path d="M1 7.086a1 1 0 0 0-.114.986l2.5 6.5A1 1 0 0 0 4.314 15h7.372a1 1 0 0 0 .928-.628l2.5-6.5A1 1 0 0 0 14.186 6H3.5a1 1 0 0 0-.914.586L1 7.086z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="binder-tree" role="tree" aria-label="Document tree"></div>
+
+    </aside><!-- /binder -->
+
+    <!-- ── Editor (Centre Panel) ────────────────────────────────────────────── -->
+    <div id="editor-pane">
+
+      <!-- Formatting toolbar -->
+      <div id="editor-toolbar" role="toolbar" aria-label="Text formatting">
+        <button class="fmt-btn" data-format="bold"          title="Bold (Ctrl+B)"      aria-label="Bold"          aria-pressed="false"><strong>B</strong></button>
+        <button class="fmt-btn" data-format="italic"        title="Italic (Ctrl+I)"    aria-label="Italic"        aria-pressed="false"><em>I</em></button>
+        <button class="fmt-btn" data-format="underline"     title="Underline (Ctrl+U)" aria-label="Underline"     aria-pressed="false"><u>U</u></button>
+        <button class="fmt-btn" data-format="strikethrough" title="Strikethrough"       aria-label="Strikethrough" aria-pressed="false"><s>S</s></button>
+        <div class="fmt-sep"></div>
+        <button class="fmt-btn" data-format="h1" title="Heading 1" aria-label="Heading 1">H1</button>
+        <button class="fmt-btn" data-format="h2" title="Heading 2" aria-label="Heading 2">H2</button>
+        <button class="fmt-btn" data-format="h3" title="Heading 3" aria-label="Heading 3">H3</button>
+        <button class="fmt-btn" data-format="p"  title="Paragraph" aria-label="Paragraph">P</button>
+      </div>
+
+      <!-- Writing area -->
+      <div id="editor-container">
+        <div id="editor"
+             contenteditable="true"
+             spellcheck="true"
+             role="textbox"
+             aria-multiline="true"
+             aria-label="Document editor"></div>
+        <div id="editor-placeholder" aria-hidden="true">
+          Select or create a document to start writing.
+        </div>
+      </div>
+
+      <!-- Status bar -->
+      <div id="status-bar" role="status" aria-live="polite">
+        <span id="current-doc-title"></span>
+        <span class="status-sep"></span>
+        <span id="word-count">0 words</span>
+        <span id="project-word-count"></span>
+      </div>
+
+    </div><!-- /editor-pane -->
+
+    <!-- ── Inspector (Right Panel) ──────────────────────────────────────────── -->
+    <aside id="inspector" aria-label="Document Inspector">
+      <div id="inspector-header">Inspector</div>
+      <div id="inspector-content">
+        <p class="inspector-placeholder">Select a document to view its details.</p>
+        <p class="inspector-placeholder" style="margin-top:8px; font-size:11px;">
+          Full inspector coming in Phase 2.
+        </p>
+      </div>
+    </aside>
+
+  </main><!-- /workspace -->
+
+</div><!-- /app -->
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

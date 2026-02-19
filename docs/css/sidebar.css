@@ -1,0 +1,217 @@
+/* sidebar.css — Binder (left panel) */
+
+/* ─── Binder Container ───────────────────────────────────────────────────────── */
+
+#binder {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ─── Binder Header ──────────────────────────────────────────────────────────── */
+
+#binder-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.binder-project-title {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.binder-header-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.binder-header-actions .btn { padding: 4px; width: 26px; height: 26px; }
+.binder-header-actions .btn svg { width: 14px; height: 14px; }
+
+/* ─── Binder Tree ────────────────────────────────────────────────────────────── */
+
+#binder-tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0 8px;
+}
+
+/* ─── List ───────────────────────────────────────────────────────────────────── */
+
+.binder-list {
+  padding: 0;
+  margin: 0;
+}
+
+/* Nested lists indented */
+.binder-item > .binder-list {
+  padding-left: 16px;
+}
+
+/* ─── Item Row ───────────────────────────────────────────────────────────────── */
+
+.binder-item-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px 4px 8px;
+  border-radius: var(--radius-sm);
+  margin: 0 4px 1px;
+  cursor: pointer;
+  transition: background var(--transition);
+  position: relative;
+  min-height: 28px;
+}
+
+.binder-item-row:hover  { background: var(--surface-alt); }
+.binder-item-row.selected { background: var(--surface-alt); }
+.binder-item-row.selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+}
+
+/* ─── Arrow (folder expand/collapse) ────────────────────────────────────────── */
+
+.binder-arrow {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+
+.binder-arrow svg { width: 10px; height: 10px; }
+.binder-arrow:hover { color: var(--text); }
+
+/* Items with no arrow still need the space for alignment */
+.binder-item-row .binder-arrow:empty { width: 14px; }
+
+/* ─── Icon ───────────────────────────────────────────────────────────────────── */
+
+.binder-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.binder-icon svg { width: 12px; height: 12px; }
+
+.binder-item-row.selected .binder-icon { color: var(--accent); }
+
+/* ─── Title ──────────────────────────────────────────────────────────────────── */
+
+.binder-title {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.binder-item-row:not(.selected) .binder-title { color: var(--text-muted); }
+.binder-item-row:hover .binder-title,
+.binder-item-row.selected .binder-title { color: var(--text); }
+
+/* ─── Inline Rename Input ────────────────────────────────────────────────────── */
+
+.binder-rename-input {
+  flex: 1;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 1px 4px;
+  outline: none;
+  min-width: 0;
+}
+
+/* ─── Action Buttons (hover) ─────────────────────────────────────────────────── */
+
+.binder-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition);
+  flex-shrink: 0;
+}
+
+.binder-item-row:hover .binder-actions,
+.binder-item-row:focus-within .binder-actions { opacity: 1; }
+
+.binder-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-muted);
+  transition: background var(--transition), color var(--transition);
+  padding: 0;
+}
+
+.binder-action-btn svg { width: 11px; height: 11px; }
+.binder-action-btn:hover { background: var(--border); color: var(--text); }
+.binder-action-btn.danger:hover { background: var(--danger); color: #fff; }
+
+/* ─── Drag and Drop ──────────────────────────────────────────────────────────── */
+
+.binder-ghost { opacity: 0.4; }
+.binder-chosen { background: var(--surface-alt) !important; }
+
+/* ─── Trash Row ──────────────────────────────────────────────────────────────── */
+
+.binder-trash-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px 6px 14px;
+  margin: 8px 4px 0;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: default;
+}
+
+.binder-trash-row svg { width: 12px; height: 12px; }
+
+.binder-trash-count {
+  margin-left: auto;
+  background: var(--surface-alt);
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 11px;
+}
