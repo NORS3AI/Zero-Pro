@@ -14,6 +14,16 @@ The core philosophy: a writer should be able to open a URL and immediately start
 - **Export**: Client-side generation of `.txt`, `.md`, `.docx`, and `.pdf` via browser APIs and lightweight libraries
 - **No framework lock-in**: Components are plain JS modules to keep the project approachable and dependency-light
 
+### Recommended Libraries (small, focused — vendored in `/libs`)
+
+| Library | Size | Purpose |
+|---|---|---|
+| Sortable.js | 4KB gzipped | Drag-and-drop for binder and corkboard |
+| Marked.js | 22KB | Markdown export and preview |
+| DOMPurify | 12KB | Sanitise any pasted HTML content |
+
+No React, no Vue, no build pipeline. Keep it simple for Claude Code iteration.
+
 ## Project Structure
 
 ```
@@ -94,6 +104,43 @@ GitHub Pages is configured to serve from the `main` branch root. Merging to `mai
 - **Offline-first**: the app should be fully functional without an internet connection after the initial page load. Prefer a service worker for caching assets.
 - **Accessibility**: maintain keyboard navigability and ARIA labels throughout. Writers may rely on screen readers or keyboard-only navigation.
 - **Performance**: the editor must remain responsive on large documents (100k+ words). Virtualize long document lists; avoid blocking the main thread.
+
+## Claude Code Build Strategy
+
+Claude Code with Sonnet 4.6 is the primary development tool. Here's how to get the best results across a project of this complexity.
+
+### Session Structure
+
+- Build one feature module at a time — don't try to build everything in one prompt
+- Start with the data model and localStorage functions before any UI
+- Build the three-panel layout shell before adding panel content
+- Add the binder tree before the editor, add the editor before the corkboard
+- Reference `CLAUDE.md` at the start of each session for context
+
+### Tips
+
+- Keep individual JS files under 400 lines — split into modules (`binder.js`, `editor.js`, `corkboard.js`)
+- Ask Claude Code to write JSDoc comments as it goes — helps it stay consistent across sessions
+- After each session, ask Claude Code to summarise what it built and note any open decisions
+- Use the Inspector panel feature to test localStorage persistence before building more UI
+- Reference Sonnet 4.6 — it reads context better than previous models before modifying existing code
+
+### Recommended Build Order
+
+| Session | Focus |
+|---|---|
+| 1 | HTML shell, CSS layout (three panels, dark/light mode) |
+| 2 | localStorage data model, project CRUD functions |
+| 3 | Binder tree with add/rename/delete/reorder |
+| 4 | Rich text editor with formatting toolbar and autosave |
+| 5 | Word count, focus mode, typewriter mode |
+| 6 | Corkboard — card grid, drag to reorder, colour labels |
+| 7 | Outline view — table layout, inline editing |
+| 8 | Inspector panel — metadata, synopsis, status, targets |
+| 9 | Export functions (text, Markdown, JSON backup/restore) |
+| 10 | Claude API integration — sidebar, prompt templates |
+
+---
 
 ## Testing
 

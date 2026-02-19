@@ -1,159 +1,138 @@
-# Zero Pro — Features
+# Zero Pro — Feature Specification
 
-Zero Pro is a browser-based writing environment for long-form writers. All features run entirely in the browser with no account required. Data is stored locally on the writer's device.
+Zero Pro is a browser-based writing suite for novelists. All features run entirely in the browser with no account required. Data is stored locally on the writer's device.
 
----
-
-## Core Writing Experience
-
-### Distraction-Free Editor
-- Full-screen focus mode that hides all UI chrome except the document
-- Adjustable typewriter mode: keeps the active line centered on screen
-- Customizable editor width (narrow column to full-width)
-- Light and dark themes, with a sepia "warm paper" option
-
-### Rich Text Formatting
-- Bold, italic, underline, and strikethrough
-- Block-level elements: headings (H1–H3), blockquote, horizontal rule
-- Ordered and unordered lists with nested levels
-- Keyboard shortcuts for all formatting actions (standard Ctrl/Cmd conventions)
-- Format paint: copy inline styles from one selection to another
-
-### Word and Character Count
-- Live word count, character count, and estimated reading time in the status bar
-- Per-document and per-project totals
-- Session word count: tracks words written since opening the editor
-- Daily writing goal with a visual progress indicator
+Priority levels: **Must Have** · **Should Have** · **Nice to Have**
+Complexity levels: **Low** · **Medium** · **High**
 
 ---
 
-## Project and Document Organization (the Binder)
+## 3.1 Editor
 
-### Document Tree
-- Hierarchical binder panel (sidebar) showing all documents and folders
-- Drag-and-drop reordering of documents and folders
-- Inline rename by double-clicking a document title
-- Color labels for visual categorization
-- Document icons distinguishing scenes, chapters, notes, and research items
-
-### Document Types
-- **Scene / Chapter**: primary writing documents
-- **Folder**: grouping container; can have its own text
-- **Research**: non-manuscript documents for notes, web clippings, images
-- **Trash**: soft-delete with restore; permanently deleted on empty
-
-### Corkboard View
-- Visual index-card layout for all documents in the selected folder
-- Cards show title, synopsis, and label color
-- Drag-and-drop rearrangement synced back to the binder order
-- Click a card to open the document in the editor
-
-### Outliner View
-- Flat or nested table view of documents with columns for title, synopsis, label, status, and word count
-- Inline editing of synopsis directly in the outliner
-- Sort by any column
+| Feature | Priority | Complexity | Notes |
+|---|---|---|---|
+| Rich text editing | Must Have | Medium | `contenteditable` with custom toolbar — no heavy dependencies needed |
+| Bold / Italic / Underline | Must Have | Low | Standard `execCommand` or Selection API |
+| Heading styles (H1–H3) | Must Have | Low | Chapter title, scene heading, body text hierarchy |
+| Paragraph indent (first line) | Must Have | Low | CSS class toggle — standard manuscript format |
+| Word count (live) | Must Have | Low | Count on `input` event, display in status bar |
+| Typewriter / Focus mode | Must Have | Low | Blur paragraphs above/below cursor with CSS |
+| Autosave to localStorage | Must Have | Low | Debounced save on every keystroke |
+| Find & Replace | Should Have | Medium | Regex-capable search across the open document |
+| Full manuscript search | Should Have | High | Search across all documents in the project |
+| Spellcheck | Should Have | Low | Browser native `spellcheck` attribute — free |
+| Typeface / size selector | Nice to Have | Low | System fonts only to avoid loading overhead |
+| Revision history | Nice to Have | High | localStorage snapshots — expensive to store, worth exploring |
 
 ---
 
-## Writing Tools
+## 3.2 Binder (Project Structure)
 
-### Snapshots (Version History)
-- Take a named snapshot of any document at any point
-- Compare two snapshots side-by-side with a color-coded diff
-- Restore a previous snapshot with one click
-
-### Comments and Annotations
-- Inline comments attached to a text selection (rendered in a margin column)
-- Highlight mode: mark passages in multiple colors for different purposes
-- Annotations: bracketed inline notes stripped on export
-
-### Scratchpad
-- Persistent floating scratchpad panel for quick notes
-- Independent of the binder; never exported with the manuscript
-
-### Find and Replace
-- Project-wide search across all documents
-- Regex support with match highlighting
-- Replace single occurrences or all at once
-- Filter results by document type or label
-
-### Name Generator
-- Built-in name generator with first and last name lists filtered by region/style
-- Insert directly into the document at cursor
+| Feature | Priority | Complexity | Notes |
+|---|---|---|---|
+| Hierarchical document tree | Must Have | Medium | Parts > Chapters > Scenes, stored as JSON tree |
+| Add / rename / delete items | Must Have | Low | Right-click context menu or toolbar buttons |
+| Drag to reorder | Must Have | Medium | HTML5 drag-and-drop or Sortable.js |
+| Expand / collapse folders | Must Have | Low | Toggle arrow icon, save state in localStorage |
+| Document icons (folder vs scene) | Must Have | Low | SVG icons — cosmetic but important for clarity |
+| Trash / recycle bin | Should Have | Medium | Soft delete — move to Trash folder before permanent removal |
+| Duplicate document | Should Have | Low | Clone node with new ID |
+| Colour-coded labels | Should Have | Low | Per-item label, visible as a dot on the binder row |
+| Multi-select for bulk move | Nice to Have | High | Shift+click selection, then drag as group |
 
 ---
 
-## Project Management
+## 3.3 Corkboard
 
-### Metadata
-- Per-document fields: title, synopsis, status (To Do / In Progress / Done / Revised), label, and custom keywords
-- Project-level fields: author name, working title, genre, and target word count
-
-### Writing Targets
-- Project-level word count target with a visual progress bar
-- Per-document targets
-- Deadline mode: shows words-per-day needed to hit a goal by a set date
-
-### Compile / Export
-Export the full manuscript or a selection of documents to:
-- Plain text (`.txt`)
-- Markdown (`.md`)
-- Rich Text Format (`.rtf`)
-- Microsoft Word (`.docx`) via the `docx` library
-- PDF (via the browser's print-to-PDF or a client-side renderer)
-
-Compile settings:
-- Include or exclude individual documents from compile
-- Choose separator style between sections (blank line, scene break `***`, page break)
-- Front matter (title page) inserted automatically
-- Strip annotations and comments from compiled output
-
-### Import
-- Import existing `.txt` or `.md` files as new documents
-- Import a folder of files as a structured binder with one document per file
-- Paste-and-split: paste a large block of text and split it into scenes on a chosen delimiter (e.g., `###`)
+| Feature | Priority | Complexity | Notes |
+|---|---|---|---|
+| Index card grid view | Must Have | Medium | CSS Grid — each card is a scene document |
+| Card shows title + synopsis | Must Have | Low | Read from document metadata, editable inline |
+| Drag to reorder cards | Must Have | Medium | Reorder reflects in the binder tree |
+| Colour label on card | Must Have | Low | Coloured strip across top of card |
+| Click card to open in editor | Must Have | Low | Navigate to scene, update editor panel |
+| Card word count badge | Should Have | Low | Small pill showing scene word count |
+| Status indicator (draft/revised/final) | Should Have | Low | Dot or badge — configurable per card |
+| Zoom in/out card size | Nice to Have | Low | CSS variable for card width, slider control |
+| Split corkboard (horizontal/vertical) | Nice to Have | High | Show two folders side-by-side — powerful but complex |
 
 ---
 
-## Storage and Sync
+## 3.4 Outline View
 
-### Local Storage
-- Projects are saved automatically to the browser's `localStorage` after every edit (debounced)
-- A backup copy is written on every explicit save (Ctrl/Cmd+S)
-
-### File System Access (Desktop Browsers)
-- Open and save projects as `.zeropro` files (JSON format) directly on the local file system
-- Auto-save writes back to the open file without prompting
-- Portable: `.zeropro` files can be moved, backed up, or shared manually
-
-### Offline Support
-- A service worker caches all app assets on first load
-- Full editing functionality is available with no internet connection
+| Feature | Priority | Complexity | Notes |
+|---|---|---|---|
+| Collapsible tree with synopses | Must Have | Medium | Table layout — title left, synopsis right |
+| Inline synopsis editing | Must Have | Low | Click synopsis cell to edit in place |
+| Status column | Should Have | Low | Dropdown: Not Started / Draft / Revised / Final |
+| Word count column | Should Have | Low | Per-row word count pulled from document |
+| Target word count column | Should Have | Low | Set per scene, show progress bar |
+| Label column | Should Have | Low | Colour dot — same label system as corkboard |
+| POV character column | Nice to Have | Low | Tag field, useful for novels with multiple POVs |
 
 ---
 
-## Interface and Accessibility
+## 3.5 AI Writing Assistant _(Phase 3)_
 
-### Layout
-- Three-pane layout: Binder | Editor | Inspector
-- Each pane can be shown, hidden, or resized
-- Saved layout presets (e.g., "Writing mode", "Revision mode", "Research mode")
+Powered by the Anthropic Claude API. The user provides their own API key — stored in localStorage. No backend required.
 
-### Inspector Panel
-- Shows metadata, synopsis, snapshot history, and comments for the active document
-- Tabbed: Document / Project / Bookmarks / Comments
+| Feature | Priority | Complexity | Notes |
+|---|---|---|---|
+| Claude API integration | Must Have | Medium | User provides own API key, stored in localStorage |
+| Context-aware suggestions | Must Have | High | Send selected text + surrounding paragraphs as context |
+| Scene brainstorming mode | Must Have | Medium | Prompt template: generate alternatives for selected scene |
+| Prose polish / rewrite | Must Have | Medium | Rewrite in tighter prose, different tone, or simpler language |
+| Character voice checker | Should Have | High | Compare dialogue against character profile notes |
+| Plot summary generator | Should Have | Medium | Summarise entire manuscript chapter by chapter |
+| Name generator | Should Have | Low | Genre-appropriate names for characters and places |
+| 'Continue writing' mode | Should Have | Medium | Claude writes next 200 words in the author's established style |
+| Plot hole detector | Nice to Have | High | Ambitious — requires full context window, worth adding in v2 |
 
-### Keyboard Navigation
-- All major actions are reachable by keyboard
-- Customizable keyboard shortcuts
-- Command palette (Ctrl/Cmd+K) for fuzzy-searching any action or document
+---
 
-### Themes and Typography
-- System font stack by default; configurable editor font and size
-- Line height and paragraph spacing controls
-- Full light / dark / sepia theme support, following the OS preference by default
+## 3.6 Export & Sharing
 
-### Accessibility
-- ARIA labels on all interactive controls
-- Focus ring visible in all themes
-- Screen reader-tested navigation for the binder and editor
+| Feature | Priority | Complexity | Notes |
+|---|---|---|---|
+| Export as plain text (.txt) | Must Have | Low | Blob download — simple |
+| Export as Markdown (.md) | Must Have | Low | Strip HTML formatting, convert to Markdown |
+| Export project as JSON backup | Must Have | Low | Serialise entire localStorage project as downloadable file |
+| Import project from JSON | Must Have | Low | Restore from backup file |
+| Export as formatted HTML | Should Have | Medium | Self-contained HTML file, readable in any browser |
+| Manuscript PDF (print stylesheet) | Should Have | Medium | CSS `@media print` — standard submission format |
+| Export individual scene as Markdown | Should Have | Low | Single document export for sharing |
+| EPUB export | Nice to Have | High | Requires epub.js or similar — worth exploring post-launch |
+
+---
+
+## 3.7 UI, Themes & Settings
+
+| Feature | Priority | Complexity | Notes |
+|---|---|---|---|
+| Dark mode / Light mode | Must Have | Low | CSS custom properties, system preference detection |
+| Three-panel layout (Binder/Editor/Inspector) | Must Have | Medium | CSS Grid with collapsible panels |
+| Collapsible panels (hide binder/inspector) | Must Have | Low | Toggle buttons, CSS transition |
+| Responsive / mobile layout | Must Have | Medium | Single panel on mobile, swipe to navigate |
+| Typeface selector (serif/sans/mono) | Should Have | Low | System fonts — Georgia, Arial, Courier |
+| Font size control | Should Have | Low | CSS variable, slider or +/– buttons |
+| Line spacing control | Should Have | Low | 1.5 / 2.0 / custom — CSS `line-height` variable |
+| Custom accent colour | Nice to Have | Low | Single hue shift using HSL CSS variables |
+| Ambient sound player (rain, café) | Nice to Have | Medium | Web Audio API or embedded audio — popular in writing apps |
+
+---
+
+## Data Model
+
+All project data is stored as a single JSON object in `localStorage`:
+
+```
+Project
+  id, title, createdAt, settings, labels[]
+
+Document
+  id, parentId, type (folder/doc), title, synopsis,
+  content (HTML), wordCount, label, status, target, pov
+
+Settings
+  theme, font, fontSize, lineHeight, apiKey (encrypted)
+```
