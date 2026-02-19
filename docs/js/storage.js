@@ -98,14 +98,14 @@ export function getTrash(project) {
 export function createDocument(project, { type = 'doc', parentId = null, title } = {}) {
   const siblings = getChildren(project, parentId);
   const maxOrder = siblings.length ? Math.max(...siblings.map(d => d.order)) : -1;
-  const defaultTitle = type === 'folder' ? 'New Folder' : 'Untitled';
+  const defaultTitle = type === 'folder' ? 'New Folder' : type === 'image' ? 'New Image' : 'Untitled';
   const doc = {
     id: generateId(),
     parentId,
     type,
     title: title || defaultTitle,
     synopsis: '',
-    content: type === 'folder' ? '' : '<p></p>',
+    content: (type === 'folder' || type === 'image') ? '' : '<p></p>',
     wordCount: 0,
     label: null,
     status: 'draft',

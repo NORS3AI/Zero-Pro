@@ -21,6 +21,7 @@ const ICON = {
   doc: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5.5L9.5 0H4zm5.5 1v4h4L9.5 1z"/></svg>`,
   folder: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/></svg>`,
   folderOpen: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14V3.5zm1.5-.5a.5.5 0 0 0-.5.5v2.5h13V5.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5z"/></svg>`,
+  image: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/></svg>`,
   chevronRight: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06z"/></svg>`,
   chevronDown: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.22 6.22a.75.75 0 0 1 1.06 0L8 9.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L3.22 7.28a.75.75 0 0 1 0-1.06z"/></svg>`,
   plus: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2z"/></svg>`,
@@ -36,6 +37,7 @@ export function initBinder({ onSelectDoc, onProjectChange }) {
 
   document.querySelector('[data-action="add-doc"]')?.addEventListener('click', () => _addDocument('doc', null));
   document.querySelector('[data-action="add-folder"]')?.addEventListener('click', () => _addDocument('folder', null));
+  document.querySelector('[data-action="add-image"]')?.addEventListener('click', _addImageItem);
 }
 
 /** Rebuild the entire binder tree from the current project state */
@@ -113,9 +115,10 @@ function _buildList(docs, parentId) {
 }
 
 function _buildItem(doc) {
-  const isFolder = doc.type === 'folder';
+  const isFolder  = doc.type === 'folder';
+  const isImage   = doc.type === 'image';
   const isSelected = doc.id === _currentDocId;
-  const children = isFolder ? getChildren(_project, doc.id) : [];
+  const children  = isFolder ? getChildren(_project, doc.id) : [];
 
   const li = document.createElement('li');
   li.className = 'binder-item';
@@ -140,7 +143,13 @@ function _buildItem(doc) {
   // Icon
   const icon = document.createElement('span');
   icon.className = 'binder-icon';
-  icon.innerHTML = isFolder ? (doc.collapsed ? ICON.folder : ICON.folderOpen) : ICON.doc;
+  if (isFolder) {
+    icon.innerHTML = doc.collapsed ? ICON.folder : ICON.folderOpen;
+  } else if (isImage) {
+    icon.innerHTML = ICON.image;
+  } else {
+    icon.innerHTML = ICON.doc;
+  }
 
   // Title
   const titleSpan = document.createElement('span');
@@ -164,9 +173,10 @@ function _buildItem(doc) {
   row.appendChild(titleSpan);
   row.appendChild(actions);
 
-  // Events
-  row.addEventListener('click', () => _selectDocument(doc.id));
-  row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _selectDocument(doc.id); } });
+  // Events — image items open a lightbox; other items select into the editor
+  const handleActivate = () => isImage ? _showLightbox(doc) : _selectDocument(doc.id);
+  row.addEventListener('click', handleActivate);
+  row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(); } });
   titleSpan.addEventListener('dblclick', e => { e.stopPropagation(); _startRename(doc.id, titleSpan); });
 
   li.appendChild(row);
@@ -283,4 +293,68 @@ function _deleteItem(id) {
     _onProjectChange?.(_project);
     showToast('Moved to Trash');
   });
+}
+
+// ─── Image Items ──────────────────────────────────────────────────────────────
+
+function _addImageItem() {
+  const input  = document.createElement('input');
+  input.type   = 'file';
+  input.accept = 'image/*';
+  input.style.display = 'none';
+  document.body.appendChild(input);
+
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+    document.body.removeChild(input);
+    if (!file) return;
+
+    const reader   = new FileReader();
+    reader.onload  = e => {
+      const doc = createDocument(_project, {
+        type:  'image',
+        title: file.name.replace(/\.[^.]+$/, ''),
+      });
+      doc.imageData = e.target.result;
+      saveProject(_project);
+      renderBinder(_project, _currentDocId);
+      _onProjectChange?.(_project);
+      showToast(`Image "${doc.title}" added to Binder`);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  input.click();
+}
+
+function _showLightbox(doc) {
+  if (!doc.imageData) return;
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'lightbox-backdrop';
+  backdrop.setAttribute('role', 'dialog');
+  backdrop.setAttribute('aria-modal', 'true');
+  backdrop.setAttribute('aria-label', doc.title);
+  backdrop.innerHTML = `
+    <div class="lightbox">
+      <button class="lightbox-close" aria-label="Close lightbox">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854z"/></svg>
+      </button>
+      <img src="${doc.imageData}" alt="${_esc(doc.title)}" class="lightbox-img">
+      <div class="lightbox-caption">${_esc(doc.title)}${doc.synopsis ? ` — ${_esc(doc.synopsis)}` : ''}</div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+  backdrop.querySelector('.lightbox-close').focus();
+
+  const close = () => document.body.removeChild(backdrop);
+  backdrop.querySelector('.lightbox-close').addEventListener('click', close);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
+  const onKey = e => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
+}
+
+function _esc(str) {
+  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 }
