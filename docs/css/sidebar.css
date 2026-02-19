@@ -215,3 +215,14 @@
   padding: 1px 6px;
   font-size: 11px;
 }
+
+/* ─── Label dot on binder rows ───────────────────────────────────────────────── */
+
+.binder-label-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+  opacity: 0.85;
+}

@@ -141,7 +141,7 @@ function _buildCard(doc) {
   synopsis.addEventListener('mousedown', e => e.stopPropagation());
   body.appendChild(synopsis);
 
-  // Footer: word count + label picker
+  // Footer: word count + status dot + label picker
   const footer = document.createElement('div');
   footer.className = 'card-footer';
 
@@ -151,7 +151,18 @@ function _buildCard(doc) {
   wc.textContent = `${n.toLocaleString()} ${n === 1 ? 'word' : 'words'}`;
   footer.appendChild(wc);
 
-  footer.appendChild(_buildLabelPicker(doc));
+  // Status indicator + label picker grouped on the right
+  const footerRight = document.createElement('div');
+  footerRight.className = 'card-footer-right';
+
+  const STATUS_LABELS = { 'not-started': 'Not Started', draft: 'Draft', revised: 'Revised', final: 'Final' };
+  const statusDot = document.createElement('span');
+  statusDot.className = `card-status-dot status-${doc.status || 'draft'}`;
+  statusDot.title     = STATUS_LABELS[doc.status] || 'Draft';
+  footerRight.appendChild(statusDot);
+
+  footerRight.appendChild(_buildLabelPicker(doc));
+  footer.appendChild(footerRight);
   body.appendChild(footer);
   card.appendChild(body);
 

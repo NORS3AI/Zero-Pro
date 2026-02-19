@@ -3,9 +3,10 @@
 import {
   getChildren, getDocument, getTrash,
   createDocument, updateDocument, trashDocument,
-  reorderDocuments, saveProject,
+  reorderDocuments, saveProject, generateId,
 } from './storage.js';
 import { showConfirm, showToast } from './ui.js';
+import { LABEL_COLORS } from './corkboard.js';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -14,6 +15,8 @@ let _currentDocId = null;
 let _onSelectDoc = null;
 let _onProjectChange = null;
 let _sortableInstances = [];
+let _ctxMenu  = null;   // context menu element (singleton)
+let _ctxDocId = null;   // doc ID targeted by current context menu
 
 // ─── SVG Icon Strings ─────────────────────────────────────────────────────────
 
@@ -38,6 +41,8 @@ export function initBinder({ onSelectDoc, onProjectChange }) {
   document.querySelector('[data-action="add-doc"]')?.addEventListener('click', () => _addDocument('doc', null));
   document.querySelector('[data-action="add-folder"]')?.addEventListener('click', () => _addDocument('folder', null));
   document.querySelector('[data-action="add-image"]')?.addEventListener('click', _addImageItem);
+
+  _initContextMenu();
 }
 
 /** Rebuild the entire binder tree from the current project state */
@@ -171,7 +176,23 @@ function _buildItem(doc) {
   row.appendChild(arrow);
   row.appendChild(icon);
   row.appendChild(titleSpan);
+
+  // Label colour dot (visible when the doc has a label assigned)
+  if (doc.label && LABEL_COLORS[doc.label]) {
+    const labelDot = document.createElement('span');
+    labelDot.className = 'binder-label-dot';
+    labelDot.style.background = LABEL_COLORS[doc.label];
+    labelDot.title = doc.label;
+    row.appendChild(labelDot);
+  }
+
   row.appendChild(actions);
+
+  // Right-click → context menu
+  row.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    _showContextMenu(doc.id, e.clientX, e.clientY);
+  });
 
   // Events — image items open a lightbox; other items select into the editor
   const handleActivate = () => isImage ? _showLightbox(doc) : _selectDocument(doc.id);
@@ -293,6 +314,120 @@ function _deleteItem(id) {
     _onProjectChange?.(_project);
     showToast('Moved to Trash');
   });
+}
+
+// ─── Context Menu ─────────────────────────────────────────────────────────────
+
+function _initContextMenu() {
+  _ctxMenu = document.createElement('div');
+  _ctxMenu.id        = 'binder-ctx';
+  _ctxMenu.className = 'ctx-menu hidden';
+  document.body.appendChild(_ctxMenu);
+
+  // Close on any click outside the menu
+  document.addEventListener('click', () => _hideContextMenu());
+}
+
+function _showContextMenu(docId, x, y) {
+  _ctxDocId = docId;
+  const doc = getDocument(_project, docId);
+  if (!doc) return;
+
+  _ctxMenu.innerHTML = '';
+
+  // Rename
+  const renameBtn = _ctxItem('Rename', false, () => {
+    const titleEl = document.querySelector(`.binder-item-row[data-doc-id="${docId}"] .binder-title`);
+    if (titleEl) _startRename(docId, titleEl);
+  });
+  _ctxMenu.appendChild(renameBtn);
+
+  // Duplicate (docs only)
+  if (doc.type === 'doc') {
+    _ctxMenu.appendChild(_ctxItem('Duplicate', false, () => _duplicateDoc(docId)));
+  }
+
+  // Label section
+  const sep1 = document.createElement('div');
+  sep1.className = 'ctx-sep';
+  _ctxMenu.appendChild(sep1);
+
+  const labelRow = document.createElement('div');
+  labelRow.className = 'ctx-label-row';
+
+  const noneDot = document.createElement('button');
+  noneDot.className = 'ctx-label-dot ctx-label-none';
+  noneDot.title = 'No label';
+  noneDot.addEventListener('click', e => { e.stopPropagation(); _setDocLabel(docId, null); _hideContextMenu(); });
+  labelRow.appendChild(noneDot);
+
+  Object.entries(LABEL_COLORS).forEach(([name, color]) => {
+    const dot = document.createElement('button');
+    dot.className = 'ctx-label-dot';
+    dot.style.background = color;
+    dot.title = name;
+    dot.addEventListener('click', e => { e.stopPropagation(); _setDocLabel(docId, name); _hideContextMenu(); });
+    labelRow.appendChild(dot);
+  });
+  _ctxMenu.appendChild(labelRow);
+
+  // Trash
+  const sep2 = document.createElement('div');
+  sep2.className = 'ctx-sep';
+  _ctxMenu.appendChild(sep2);
+  _ctxMenu.appendChild(_ctxItem('Move to Trash', true, () => _deleteItem(docId)));
+
+  // Position — keep inside viewport
+  _ctxMenu.classList.remove('hidden');
+  const { offsetWidth: mw, offsetHeight: mh } = _ctxMenu;
+  _ctxMenu.style.left = `${Math.min(x, window.innerWidth  - mw - 4)}px`;
+  _ctxMenu.style.top  = `${Math.min(y, window.innerHeight - mh - 4)}px`;
+}
+
+function _hideContextMenu() {
+  _ctxMenu?.classList.add('hidden');
+  _ctxDocId = null;
+}
+
+function _ctxItem(label, isDanger, handler) {
+  const btn = document.createElement('button');
+  btn.className   = `ctx-item${isDanger ? ' ctx-danger' : ''}`;
+  btn.textContent = label;
+  btn.addEventListener('click', e => { e.stopPropagation(); _hideContextMenu(); handler(); });
+  return btn;
+}
+
+function _setDocLabel(docId, label) {
+  const doc = getDocument(_project, docId);
+  if (!doc) return;
+  updateDocument(_project, docId, { label });
+  saveProject(_project);
+  renderBinder(_project, _currentDocId);
+  _onProjectChange?.(_project);
+}
+
+function _duplicateDoc(id) {
+  const doc = getDocument(_project, id);
+  if (!doc || doc.type === 'folder') return;
+
+  // Deep-copy the document, assign a new ID and title
+  const copy = JSON.parse(JSON.stringify(doc));
+  copy.id         = generateId();
+  copy.title      = `${doc.title} (Copy)`;
+  copy.createdAt  = Date.now();
+  copy.updatedAt  = Date.now();
+  copy.order      = doc.order + 0.5;
+
+  _project.documents.push(copy);
+
+  // Normalise order values for siblings
+  const siblings = getChildren(_project, doc.parentId);
+  siblings.sort((a, b) => a.order - b.order).forEach((d, i) => { d.order = i; });
+
+  saveProject(_project);
+  renderBinder(_project, _currentDocId);
+  _onProjectChange?.(_project);
+  showToast(`"${doc.title}" duplicated`);
 }
 
 // ─── Image Items ──────────────────────────────────────────────────────────────

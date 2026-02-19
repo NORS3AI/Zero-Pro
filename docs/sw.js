@@ -29,6 +29,8 @@ const APP_ASSETS = [
   './js/outline.js',
   './js/inspector.js',
   './js/ai.js',
+  './js/find-replace.js',
+  './js/command-palette.js',
 ];
 
 // ─── Install: pre-cache all assets ───────────────────────────────────────────
