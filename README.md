@@ -4,7 +4,7 @@
 
 Zero Pro is a modern writing environment built for novelists and long-form writers — hosted on GitHub Pages, requiring no installation, no login, and no subscription to get started. It captures the organisational power of Scrivener and delivers it through a clean, fast, mobile-friendly web interface that works equally well on desktop and iPhone Safari.
 
-> **[zero-pro.app →](https://nors3ai.github.io/Zero-Pro/)**
+> **[zero-pro.app →](https://nors3ai.github.io/Zero-Pro/docs/)**
 > Version 1.0 · February 2026 · Built with Claude Code + Sonnet 4.6
 
 ---
