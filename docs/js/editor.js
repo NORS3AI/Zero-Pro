@@ -26,6 +26,7 @@ export function initEditor({ onDocChange }) {
   editor.addEventListener('keydown', _handleKeydown);
   editor.addEventListener('keyup', _updateFocusHighlight);
   editor.addEventListener('mouseup', _updateFocusHighlight);
+  editor.addEventListener('paste', _handlePaste);
 
   // Toolbar format buttons
   document.querySelectorAll('[data-format]').forEach(btn => {
@@ -109,6 +110,18 @@ export function toggleFocusMode() {
 
 function _handleInput() {
   saveCurrentContent();
+}
+
+function _handlePaste(e) {
+  e.preventDefault();
+  const text = e.clipboardData?.getData('text/plain') ?? '';
+  if (!text) return;
+  // Insert as plain text, preserving line breaks as paragraphs
+  const lines = text.split(/\r?\n/);
+  lines.forEach((line, i) => {
+    if (i > 0) document.execCommand('insertParagraph');
+    if (line) document.execCommand('insertText', false, line);
+  });
 }
 
 function _handleKeydown(e) {
