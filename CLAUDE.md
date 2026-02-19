@@ -28,24 +28,30 @@ No React, no Vue, no build pipeline. Keep it simple for Claude Code iteration.
 
 ```
 Zero-Pro/
-├── index.html          # App entry point
 ├── CLAUDE.md           # This file
-├── features.md         # Current feature set
+├── features.md         # Feature specification
 ├── roadmap.md          # Development roadmap
-├── css/
-│   ├── main.css        # Global styles and CSS custom properties
-│   ├── editor.css      # Editor pane styles
-│   └── sidebar.css     # Binder / sidebar styles
-├── js/
-│   ├── app.js          # App bootstrap and initialization
-│   ├── editor.js       # Rich text editor logic
-│   ├── binder.js       # Document tree / binder logic
-│   ├── storage.js      # localStorage and File System API abstraction
-│   ├── export.js       # Export handlers (txt, md, docx, pdf)
-│   └── ui.js           # UI helpers, modals, notifications
-├── assets/
-│   └── icons/          # SVG icons
-└── libs/               # Vendored third-party libraries (no npm)
+└── docs/               # GitHub Pages root (Settings → Pages → /docs)
+    ├── index.html      # App entry point
+    ├── css/
+    │   ├── main.css    # Global styles and CSS custom properties
+    │   ├── editor.css  # Editor pane styles
+    │   └── sidebar.css # Binder / sidebar styles
+    ├── js/
+    │   ├── app.js      # App bootstrap and initialization
+    │   ├── editor.js   # Rich text editor logic
+    │   ├── binder.js   # Document tree / binder logic
+    │   ├── storage.js  # localStorage and File System API abstraction
+    │   ├── import.js   # Import handlers (txt, md, docx, Google Docs)
+    │   ├── export.js   # Export handlers (txt, md, docx, pdf, JSON)
+    │   └── ui.js       # UI helpers, modals, notifications
+    ├── assets/
+    │   └── icons/      # SVG icons
+    └── libs/           # Vendored third-party libraries (no npm)
+        ├── sortable.min.js
+        ├── marked.min.js
+        ├── mammoth.min.js
+        └── dompurify.min.js
 ```
 
 ## Development Guidelines
@@ -62,7 +68,7 @@ python3 -m http.server 8080
 npx serve .
 ```
 
-Then open `http://localhost:8080` in your browser.
+Then open `http://localhost:8080/docs/` in your browser.
 
 Do **not** open `index.html` directly via `file://` — the File System Access API requires a secure context (`http://localhost` or `https://`).
 
@@ -95,7 +101,9 @@ refactor: extract storage abstraction into storage.js
 
 ### Deploying to GitHub Pages
 
-GitHub Pages is configured to serve from the `main` branch root. Merging to `main` deploys automatically. There is no CI pipeline yet — see the roadmap for planned GitHub Actions integration.
+GitHub Pages is configured to serve from the `/docs` folder on the `main` branch. All app files (`index.html`, `css/`, `js/`, `libs/`, `assets/`) must live inside `/docs`. Merging to `main` deploys automatically. There is no CI pipeline yet — see the roadmap for planned GitHub Actions integration.
+
+To configure: **Settings → Pages → Source: Deploy from a branch → Branch: `main` → Folder: `/docs`**
 
 ## Key Constraints
 
