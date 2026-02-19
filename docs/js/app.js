@@ -13,6 +13,7 @@ import { initInspector, updateInspector } from './inspector.js';
 import { initAI, toggleAIPanel } from './ai.js';
 import { initFindReplace, openFindReplace } from './find-replace.js';
 import { initCommandPalette } from './command-palette.js';
+import { initSettings, openSettings, applyEditorSettings } from './settings.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -34,6 +35,7 @@ function init() {
   }
 
   applyTheme(state.project.settings.theme);
+  applyEditorSettings(state.project.settings);
 
   // Init all modules
   initBinder({
@@ -92,7 +94,15 @@ function init() {
       { icon: '💾', label: 'Export as TXT',       hint: '',          run: () => document.getElementById('btn-export-txt')?.click() },
       { icon: '💾', label: 'Export as Markdown',  hint: '',          run: () => document.getElementById('btn-export-md')?.click() },
       { icon: '💾', label: 'Backup Project',      hint: '.json',     run: () => document.getElementById('btn-export-json')?.click() },
+      { icon: '⚙️', label: 'Settings',            hint: 'Ctrl+,',   run: () => openSettings() },
     ],
+  });
+
+  initSettings({
+    getProject:       () => state.project,
+    onSettingsChange: project => {
+      state.project = project;
+    },
   });
 
   // Render binder and open first document
@@ -229,6 +239,9 @@ function bindToolbar() {
     const b = document.getElementById('btn-theme');
     if (b) b.title = theme === 'dark' ? 'Switch to Light' : 'Switch to Dark';
   });
+
+  // Settings
+  btn('btn-settings', () => openSettings());
 
   // Focus mode (editor only)
   btn('btn-focus', () => {

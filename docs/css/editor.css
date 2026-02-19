@@ -68,9 +68,9 @@
   max-width: 680px;
   min-height: 100%;
   padding: 48px 40px 80px;
-  font-family: var(--font-editor);
-  font-size: 18px;
-  line-height: 1.85;
+  font-family: var(--editor-font, Georgia, 'Times New Roman', serif);
+  font-size: var(--editor-size, 18px);
+  line-height: var(--editor-lh, 1.85);
   color: var(--text);
   caret-color: var(--accent);
   outline: none;
@@ -82,6 +82,7 @@
 
 #editor p { margin: 0 0 0.6em; }
 #editor p + p { text-indent: 1.5em; margin-top: 0; }
+#editor.no-indent p + p { text-indent: 0; }
 
 #editor h1 { font-size: 1.7em; font-weight: 700; margin: 1.2em 0 0.4em; line-height: 1.25; }
 #editor h2 { font-size: 1.35em; font-weight: 600; margin: 1em 0 0.3em; line-height: 1.3; }
@@ -123,8 +124,8 @@
   max-width: 680px;
   padding: 0 40px;
   color: var(--text-muted);
-  font-family: var(--font-editor);
-  font-size: 18px;
+  font-family: var(--editor-font, Georgia, 'Times New Roman', serif);
+  font-size: var(--editor-size, 18px);
   pointer-events: none;
 }
 

@@ -20,6 +20,11 @@
   --font-editor: Georgia, 'Times New Roman', serif;
   --font-mono:   'Courier New', Courier, monospace;
 
+  /* Runtime-overridable typography (set by settings.js) */
+  --editor-font: Georgia, 'Times New Roman', serif;
+  --editor-size: 18px;
+  --editor-lh:   1.8;
+
   --binder-w:    240px;
   --inspector-w: 240px;
   --ai-panel-w:  0px;
@@ -42,6 +47,30 @@
   --text-muted:   #7a746e;
   --accent:       #8b5e2e;
   --accent-hover: #9a6d3a;
+}
+
+/* Sepia theme */
+[data-theme="sepia"] {
+  --bg:           #f4ede4;
+  --surface:      #ede4d8;
+  --surface-alt:  #e5dace;
+  --border:       #cfc4b5;
+  --text:         #3d2b1f;
+  --text-muted:   #806550;
+  --accent:       #8b4513;
+  --accent-hover: #9a521f;
+}
+
+/* Pure Dark (OLED) theme */
+[data-theme="pure-dark"] {
+  --bg:           #000000;
+  --surface:      #0a0a0a;
+  --surface-alt:  #141414;
+  --border:       #282828;
+  --text:         #ede9e1;
+  --text-muted:   #8c8c94;
+  --accent:       #c9a26a;
+  --accent-hover: #d4b27a;
 }
 
 /* ─── Reset ──────────────────────────────────────────────────────────────────── */
