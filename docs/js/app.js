@@ -5,7 +5,8 @@ import { loadProject, createProject, saveProject, getDocument } from './storage.
 import { applyTheme, toggleTheme, showToast, showPrompt } from './ui.js';
 import { initBinder, renderBinder } from './binder.js';
 import { initEditor, loadDocument, saveCurrentContent, toggleFocusMode } from './editor.js';
-import { exportAsTxt, exportAsMd, exportAsDocx, exportAsDoc } from './export.js';
+import { exportAsTxt, exportAsMd, exportAsDocx, exportAsDoc, exportProjectJson } from './export.js';
+import { importTxt, importMd, importProjectJson, initImport } from './import.js';
 import { initCorkboard, renderCorkboard } from './corkboard.js';
 import { initOutline, renderOutline } from './outline.js';
 import { initInspector, updateInspector } from './inspector.js';
@@ -14,9 +15,11 @@ import { initAI, toggleAIPanel } from './ai.js';
 // ─── Application State ────────────────────────────────────────────────────────
 
 const state = {
-  project:     null,
-  currentDocId: null,
-  currentView: 'editor', // 'editor' | 'corkboard' | 'outline'
+  project:              null,
+  currentDocId:         null,
+  currentView:          'editor', // 'editor' | 'corkboard' | 'outline'
+  triggerDocImport:     null,
+  triggerProjectImport: null,
 };
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
@@ -59,6 +62,13 @@ function init() {
     getProject:    () => state.project,
     getCurrentDoc: () => currentDoc(),
   });
+
+  const { triggerDocImport, triggerProjectImport } = initImport({
+    onImportDocs:       _handleImportDocs,
+    onRestoreProject:   _handleRestoreProject,
+  });
+  state.triggerDocImport     = triggerDocImport;
+  state.triggerProjectImport = triggerProjectImport;
 
   // Render binder and open first document
   renderBinder(state.project, null);
@@ -243,6 +253,22 @@ function bindToolbar() {
     document.getElementById('export-dropdown')?.classList.remove('open');
   });
 
+  btn('btn-export-json', () => {
+    exportProjectJson(state.project);
+    showToast('Project backup saved');
+    document.getElementById('export-dropdown')?.classList.remove('open');
+  });
+
+  btn('btn-import-docs', () => {
+    state.triggerDocImport?.();
+    document.getElementById('export-dropdown')?.classList.remove('open');
+  });
+
+  btn('btn-import-json', () => {
+    state.triggerProjectImport?.();
+    document.getElementById('export-dropdown')?.classList.remove('open');
+  });
+
   // Double-click project title to rename
   document.getElementById('project-title')?.addEventListener('dblclick', () => {
     showPrompt('Rename Project', 'Project title', state.project.title, newTitle => {
@@ -315,6 +341,48 @@ function updateProjectTitle() {
 function _syncStatusBar(doc) {
   const titleEl = document.getElementById('current-doc-title');
   if (titleEl) titleEl.textContent = doc?.title ?? '';
+}
+
+// ─── Import Handlers ──────────────────────────────────────────────────────────
+
+async function _handleImportDocs(files) {
+  let added = 0;
+  for (const file of files) {
+    try {
+      if (/\.(md|markdown)$/i.test(file.name)) {
+        await importMd(file, state.project, null);
+      } else {
+        await importTxt(file, state.project, null);
+      }
+      added++;
+    } catch {
+      showToast(`Could not import "${file.name}"`);
+    }
+  }
+  if (added > 0) {
+    saveProject(state.project);
+    renderBinder(state.project, state.currentDocId);
+    showToast(`Imported ${added} document${added > 1 ? 's' : ''}`);
+  }
+}
+
+async function _handleRestoreProject(file) {
+  const { showConfirm } = await import('./ui.js');
+  const project = await importProjectJson(file);
+  if (!project) { showToast('Invalid backup file'); return; }
+  showConfirm(
+    `Replace "${state.project.title}" with "${project.title}"? This cannot be undone.`,
+    () => {
+      state.project    = project;
+      state.currentDocId = null;
+      saveProject(state.project);
+      applyTheme(project.settings?.theme);
+      renderBinder(state.project, null);
+      loadDocument(state.project, null);
+      updateProjectTitle();
+      showToast('Project restored');
+    }
+  );
 }
 
 // ─── Start ────────────────────────────────────────────────────────────────────

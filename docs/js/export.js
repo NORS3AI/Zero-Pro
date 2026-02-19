@@ -159,3 +159,9 @@ export function exportAsDoc(doc) {
 function _esc(str) {
   return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+
+/** Export the full project as a .zeropro.json backup file */
+export function exportProjectJson(project) {
+  const filename = safeFilename(project.title) + '.zeropro.json';
+  download(JSON.stringify(project, null, 2), filename, 'application/json;charset=utf-8');
+}
