@@ -240,3 +240,26 @@
   line-height: 1;
   color: var(--text-muted);
 }
+
+/* ─── Card footer right group ────────────────────────────────────────────────── */
+
+.card-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Status dot ──────────────────────────────────────────────────────────────── */
+
+.card-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.card-status-dot.status-not-started { background: var(--text-muted); opacity: 0.45; }
+.card-status-dot.status-draft       { background: var(--accent); }
+.card-status-dot.status-revised     { background: #c9a26a; }
+.card-status-dot.status-final       { background: var(--green); }

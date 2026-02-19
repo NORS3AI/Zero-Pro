@@ -259,3 +259,100 @@
   #editor-placeholder { padding: 0 20px; font-size: 16px; top: 28px; }
   #editor-toolbar { padding: 4px 8px; }
 }
+
+/* ─── Find & Replace Panel ───────────────────────────────────────────────────── */
+
+.fr-panel {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 5px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.fr-panel.hidden { display: none; }
+
+.fr-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fr-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  outline: none;
+}
+
+.fr-input:focus { border-color: var(--accent); }
+.fr-input::placeholder { color: var(--text-muted); }
+
+.fr-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  min-width: 64px;
+  text-align: center;
+}
+
+.fr-toggle-btn,
+.fr-nav-btn,
+.fr-close-btn,
+.fr-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0 7px;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.fr-toggle-btn { width: 26px; padding: 0; font-size: 10px; }
+.fr-nav-btn    { width: 26px; padding: 0; }
+.fr-close-btn  { width: 26px; padding: 0; font-size: 14px; }
+
+.fr-toggle-btn:hover,
+.fr-nav-btn:hover,
+.fr-close-btn:hover,
+.fr-action-btn:hover {
+  background: var(--surface-alt);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.fr-replace-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fr-replace-row.hidden { display: none; }
+
+/* Highlight marks injected by find-replace into the editor */
+mark.fr-highlight {
+  background: rgba(201, 162, 106, 0.28);  /* --accent at low opacity */
+  color: inherit;
+  border-radius: 2px;
+}
+
+mark.fr-highlight.fr-current {
+  background: rgba(201, 162, 106, 0.65);
+  outline: 1.5px solid var(--accent);
+}

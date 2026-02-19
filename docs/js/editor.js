@@ -102,7 +102,13 @@ export function saveCurrentContent() {
   const editor = el('editor');
   if (!editor) return;
 
-  const content   = editor.innerHTML;
+  // Clone and strip find-replace highlight marks before persisting
+  const clone = editor.cloneNode(true);
+  clone.querySelectorAll('mark.fr-highlight').forEach(mark => {
+    mark.replaceWith(document.createTextNode(mark.textContent));
+  });
+
+  const content   = clone.innerHTML;
   const wordCount = countWords(editor.innerText || '');
   updateDocument(_project, _currentDoc.id, { content, wordCount });
   _currentDoc.content   = content;

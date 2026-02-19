@@ -11,6 +11,8 @@ import { initCorkboard, renderCorkboard } from './corkboard.js';
 import { initOutline, renderOutline } from './outline.js';
 import { initInspector, updateInspector } from './inspector.js';
 import { initAI, toggleAIPanel } from './ai.js';
+import { initFindReplace, openFindReplace } from './find-replace.js';
+import { initCommandPalette } from './command-palette.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -69,6 +71,29 @@ function init() {
   });
   state.triggerDocImport     = triggerDocImport;
   state.triggerProjectImport = triggerProjectImport;
+
+  initFindReplace({
+    getEditor: () => document.getElementById('editor'),
+  });
+
+  initCommandPalette({
+    getProject:  () => state.project,
+    onSelectDoc: handleSelectDocument,
+    getActions:  () => [
+      { icon: '📄', label: 'New Document',       hint: '',          run: () => document.querySelector('[data-action="add-doc"]')?.click() },
+      { icon: '📁', label: 'New Folder',          hint: '',          run: () => document.querySelector('[data-action="add-folder"]')?.click() },
+      { icon: '🔍', label: 'Find & Replace',      hint: 'Ctrl+F',   run: () => openFindReplace(false) },
+      { icon: '✏️', label: 'Find & Replace',      hint: 'Ctrl+H',   run: () => openFindReplace(true) },
+      { icon: '🎯', label: 'Toggle Focus Mode',   hint: 'Ctrl+F2',  run: () => document.getElementById('btn-focus')?.click() },
+      { icon: '☀️', label: 'Toggle Theme',        hint: '',          run: () => document.getElementById('btn-theme')?.click() },
+      { icon: '📊', label: 'Corkboard View',      hint: '',          run: () => switchView('corkboard') },
+      { icon: '📋', label: 'Outline View',        hint: '',          run: () => switchView('outline') },
+      { icon: '📝', label: 'Editor View',         hint: '',          run: () => switchView('editor') },
+      { icon: '💾', label: 'Export as TXT',       hint: '',          run: () => document.getElementById('btn-export-txt')?.click() },
+      { icon: '💾', label: 'Export as Markdown',  hint: '',          run: () => document.getElementById('btn-export-md')?.click() },
+      { icon: '💾', label: 'Backup Project',      hint: '.json',     run: () => document.getElementById('btn-export-json')?.click() },
+    ],
+  });
 
   // Render binder and open first document
   renderBinder(state.project, null);
