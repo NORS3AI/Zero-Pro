@@ -229,6 +229,28 @@ svg { display: block; }
 
 .dropdown-item:hover { background: var(--surface-alt); }
 
+.dropdown-label {
+  padding: 6px 12px 2px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.dropdown-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* Drag-and-drop target highlight */
+#center-pane.drag-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: -4px;
+}
+
 /* ─── Modal ──────────────────────────────────────────────────────────────────── */
 
 .modal-backdrop {

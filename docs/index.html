@@ -74,15 +74,23 @@
 
     <!-- Export dropdown -->
     <div class="toolbar-dropdown" id="export-menu">
-      <button class="btn" id="btn-export" title="Export document" aria-haspopup="true" aria-expanded="false">
+      <button class="btn" id="btn-export" title="Export / Import" aria-haspopup="true" aria-expanded="false">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
-        Export
+        File
       </button>
       <div class="dropdown-menu" id="export-dropdown" role="menu">
+        <div class="dropdown-label">Export document</div>
         <button class="dropdown-item" id="btn-export-txt"  role="menuitem">Plain Text (.txt)</button>
         <button class="dropdown-item" id="btn-export-md"   role="menuitem">Markdown (.md)</button>
         <button class="dropdown-item" id="btn-export-docx" role="menuitem">Word Document (.docx)</button>
         <button class="dropdown-item" id="btn-export-doc"  role="menuitem">Word 97–2003 (.doc)</button>
+        <div class="dropdown-sep"></div>
+        <div class="dropdown-label">Project</div>
+        <button class="dropdown-item" id="btn-export-json" role="menuitem">Backup project (.json)</button>
+        <div class="dropdown-sep"></div>
+        <div class="dropdown-label">Import</div>
+        <button class="dropdown-item" id="btn-import-docs" role="menuitem">Import .txt / .md…</button>
+        <button class="dropdown-item" id="btn-import-json" role="menuitem">Restore from backup…</button>
       </div>
     </div>
 
@@ -240,5 +248,14 @@
 </div><!-- /app -->
 
 <script type="module" src="js/app.js"></script>
+
+<!-- Service Worker registration (inline, non-module) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+</script>
 </body>
 </html>
