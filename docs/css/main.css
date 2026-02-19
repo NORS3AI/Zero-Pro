@@ -22,6 +22,7 @@
 
   --binder-w:    240px;
   --inspector-w: 240px;
+  --ai-panel-w:  0px;
   --toolbar-h:   44px;
   --statusbar-h: 28px;
   --fmt-toolbar-h: 40px;
@@ -130,16 +131,17 @@ svg { display: block; }
 
 #workspace {
   display: grid;
-  grid-template-columns: var(--binder-w) 1fr var(--inspector-w);
+  grid-template-columns: var(--binder-w) 1fr var(--inspector-w) var(--ai-panel-w);
   overflow: hidden;
   transition: grid-template-columns var(--transition);
 }
 
-#workspace.binder-hidden    { grid-template-columns: 0 1fr var(--inspector-w); }
-#workspace.inspector-hidden { grid-template-columns: var(--binder-w) 1fr 0; }
-#workspace.binder-hidden.inspector-hidden { grid-template-columns: 0 1fr 0; }
+/* Panel visibility — override the relevant width variable */
+#workspace.binder-hidden    { --binder-w:    0px; }
+#workspace.inspector-hidden { --inspector-w: 0px; }
+#workspace.ai-open          { --ai-panel-w:  320px; }
 
-#binder, #inspector { overflow: hidden; }
+#binder, #inspector, #ai-panel { overflow: hidden; }
 
 /* Centre pane — holds editor, corkboard, and outline as siblings */
 #center-pane {
