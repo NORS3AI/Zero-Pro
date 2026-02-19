@@ -3,10 +3,8 @@
 /* ─── Editor Pane ────────────────────────────────────────────────────────────── */
 
 #editor-pane {
-  display: flex;
-  flex-direction: column;
+  /* display/flex-direction/overflow handled by .view-pane.active in main.css */
   background: var(--bg);
-  overflow: hidden;
 }
 
 /* ─── Formatting Toolbar ─────────────────────────────────────────────────────── */

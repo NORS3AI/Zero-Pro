@@ -1,0 +1,217 @@
+/* outline.css — Tabular outline view */
+
+/* ─── Pane ───────────────────────────────────────────────────────────────────── */
+
+#outline-pane {
+  background: var(--bg);
+}
+
+/* ─── Table wrapper ──────────────────────────────────────────────────────────── */
+
+#outline-table-wrap {
+  flex: 1;
+  overflow: auto;
+}
+
+/* ─── Table ──────────────────────────────────────────────────────────────────── */
+
+#outline-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: fixed;
+}
+
+/* Column widths */
+#outline-table col.col-title   { width: 35%; }
+#outline-table col.col-synopsis { width: auto; }
+#outline-table col.col-status  { width: 110px; }
+#outline-table col.col-wc      { width: 70px; }
+#outline-table col.col-label   { width: 40px; }
+
+/* ─── Header ─────────────────────────────────────────────────────────────────── */
+
+#outline-table thead th {
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+#outline-table th.col-wc,
+#outline-table th.col-label {
+  text-align: center;
+}
+
+/* ─── Rows ───────────────────────────────────────────────────────────────────── */
+
+.outline-row {
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+
+.outline-row:hover { background: var(--surface-alt); }
+
+.outline-row--folder {
+  background: var(--surface);
+}
+
+/* ─── Cells ──────────────────────────────────────────────────────────────────── */
+
+.outline-cell {
+  padding: 7px 12px;
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+/* ─── Title cell ─────────────────────────────────────────────────────────────── */
+
+.outline-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Folder expand/collapse arrow */
+.outline-folder-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 3px;
+  transition: color var(--transition), background var(--transition);
+}
+
+.outline-folder-arrow:hover {
+  color: var(--text);
+  background: var(--border);
+}
+
+.outline-folder-arrow svg { width: 10px; height: 10px; }
+
+/* Type icon */
+.outline-type-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.outline-type-icon svg { width: 12px; height: 12px; }
+
+.outline-row--folder .outline-type-icon { color: var(--accent); }
+
+/* Title text */
+.outline-title-text {
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.outline-row--doc .outline-title-text {
+  cursor: pointer;
+}
+
+.outline-row--doc .outline-title-text:hover { color: var(--accent); }
+.outline-row--folder .outline-title-text     { color: var(--text-muted); }
+
+/* ─── Synopsis cell ──────────────────────────────────────────────────────────── */
+
+.outline-synopsis-cell { width: 100%; }
+
+.outline-synopsis-input {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font-ui);
+  padding: 3px 6px;
+  outline: none;
+  transition: border-color var(--transition), background var(--transition);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outline-synopsis-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.outline-synopsis-input:hover {
+  border-color: var(--border);
+}
+
+.outline-synopsis-input:focus {
+  border-color: var(--accent);
+  background: var(--bg);
+  white-space: normal;
+  overflow: visible;
+}
+
+/* ─── Status cell ────────────────────────────────────────────────────────────── */
+
+.outline-status-select {
+  appearance: auto;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 11px;
+  font-family: var(--font-ui);
+  padding: 3px 6px;
+  cursor: pointer;
+  outline: none;
+  width: 100%;
+  transition: border-color var(--transition);
+}
+
+.outline-status-select:focus { border-color: var(--accent); }
+
+/* ─── Word count cell ────────────────────────────────────────────────────────── */
+
+.outline-wc-cell {
+  text-align: right;
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Label cell ─────────────────────────────────────────────────────────────── */
+
+.outline-label-cell {
+  text-align: center;
+}
+
+.outline-label-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
