@@ -115,6 +115,8 @@ function _corkboardParentId(doc) {
 // ─── Event Handlers ───────────────────────────────────────────────────────────
 
 function handleSelectDocument(docId) {
+  // Close the binder drawer on compact screens after a selection
+  if (_isCompact()) workspace().classList.remove('binder-open');
   saveCurrentContent();
   state.currentDocId = docId;
   const doc = docId ? getDocument(state.project, docId) : null;
@@ -152,17 +154,38 @@ function handleDocChange(project, doc) {
 // ─── Toolbar Wiring ───────────────────────────────────────────────────────────
 
 function bindToolbar() {
-  // Panel toggles
-  btn('btn-toggle-binder',   () => workspace().classList.toggle('binder-hidden'));
-  btn('btn-toggle-inspector', () => workspace().classList.toggle('inspector-hidden'));
+  // Panel toggles — compact (tablet/mobile) uses overlay drawers; desktop uses grid collapse
+  btn('btn-toggle-binder', () => {
+    if (_isCompact()) {
+      const opening = workspace().classList.toggle('binder-open');
+      if (opening) workspace().classList.remove('inspector-open');
+    } else {
+      workspace().classList.toggle('binder-hidden');
+    }
+  });
+
+  btn('btn-toggle-inspector', () => {
+    if (_isCompact()) {
+      const opening = workspace().classList.toggle('inspector-open');
+      if (opening) workspace().classList.remove('binder-open');
+    } else {
+      workspace().classList.toggle('inspector-hidden');
+    }
+  });
 
   // View switcher
   btn('btn-view-editor',    () => switchView('editor'));
   btn('btn-view-corkboard', () => switchView('corkboard'));
   btn('btn-view-outline',   () => switchView('outline'));
 
-  // AI panel
-  btn('btn-ai', () => toggleAIPanel());
+  // AI panel — on compact screens close other drawers first
+  btn('btn-ai', () => {
+    if (_isCompact()) workspace().classList.remove('binder-open', 'inspector-open');
+    toggleAIPanel();
+  });
+
+  // Mobile backdrop tap — close all drawers
+  document.getElementById('mobile-backdrop')?.addEventListener('click', _closeAllDrawers);
 
   // Theme
   btn('btn-theme', () => {
@@ -250,6 +273,35 @@ function btn(id, handler) {
 function workspace() {
   return document.getElementById('workspace');
 }
+
+/** True when in tablet or mobile layout (panels are overlay drawers). */
+function _isCompact() {
+  return window.matchMedia('(max-width: 1023px)').matches;
+}
+
+/** Close every open drawer and hide the backdrop. */
+function _closeAllDrawers() {
+  workspace().classList.remove('binder-open', 'inspector-open');
+  // Also close AI panel if open
+  const aiPanel = document.getElementById('ai-panel');
+  if (workspace().classList.contains('ai-open')) {
+    workspace().classList.remove('ai-open');
+    aiPanel?.setAttribute('aria-hidden', 'true');
+    document.getElementById('btn-ai')?.classList.remove('active');
+    document.getElementById('btn-ai')?.setAttribute('aria-pressed', 'false');
+  }
+}
+
+// Restore clean state when resizing between compact and desktop
+window.matchMedia('(max-width: 1023px)').addEventListener('change', e => {
+  if (e.matches) {
+    // Entering compact: remove desktop-only hidden classes
+    workspace().classList.remove('binder-hidden', 'inspector-hidden');
+  } else {
+    // Entering desktop: remove compact drawer-open classes
+    workspace().classList.remove('binder-open', 'inspector-open');
+  }
+});
 
 function currentDoc() {
   return state.currentDocId ? getDocument(state.project, state.currentDocId) : null;

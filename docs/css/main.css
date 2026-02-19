@@ -343,9 +343,4 @@ svg { display: block; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 
-/* ─── Responsive ─────────────────────────────────────────────────────────────── */
-
-@media (max-width: 680px) {
-  #workspace { grid-template-columns: 1fr; }
-  #binder, #inspector { display: none; }
-}
+/* Responsive overrides live in responsive.css */
