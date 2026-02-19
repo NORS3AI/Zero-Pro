@@ -1,0 +1,10 @@
+{
+  "name": "Zero Pro",
+  "short_name": "Zero Pro",
+  "description": "A browser-based writing suite for novelists",
+  "display": "standalone",
+  "start_url": "./",
+  "background_color": "#1a1a1c",
+  "theme_color": "#1a1a1c",
+  "icons": []
+}

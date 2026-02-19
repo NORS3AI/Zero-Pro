@@ -1,7 +1,7 @@
 // sw.js — Service Worker: cache-first offline support for Zero Pro
 // Paths are relative to this file's location (docs/)
 
-const CACHE    = 'zeropro-v2';
+const CACHE    = 'zeropro-v3';
 const CDN_URLS = [
   'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js',
   'https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js',
@@ -17,6 +17,7 @@ const APP_ASSETS = [
   './css/outline.css',
   './css/inspector.css',
   './css/ai.css',
+  './css/settings.css',
   './css/responsive.css',
   './js/app.js',
   './js/storage.js',
@@ -31,6 +32,8 @@ const APP_ASSETS = [
   './js/ai.js',
   './js/find-replace.js',
   './js/command-palette.js',
+  './js/settings.js',
+  './manifest.json',
 ];
 
 // ─── Install: pre-cache all assets ───────────────────────────────────────────
