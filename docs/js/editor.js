@@ -56,10 +56,11 @@ export function loadDocument(project, doc) {
     editor.contentEditable = 'true';
     editor.setAttribute('aria-label', doc.title);
     editor.classList.remove('empty');
-    placeholder?.classList.add('hidden');
     toolbar?.classList.remove('hidden');
     // Place cursor at start
     _moveCursorToStart(editor);
+    // Show writing prompt placeholder when the doc is empty
+    _updateWritingPlaceholder();
   } else {
     editor.innerHTML = '';
     editor.contentEditable = 'false';
@@ -109,7 +110,17 @@ export function toggleFocusMode() {
 // ─── Internal Handlers ────────────────────────────────────────────────────────
 
 function _handleInput() {
+  _updateWritingPlaceholder();
   saveCurrentContent();
+}
+
+function _updateWritingPlaceholder() {
+  const editor = el('editor');
+  const placeholder = el('editor-placeholder');
+  if (!editor || !placeholder) return;
+  const hasText = (editor.innerText || '').trim().length > 0;
+  placeholder.textContent = hasText ? '' : 'Begin your story here…';
+  placeholder.classList.toggle('hidden', hasText);
 }
 
 function _handlePaste(e) {

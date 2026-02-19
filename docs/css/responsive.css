@@ -1,0 +1,164 @@
+/* responsive.css — Phase 4: Tablet & mobile layout */
+
+/* ─── Shared drawer helper (used on tablet + mobile) ────────────────────────── */
+
+/*
+ * On screens narrower than 1024 px:
+ *   - Inspector and AI panel become fixed right-side drawers.
+ *   - A backdrop darkens the content behind any open drawer.
+ * On screens narrower than 641 px (mobile):
+ *   - Workspace becomes a single column.
+ *   - Binder also becomes a fixed left-side drawer.
+ *   - Toolbar compresses to icon-only for most buttons.
+ */
+
+/* ─── Backdrop ───────────────────────────────────────────────────────────────── */
+
+#mobile-backdrop {
+  display: none;
+  position: fixed;
+  inset: var(--toolbar-h) 0 0 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 490;
+  /* hidden by default; shown by JS adding open-drawer classes */
+}
+
+/* ─── Tablet  (≤ 1023 px) ────────────────────────────────────────────────────── */
+
+@media (max-width: 1023px) {
+
+  /* Slightly compress the toolbar */
+  .toolbar-brand    { font-size: 14px; }
+  .toolbar-project-title { max-width: 140px; }
+
+  /* Inspector: hide from grid; becomes a fixed right drawer */
+  #workspace {
+    grid-template-columns: var(--binder-w) 1fr !important;
+    --inspector-w: 0px;
+    --ai-panel-w:  0px;
+  }
+
+  #inspector {
+    position: fixed;
+    top: var(--toolbar-h);
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    transform: translateX(100%);
+    transition: transform 220ms ease;
+    z-index: 500;
+    overflow-y: auto;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.35);
+  }
+
+  #workspace.inspector-open #inspector {
+    transform: translateX(0);
+  }
+
+  /* AI panel: fixed right drawer */
+  #ai-panel {
+    position: fixed;
+    top: var(--toolbar-h);
+    right: 0;
+    bottom: 0;
+    width: min(320px, 90vw);
+    transform: translateX(100%);
+    transition: transform 220ms ease;
+    z-index: 500;
+    overflow: hidden;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.35);
+  }
+
+  /* ai-open is toggled by ai.js via workspace class */
+  #workspace.ai-open #ai-panel {
+    transform: translateX(0);
+  }
+
+  /* Backdrop: show whenever a drawer is open */
+  #workspace.inspector-open #mobile-backdrop,
+  #workspace.ai-open         #mobile-backdrop {
+    display: block;
+  }
+
+}
+
+/* ─── Mobile (≤ 640 px) ──────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+
+  /* ── Toolbar ── */
+
+  .toolbar-brand     { display: none; }
+
+  /* Compress view-switcher to icon-only */
+  .view-btn          { font-size: 0; padding: 6px 7px; }
+  .view-btn svg      { width: 15px; height: 15px; }
+  .view-btn span     { display: none; }
+
+  /* Icon-only for Focus, Export, Ask AI */
+  #btn-focus,
+  #btn-export,
+  #btn-ai            { font-size: 0; padding: 5px; width: 30px; height: 30px; justify-content: center; }
+  #btn-focus svg,
+  #btn-export svg,
+  #btn-ai svg        { width: 15px; height: 15px; }
+
+  /* Separator cleanup */
+  .toolbar-sep:not(:first-of-type) { display: none; }
+
+  /* ── Workspace: single column ── */
+
+  #workspace {
+    grid-template-columns: 1fr !important;
+    --binder-w:    0px;
+    --inspector-w: 0px;
+    --ai-panel-w:  0px;
+  }
+
+  /* ── Binder: fixed left drawer ── */
+
+  #binder {
+    position: fixed;
+    top: var(--toolbar-h);
+    left: 0;
+    bottom: 0;
+    width: min(280px, 80vw);
+    transform: translateX(-100%);
+    transition: transform 220ms ease;
+    z-index: 500;
+    overflow: hidden;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+  }
+
+  #workspace.binder-open #binder {
+    transform: translateX(0);
+  }
+
+  /* Backdrop: also covers binder-open on mobile */
+  #workspace.binder-open    #mobile-backdrop,
+  #workspace.inspector-open #mobile-backdrop,
+  #workspace.ai-open        #mobile-backdrop {
+    display: block;
+  }
+
+  /* ── Editor ── */
+
+  #editor {
+    padding: 24px 16px 60px;
+    font-size: 16px;
+  }
+
+  #editor-placeholder {
+    padding: 0 16px;
+    font-size: 16px;
+    top: 24px;
+  }
+
+  #editor-toolbar { padding: 4px 6px; gap: 1px; }
+  .fmt-btn        { width: 32px; height: 32px; }
+
+  /* ── Touch targets ── */
+
+  .binder-item-row { min-height: 36px; }
+  .binder-action-btn { width: 28px; height: 28px; }
+}
