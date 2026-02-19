@@ -1,54 +1,62 @@
 # Zero Pro — Product Roadmap
 
-The project is structured into four phases, each delivering a usable, shippable product. Each phase builds on the last without requiring the next to be valuable.
+Each phase delivers a usable, shippable product. Phases build on each other but no phase requires the next to be valuable.
 
 | Phase | Timeline | Goal | Status |
 |---|---|---|---|
-| Phase 1 | Weeks 1–3 | Core editor with project binder and local storage | **Start Here** |
-| Phase 2 | Weeks 4–6 | Corkboard, outline view, and scene metadata | Next |
-| Phase 3 | Weeks 7–10 | AI writing assistant (Claude API integration) | Planned |
-| Phase 4 | Weeks 11–14 | Export, import, themes, and distribution | Future |
+| Phase 1 | Weeks 1–3 | Core editor, binder, local storage | **Done** |
+| Phase 2 | Weeks 4–6 | Corkboard, outline view, scene metadata | Next |
+| Phase 3 | Weeks 7–10 | AI writing assistant (Claude API) | Planned |
+| Phase 4 | Weeks 11–14 | Import/export, themes, App Store wrapper | Planned |
+| Phase 5 | Weeks 15–17 | Kindle & publishing support | Planned |
+| Phase 6 | Weeks 18–19 | Image import & media support | Planned |
+| Phase 7 | Weeks 20–22 | Nice-to-haves & UI polish | Planned |
+| Phase 8 | Weeks 23–26 | Cloud sync & real-time collaboration | Planned |
+| Phase 9 | Weeks 27–30 | UX modernisation & Android / PWA | Planned |
+| Phase 10 | Weeks 31–34 | Advanced writing tools | Planned |
+| Phase 11 | Weeks 35–38 | Quality of life & power features | Planned |
 
 ---
 
-## Phase 1 — The Writing Foundation _(Weeks 1–3)_
+## Phase 1 — The Writing Foundation _(Weeks 1–3)_ ✅
 
 **Goal:** A writer can open the app, create a project, organise it into chapters and scenes, write in a distraction-free editor, and come back the next day with everything intact.
 
 ### 1.1 Project Shell
-- [ ] `index.html` entry point with three-panel CSS Grid layout
-- [ ] Binder panel (left), Editor panel (centre), Inspector panel (right)
-- [ ] Collapsible panels — toggle binder and inspector independently
-- [ ] Dark mode / light mode toggle (CSS custom properties, respects OS preference)
-- [ ] Responsive single-panel layout for mobile
+- [x] `index.html` entry point with three-panel CSS Grid layout
+- [x] Binder panel (left), Editor panel (centre), Inspector panel (right)
+- [x] Collapsible panels — toggle binder and inspector independently
+- [x] Dark mode / light mode toggle (CSS custom properties, respects OS preference)
+- [x] Responsive single-panel layout for mobile
 
 ### 1.2 Data Model & Storage (`storage.js`)
-- [ ] Define the project JSON schema: `Project`, `Document`, `Settings`
-- [ ] `createProject()`, `loadProject()`, `saveProject()` functions
-- [ ] `createDocument()`, `updateDocument()`, `deleteDocument()` functions
-- [ ] Debounced autosave to `localStorage` on every edit
-- [ ] Load project on page open; handle empty state (new project prompt)
+- [x] Project JSON schema: `Project`, `Document`, `Settings`
+- [x] `createProject()`, `loadProject()`, `saveProject()` functions
+- [x] `createDocument()`, `updateDocument()`, `deleteDocument()` functions
+- [x] Debounced autosave to `localStorage` on every edit
+- [x] Load project on page open; handle empty state
 
 ### 1.3 Binder (`binder.js`)
-- [ ] Render the document tree from the project JSON
-- [ ] Add document / add folder buttons
-- [ ] Inline rename on double-click
-- [ ] Delete with confirmation (soft-delete to Trash)
-- [ ] Drag-and-drop reorder using Sortable.js
-- [ ] Expand / collapse folders; persist state in localStorage
-- [ ] SVG icons for folder vs scene vs trash
+- [x] Hierarchical document tree from project JSON
+- [x] Add document / add folder; inline rename on double-click
+- [x] Soft-delete to Trash with confirmation
+- [x] Drag-and-drop reorder using Sortable.js
+- [x] Expand / collapse folders; persist state in localStorage
+- [x] SVG icons for folder vs scene vs trash
 
 ### 1.4 Editor (`editor.js`)
-- [ ] `contenteditable` rich text area with formatting toolbar
-- [ ] Bold, italic, underline, strikethrough (keyboard shortcuts + buttons)
-- [ ] Heading styles H1–H3, paragraph, first-line indent
-- [ ] Live word count in status bar (updates on `input` event)
-- [ ] Typewriter / focus mode: blur paragraphs above and below cursor
-- [ ] Load selected binder document into editor; save on switch
+- [x] `contenteditable` rich text area with formatting toolbar
+- [x] Bold, italic, underline, strikethrough + keyboard shortcuts
+- [x] Heading styles H1–H3, paragraph
+- [x] Live word count in status bar
+- [x] Typewriter / focus mode: blur paragraphs above and below cursor
+- [x] Load selected document; autosave on switch
 
-### 1.5 Basic Export
-- [ ] Export current document as `.txt` (Blob download)
-- [ ] Export current document as `.md` (strip HTML tags, convert to Markdown)
+### 1.5 Export
+- [x] Export as `.txt` (Blob download)
+- [x] Export as `.md` (HTML → Markdown conversion)
+- [x] Export as `.docx` (html-docx-js via CDN)
+- [x] Export as `.doc` (RTF format, opened natively by Word)
 
 ---
 
@@ -58,9 +66,9 @@ The project is structured into four phases, each delivering a usable, shippable 
 
 ### 2.1 Corkboard (`corkboard.js`)
 - [ ] CSS Grid index-card layout for all scenes in the selected folder
-- [ ] Each card shows: title, synopsis (editable inline), word count badge
+- [ ] Each card: title, synopsis (editable inline), word count badge
 - [ ] Colour label strip across the top of each card
-- [ ] Drag-and-drop reorder cards; sync order back to binder tree
+- [ ] Drag-and-drop reorder; sync order back to binder tree
 - [ ] Click card to open scene in editor
 - [ ] Card zoom slider (CSS variable for card width)
 
@@ -68,25 +76,24 @@ The project is structured into four phases, each delivering a usable, shippable 
 - [ ] Table layout: title, synopsis, status, word count, label columns
 - [ ] Collapsible folder rows
 - [ ] Inline synopsis editing (click cell to edit)
-- [ ] Status dropdown per row: Not Started / Draft / Revised / Final
+- [ ] Status dropdown: Not Started / Draft / Revised / Final
 - [ ] Target word count column with progress bar
 
 ### 2.3 Inspector Panel (`inspector.js`)
 - [ ] Document tab: title, synopsis, status, label, POV, location, keywords
-- [ ] Project tab: author, working title, genre, total word count, deadline
+- [ ] Project tab: author, title, genre, total word count, deadline
 - [ ] All fields save back to the document JSON on change
 
 ### 2.4 Writing Targets
 - [ ] Per-document target word count with progress bar in inspector
-- [ ] Project-level target with progress bar in status bar
-- [ ] Deadline mode: calculate words-per-day needed and display in status bar
-- [ ] Writing session timer: tracks words written since the editor was opened
-- [ ] Daily word count tracker with streak indicator
+- [ ] Project-level target in status bar
+- [ ] Deadline mode: words-per-day calculation
+- [ ] Writing session timer; daily word count tracker with streak
 
 ### 2.5 Project Notes Panel
-- [ ] Freeform notes panel (separate from the binder) for world-building and research
-- [ ] Persisted in the project JSON under a `notes` key
-- [ ] Basic formatting (bold, italic, headings) using the same editor component
+- [ ] Freeform notes (world-building, research) separate from the binder
+- [ ] Persisted under a `notes` key in the project JSON
+- [ ] Uses the same editor component (bold, italic, headings)
 
 ---
 
@@ -95,30 +102,28 @@ The project is structured into four phases, each delivering a usable, shippable 
 **Goal:** A Claude-powered sidebar that acts as an intelligent creative partner. No backend — the user supplies their own Anthropic API key.
 
 ### 3.1 API Key Setup
-- [ ] Settings panel with API key input field
-- [ ] Store key in `localStorage` (warn user it is stored locally)
+- [ ] Settings panel with API key input
+- [ ] Store key in `localStorage` with a local-storage warning
 - [ ] Validate key on entry with a test request; show status indicator
 - [ ] Clear key button
 
 ### 3.2 Ask Claude Sidebar (`ai.js`)
-- [ ] Collapsible sidebar panel with a prompt input and response area
-- [ ] Send selected editor text + surrounding paragraph as context with every request
-- [ ] Streaming response display (Anthropic streaming API)
-- [ ] Insert response into document at cursor with one click
-- [ ] Copy response to clipboard button
+- [ ] Collapsible sidebar: prompt input and streaming response display
+- [ ] Send selected text + surrounding paragraph as context
+- [ ] Insert response at cursor; copy to clipboard
+- [ ] Token count estimate before sending
 
 ### 3.3 Prompt Templates
 - [ ] Scene brainstorming: "Give me 5 ways this scene could go differently"
-- [ ] Prose polish: rewrite selection in tighter prose / different tone / simpler language
-- [ ] Continue writing: generate the next 200 words in the author's established style
-- [ ] Character voice check: compare selected dialogue against the character's profile notes
-- [ ] Plot summary: summarise the full manuscript chapter by chapter
-- [ ] Name generator: suggest genre-appropriate names for characters and places
+- [ ] Prose polish: rewrite in tighter prose / different tone / simpler language
+- [ ] Continue writing: generate next 200 words in the author's style
+- [ ] Character voice check: compare dialogue against character profile notes
+- [ ] Plot summary: summarise full manuscript chapter by chapter
+- [ ] Name generator: genre-appropriate characters and places
 
 ### 3.4 Context Management
-- [ ] Include the active document title and synopsis in every request
+- [ ] Include active document title + synopsis in every request
 - [ ] Option to include the full project synopsis for plot-level requests
-- [ ] Token count estimate shown before sending a request
 - [ ] Configurable context window (include N previous scenes)
 
 ---
@@ -128,45 +133,263 @@ The project is structured into four phases, each delivering a usable, shippable 
 **Goal:** Writers can move their work in and out of Zero Pro in every format they need, and the app is ready for broader distribution.
 
 ### 4.1 Import (`import.js`)
-- [ ] Import `.txt` — creates a new binder document, preserves paragraph breaks
-- [ ] Import `.md` — converts Markdown headings to scene/chapter structure
-- [ ] Import `.docx` — strip Word XML, extract plain text (use `mammoth.js`, ~40KB)
-- [ ] Import `.doc` — convert via mammoth.js where supported; fallback to plain text
-- [ ] Import from Google Docs — paste-from-clipboard flow (Google Docs clipboard is rich HTML; sanitise with DOMPurify and convert)
-- [ ] Paste-and-split: paste large text and split into scenes on a chosen delimiter (e.g. `###`)
-- [ ] Import entire project from `.zeropro` JSON backup file
+- [ ] Import `.txt` — preserves paragraph breaks
+- [ ] Import `.md` — converts headings to scene/chapter structure
+- [ ] Import `.docx` / `.doc` — via mammoth.js (~40KB)
+- [ ] Import from Google Docs — clipboard paste flow (DOMPurify sanitise)
+- [ ] Paste-and-split: split pasted text into scenes on a delimiter
+- [ ] Import entire project from `.zeropro` JSON backup
 
-### 4.2 Export (`export.js`)
-- [ ] Export as `.txt` — plain text, one scene per section, configurable separator
-- [ ] Export as `.md` — Markdown with heading hierarchy matching binder structure
-- [ ] Export as `.docx` — formatted manuscript using `docx.js` (~60KB); double-spaced, 12pt Times, running headers
-- [ ] Export as `.doc` — convert DOCX blob to legacy format via a lightweight shim (best-effort)
-- [ ] Export to Google Docs — copy rich HTML to clipboard with instructions, or open Google Docs import flow via URL scheme
-- [ ] Export as PDF — CSS `@media print` stylesheet in standard submission format; trigger browser print dialog
-- [ ] Export as HTML — self-contained single file with inline styles
-- [ ] Compile entire manuscript: choose which documents to include, set separator style, prepend title page
+### 4.2 Full Compile & Export
+- [ ] Compile settings UI: include/exclude documents, separator style
+- [ ] Front matter template: title page with author, title, word count
+- [ ] Export compiled manuscript as `.txt`, `.md`, `.docx`, `.doc`
+- [ ] Export as PDF via CSS `@media print` stylesheet (submission format)
+- [ ] Export as self-contained HTML file
+- [ ] Export to Google Docs — rich HTML clipboard + URL scheme
 - [ ] Export entire project as `.zeropro` JSON backup
 
-### 4.3 Manuscript Formatter
-- [ ] Compile settings UI: include/exclude documents, section separator (`***` / blank line / page break)
-- [ ] Front matter template: title page with author name, title, word count, contact info
-- [ ] Strip AI annotations and comments from compiled output
-- [ ] Preview pane before download
-
-### 4.4 Themes & Polish
+### 4.3 Themes & Polish
 - [ ] Typeface selector: Georgia (serif), Arial (sans), Courier (mono)
-- [ ] Font size and line height controls (CSS variable sliders)
+- [ ] Font size and line height sliders (CSS variables)
 - [ ] Sepia / warm paper theme
-- [ ] Custom accent colour (HSL hue slider)
-- [ ] Ambient sound player: rain, café, white noise (Web Audio API)
-- [ ] Service worker for offline caching of all app assets
-- [ ] Multiple project workspaces (switch projects without clearing localStorage)
+- [ ] Service worker for full offline caching
+- [ ] Multiple project workspaces
 
-### 4.5 Distribution
-- [ ] iOS App Store version: WKWebView wrapper in Xcode, packaged as a native app
-- [ ] Optional Pro tier backend: cloud sync via Supabase or Cloudflare Workers
-- [ ] Ko-fi / Buy Me a Coffee integration in the app footer
+### 4.4 Distribution
+- [ ] iOS App Store: WKWebView wrapper in Xcode
+- [ ] Optional Pro tier backend: Supabase or Cloudflare Workers
+- [ ] Ko-fi / Buy Me a Coffee in the app footer
 - [ ] In-app changelog and version display
+
+---
+
+## Phase 5 — Kindle & Publishing Support _(Weeks 15–17)_
+
+**Goal:** Writers can go directly from Zero Pro to publishing on Amazon KDP, IngramSpark, or self-publishing platforms without needing a separate tool.
+
+### 5.1 EPUB Export (`epub.js`)
+- [ ] Package the compiled manuscript as a valid `.epub` file (client-side, using epub.js or a custom ZIP builder)
+- [ ] Embed cover image, table of contents, chapter metadata
+- [ ] Validate output against EPUB 3 spec
+- [ ] Preview EPUB in-browser before download
+
+### 5.2 Kindle Export
+- [ ] Export `.mobi`-compatible format (EPUB 2 subset that KDP accepts)
+- [ ] Guide modal: "How to upload to Amazon KDP" — step-by-step in-app walkthrough
+- [ ] KDP formatting checklist: font requirements, chapter breaks, front/back matter
+- [ ] Generate KDP-ready cover page template
+
+### 5.3 Publishing Help Modals
+- [ ] **KDP Wizard** — one-click formatting for Amazon Kindle Direct Publishing; sets margins, fonts, drop-caps, chapter headings to KDP standards
+- [ ] **IngramSpark Wizard** — print-on-demand formatting: bleed, trim size, page numbering, ISBN placeholder
+- [ ] **Submission Formatter** — literary agent standard format: 12pt Times, double-spaced, 1" margins, header with author/title/page
+- [ ] **Self-Publishing Checklist** — interactive modal checklist covering editing, cover, ISBN, distribution, pricing
+- [ ] **Genre Style Guides** — quick-reference modals for Romance, Thriller, Literary Fiction, Non-fiction formatting conventions
+
+### 5.4 Front & Back Matter Templates
+- [ ] Title page, copyright page, dedication, acknowledgements templates
+- [ ] "Also by this author" back matter template
+- [ ] Author bio template
+
+---
+
+## Phase 6 — Image Import & Media Support _(Weeks 18–19)_
+
+**Goal:** Writers can include images in their documents — useful for non-fiction, illustrated novels, and research notes.
+
+### 6.1 Image Import (`media.js`)
+- [ ] Drag-and-drop images into the editor (JPEG, PNG, WebP, GIF)
+- [ ] Click-to-insert via file picker button in the editor toolbar
+- [ ] Paste images from clipboard (screenshots, copied web images)
+- [ ] Images stored as base64 data URLs in the document JSON
+- [ ] Warn when a document exceeds 5MB due to embedded images
+
+### 6.2 Image Management in Editor
+- [ ] Click image to show resize handles (CSS resize or drag corners)
+- [ ] Set image alignment: inline / float-left / float-right / centred
+- [ ] Add alt-text for accessibility and EPUB metadata
+- [ ] Delete image with the Delete key when selected
+- [ ] Images stripped from plain-text export; preserved in HTML, EPUB, DOCX
+
+### 6.3 Research Image Binder Items
+- [ ] New binder item type: `image` — stores a single image with a caption
+- [ ] Image items display in a lightbox when clicked from the binder
+- [ ] Drag an image binder item into the editor to embed it
+- [ ] Research folder: grouping for image and web-clipping items
+
+### 6.4 Web Clipping (Basic)
+- [ ] Paste a URL → fetch page title and a text snippet (CORS-permitting)
+- [ ] Store clippings as research binder items with source URL
+- [ ] Clippings are never compiled into the manuscript
+
+---
+
+## Phase 7 — Nice-to-Haves & UI Polish _(Weeks 20–22)_
+
+**Goal:** Elevate Zero Pro from functional to delightful by shipping all the quality-of-life and "Nice to Have" items from the feature spec.
+
+### 7.1 Editor Polish
+- [ ] Find & Replace panel — regex-capable, search within the open document
+- [ ] Full project search — search across all documents, jump to result
+- [ ] Revision history / snapshots — named point-in-time saves per document
+- [ ] Snapshot diff view — side-by-side colour-coded comparison
+- [ ] Format paint — copy inline styles from one selection to another
+- [ ] Spellcheck language selector (supplement browser native spellcheck)
+
+### 7.2 Binder Polish
+- [ ] Colour-coded labels — pick from a palette, show as dot on binder row
+- [ ] Duplicate document — clone with new ID, append "Copy" to title
+- [ ] Multi-select — Shift+click, then drag as a group or bulk-label
+- [ ] Right-click context menu — rename, duplicate, label, delete
+
+### 7.3 Corkboard Polish
+- [ ] Card zoom slider — CSS variable for card width
+- [ ] Split corkboard — show two folders side-by-side
+- [ ] Status indicator on each card — draft / revised / final dot
+
+### 7.4 Ambient & Atmosphere
+- [ ] Ambient sound player: rain, café, white noise, fireplace (Web Audio API or small embedded audio)
+- [ ] Custom accent colour (HSL hue slider — single CSS variable)
+- [ ] Writing streak calendar (local, no backend required)
+
+### 7.5 Command Palette
+- [ ] `Ctrl/Cmd+K` command palette — fuzzy-search any action or document
+- [ ] Recent documents section
+- [ ] Actions: new document, toggle theme, export, open settings
+
+---
+
+## Phase 8 — Cloud Sync & Real-Time Collaboration _(Weeks 23–26)_
+
+**Goal:** Give writers a way to access their projects on any device and collaborate with co-authors or editors in real time — the most-requested gap vs. Scrivener.
+
+### 8.1 Native Cloud Sync (`sync.js`)
+- [ ] Optional account system (Supabase Auth — email + magic link, no password required)
+- [ ] Projects stored in Supabase Postgres; sync on every save (debounced)
+- [ ] Conflict resolution: last-write-wins with a "merge conflict" modal for manual resolution
+- [ ] Sync status indicator in the toolbar (synced / syncing / offline)
+- [ ] iCloud Drive integration via File System Access API (iOS Safari / macOS)
+- [ ] Google Drive integration via Google Drive Picker API (optional)
+
+### 8.2 Offline-First Architecture
+- [ ] Service worker caches all app assets on first load
+- [ ] IndexedDB as offline queue — writes accumulate offline, flush on reconnect
+- [ ] Visual indicator when operating offline
+- [ ] No data loss if the browser closes while offline
+
+### 8.3 Real-Time Collaboration (`collab.js`)
+- [ ] Share a project via a URL containing a room token
+- [ ] Live cursor presence: see collaborator names and cursor positions
+- [ ] Operational Transform (OT) or CRDT conflict resolution (use Yjs — ~70KB)
+- [ ] Collaborator permission levels: Owner / Editor / Commenter / Viewer
+- [ ] In-document comments tied to a specific text range (like Google Docs)
+- [ ] Typing presence indicator ("Aisha is writing…") in the status bar
+
+### 8.4 Android & Progressive Web App (PWA)
+- [ ] Full PWA manifest: installable on Android home screen from Chrome
+- [ ] Service worker + cache strategy for app shell + project data
+- [ ] Touch-optimised gestures: swipe left/right to switch panels
+- [ ] Tested on Samsung Galaxy, Pixel, and Chrome on Chromebook
+
+---
+
+## Phase 9 — UX Modernisation _(Weeks 27–30)_
+
+**Goal:** Close the UX gaps that make Scrivener frustrating — simplified compile, unified settings, better theming, and first-class support for Markdown writers.
+
+### 9.1 Simplified Compile Wizard
+- [ ] "One-Click Publish" presets: KDP Novel, Print-on-Demand, Agent Submission, Web Article
+- [ ] WYSIWYG compile preview: see exactly what the output will look like before downloading
+- [ ] Step-by-step wizard UI instead of the raw settings panel
+- [ ] Save custom compile presets by name
+
+### 9.2 Centralised Settings
+- [ ] Settings modal with a search bar — type to find any preference
+- [ ] Sections: Editor · Binder · Themes · Export · Sync · AI · Account
+- [ ] All settings stored in the project JSON `settings` key + a global user preferences key
+- [ ] Import / export settings as a JSON file (for use across devices)
+
+### 9.3 Advanced Theming
+- [ ] Per-panel background colour control (binder, editor, inspector independently)
+- [ ] Custom UI icon pack support (swap SVG icon set via a settings JSON)
+- [ ] Sidebar colour palette: change binder/inspector background independently of editor
+- [ ] "Pure dark" mode — true `#000000` for OLED screens
+- [ ] Font pairing: choose separate fonts for UI chrome and editor body
+
+### 9.4 Native Markdown Mode
+- [ ] Toggle per-document between Rich Text mode and Markdown mode
+- [ ] Live preview: left pane shows Markdown source, right pane shows rendered output
+- [ ] Markdown documents stored as plain text in the JSON (not HTML)
+- [ ] Syntax highlighting for Markdown source (Prism.js or a lightweight equivalent)
+- [ ] Export Markdown documents with no conversion needed
+
+---
+
+## Phase 10 — Advanced Writing & Editing Tools _(Weeks 31–34)_
+
+**Goal:** Bring research, annotation, and grammar tools inside the app so writers never have to leave to use ProWritingAid, PDF viewers, or separate note-taking apps.
+
+### 10.1 AI Grammar & Style Assistant
+- [ ] Grammar and style checking via Claude API (user's own key)
+- [ ] Inline underlines for grammar errors, style suggestions, and pacing issues
+- [ ] "Explain this suggestion" — Claude explains why a change is recommended
+- [ ] Tone analyser: detect dominant tone per scene (tense / relaxed / humorous / dark)
+- [ ] Readability score (Flesch-Kincaid) displayed in inspector
+- [ ] Batch style-check: scan the entire manuscript and produce a report
+
+### 10.2 PDF Annotation (Research Documents)
+- [ ] Import PDF research files into the binder as `pdf` items
+- [ ] Render PDFs in-browser using PDF.js (open source, ~300KB)
+- [ ] Highlight passages with colour-coded highlights
+- [ ] Attach margin notes / sticky notes to highlighted passages
+- [ ] Annotations stored in the project JSON alongside the PDF reference
+- [ ] Annotated PDFs viewable in the inspector alongside the active document
+
+### 10.3 Global Snapshot Search
+- [ ] Search across all snapshots in the project for a string
+- [ ] Results show: document name, snapshot name, date, matching line in context
+- [ ] Restore a single paragraph from a snapshot without replacing the whole document
+- [ ] Snapshot browser: browse all versions of a document with dates and word counts
+
+### 10.4 Visual Timeline View (`timeline.js`)
+- [ ] Horizontal timeline that maps scenes based on a date/time field in metadata
+- [ ] Drag scenes along the timeline to reorder them chronologically
+- [ ] Multiple character tracks: see POV character scenes as coloured lanes
+- [ ] Scene duration visualised as card width (set via a "duration" metadata field)
+- [ ] Toggle between story order and chronological order
+
+---
+
+## Phase 11 — Quality of Life & Power Features _(Weeks 35–38)_
+
+**Goal:** Final polish, power-user tools, and the features that make writers feel like Zero Pro was built specifically for them.
+
+### 11.1 Writing Statistics Dashboard
+- [ ] Historical word count graph: daily / weekly / monthly (stored in localStorage)
+- [ ] Longest writing streak and current streak
+- [ ] Per-project writing velocity: average words per session
+- [ ] Export statistics as a CSV
+
+### 11.2 Cross-Device & Cross-Platform Experience
+- [ ] Unified sync account — write on iPhone, continue on desktop, same state
+- [ ] Optimised iPhone Safari layout: tap binder icon to slide in, full-screen editor
+- [ ] Keyboard shortcut reference panel (Ctrl/Cmd+?)
+- [ ] Customisable keyboard shortcuts (store overrides in settings JSON)
+
+### 11.3 Automation & Scripting (Power Users)
+- [ ] Zapier / Make webhook triggers: "on project save", "on target reached"
+- [ ] Export trigger: auto-export to a Dropbox or Google Drive folder on save (via their APIs)
+- [ ] Custom prompt library: save and reuse personal Claude prompt templates
+- [ ] Batch rename scenes using a pattern (e.g. "Chapter {n} — {title}")
+
+### 11.4 Accessibility & Internationalisation
+- [ ] Full keyboard navigation audit — every action reachable without a mouse
+- [ ] Screen reader testing pass (NVDA + VoiceOver)
+- [ ] ARIA live regions for dynamic content (word count, sync status)
+- [ ] RTL language support (Arabic, Hebrew) via `dir="rtl"` on the editor
+- [ ] UI string externalisation into `strings.js` for future translation
+- [ ] High-contrast mode (WCAG AA compliant)
 
 ---
 
@@ -174,33 +397,38 @@ The project is structured into four phases, each delivering a usable, shippable 
 
 | Session | Focus |
 |---|---|
-| 1 | HTML shell, CSS layout (three panels, dark/light mode) |
-| 2 | localStorage data model, project CRUD functions |
-| 3 | Binder tree with add/rename/delete/reorder |
-| 4 | Rich text editor with formatting toolbar and autosave |
-| 5 | Word count, focus mode, typewriter mode |
+| 1–2 | HTML shell, CSS layout, data model ✅ |
+| 3–4 | Binder tree, rich text editor ✅ |
+| 5 | Word count, focus mode, export (.txt .md .docx .doc) ✅ |
 | 6 | Corkboard — card grid, drag to reorder, colour labels |
 | 7 | Outline view — table layout, inline editing |
 | 8 | Inspector panel — metadata, synopsis, status, targets |
-| 9 | Import/export (.txt, .md, .docx, Google Docs, JSON backup) |
-| 10 | Claude API integration — sidebar, prompt templates |
+| 9 | Claude API sidebar, prompt templates |
+| 10 | Import (mammoth.js), compile, full export pipeline |
+| 11 | EPUB + Kindle export, publishing help modals |
+| 12 | Image import, base64 storage, editor embed |
+| 13 | Nice-to-haves: find/replace, snapshots, command palette |
+| 14 | Cloud sync (Supabase), offline queue (IndexedDB) |
+| 15 | Real-time collaboration (Yjs) |
+| 16 | PWA manifest, Android testing |
+| 17 | Compile wizard, settings search, advanced theming |
+| 18 | Native Markdown mode with live preview |
+| 19 | Grammar/style AI, PDF annotation (PDF.js) |
+| 20 | Timeline view, snapshot search, statistics dashboard |
 
 ---
 
 ## Post-Launch Backlog
 
-- **Real-time collaboration** — shared editing via WebRTC or a lightweight WebSocket server
-- **Writing statistics** — historical word count graphs and streak tracking
-- **Scratchpad** — persistent floating notepad independent of the binder
-- **Plugin API** — allow third-party extensions to add binder item types or export formats
-- **Text-to-speech** — read back the current document using the Web Speech API
-- **Writing prompts** — built-in prompt generator to help beat writer's block
-- **EPUB export** — package the compiled manuscript as an `.epub` file
 - **Fountain / Final Draft support** — screenplay formatting mode
-- **Split corkboard** — show two folders side-by-side
+- **Plugin API** — third-party extensions for binder item types and export formats
+- **Text-to-speech** — read back the current document using the Web Speech API
+- **Writing prompts** — built-in prompt generator for writer's block
+- **Zapier integration** — trigger automations on project events
+- **Universal cross-platform licence** — one account, all platforms
 
 ---
 
 ## Contributing
 
-Open an issue on GitHub with the `roadmap` label to suggest new features or vote on existing ones. Bug reports and pull requests are welcome at any phase.
+Open an issue with the `roadmap` label to suggest new features or vote on existing ones. Bug reports and pull requests are welcome at any phase.
