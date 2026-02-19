@@ -1,7 +1,7 @@
 // sw.js — Service Worker: cache-first offline support for Zero Pro
 // Paths are relative to this file's location (docs/)
 
-const CACHE    = 'zeropro-v1';
+const CACHE    = 'zeropro-v2';
 const CDN_URLS = [
   'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js',
   'https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js',

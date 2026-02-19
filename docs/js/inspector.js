@@ -53,6 +53,7 @@ export function updateInspector(project, doc) {
   _doc     = doc;
   _populateDocTab();
   _populateProjectTab();
+  _populateEditingTab();
 }
 
 // ─── UI Construction ──────────────────────────────────────────────────────────
@@ -67,6 +68,8 @@ function _buildUI() {
               aria-selected="true"  aria-controls="inspector-doc-tab">Document</button>
       <button class="inspector-tab"        role="tab" data-tab="project"
               aria-selected="false" aria-controls="inspector-project-tab">Project</button>
+      <button class="inspector-tab"        role="tab" data-tab="editing"
+              aria-selected="false" aria-controls="inspector-editing-tab">Editing</button>
     </div>
 
     <!-- Document tab -->
@@ -75,6 +78,18 @@ function _buildUI() {
         Select a document to view its details.
       </div>
       <div id="inspector-doc-fields" class="inspector-fields hidden">
+
+        <!-- Word & character count stats -->
+        <div class="insp-stats-grid">
+          <div class="insp-stat-cell">
+            <span id="insp-word-count" class="insp-stat-value">—</span>
+            <span class="insp-stat-name">Words</span>
+          </div>
+          <div class="insp-stat-cell">
+            <span id="insp-char-count" class="insp-stat-value">—</span>
+            <span class="insp-stat-name">Chars</span>
+          </div>
+        </div>
 
         <div class="inspector-field">
           <label class="inspector-label" for="insp-synopsis">Synopsis</label>
@@ -157,7 +172,82 @@ function _buildUI() {
 
       </div>
     </div>
+
+    <!-- Editing tab -->
+    <div id="inspector-editing-tab" class="inspector-panel hidden" role="tabpanel">
+      <div id="editing-no-doc" class="inspector-empty">
+        Select a document to view editing suggestions.
+      </div>
+      <div id="editing-doc-content" class="hidden">
+
+        <div class="editing-score-header">
+          <div class="editing-ring-wrap">
+            <svg class="editing-ring-svg" viewBox="0 0 56 56" aria-hidden="true">
+              <circle class="editing-ring-track" cx="28" cy="28" r="22"/>
+              <circle class="editing-ring-fill"  cx="28" cy="28" r="22"/>
+            </svg>
+            <span class="editing-ring-label">—</span>
+          </div>
+          <div class="editing-score-meta">
+            <div class="editing-score-title">Writing Score</div>
+            <div class="editing-score-sub">Analyse to reveal your score</div>
+          </div>
+        </div>
+
+        <div class="editing-cta-wrap">
+          <button class="editing-cta-btn" disabled title="Coming soon — AI-powered writing analysis">
+            <span>Analyse Writing</span>
+            <span class="editing-soon-badge">Coming Soon</span>
+          </button>
+        </div>
+
+        <div class="editing-cat-list" id="editing-cat-list"></div>
+
+        <p class="editing-note">
+          Professional editing analysis — grammar, style, readability,
+          pacing, consistency, and dialogue checks. Powered by AI,
+          inspired by ProWritingAid.
+        </p>
+
+      </div>
+    </div>
   `;
+
+  // Build editing category rows
+  const EDITING_CATS = [
+    { icon: '✓', name: 'Grammar',     hint: 'Errors & corrections' },
+    { icon: '◈', name: 'Style',       hint: 'Improvements & clarity' },
+    { icon: '◎', name: 'Readability', hint: 'Flesch-Kincaid level' },
+    { icon: '▸', name: 'Pacing',      hint: 'Scene rhythm & tension' },
+    { icon: '⟳', name: 'Consistency', hint: 'Names, facts, repetition' },
+    { icon: '❝', name: 'Dialogue',    hint: 'Tags & punctuation' },
+  ];
+  const catList = document.getElementById('editing-cat-list');
+  if (catList) {
+    EDITING_CATS.forEach(cat => {
+      const row = document.createElement('div');
+      row.className = 'editing-cat-row';
+
+      const iconEl = document.createElement('span');
+      iconEl.className   = 'editing-cat-icon';
+      iconEl.textContent = cat.icon;
+      iconEl.setAttribute('aria-hidden', 'true');
+
+      const bodyEl = document.createElement('span');
+      bodyEl.className = 'editing-cat-body';
+      bodyEl.innerHTML = `<span class="editing-cat-name">${cat.name}</span>
+                          <span class="editing-cat-hint">${cat.hint}</span>`;
+
+      const scoreEl = document.createElement('span');
+      scoreEl.className   = 'editing-cat-score';
+      scoreEl.textContent = '—';
+
+      row.appendChild(iconEl);
+      row.appendChild(bodyEl);
+      row.appendChild(scoreEl);
+      catList.appendChild(row);
+    });
+  }
 
   // Populate status <select>
   const statusSel = document.getElementById('insp-status');
@@ -242,6 +332,12 @@ function _populateDocTab() {
   noDoc?.classList.add('hidden');
   fields?.classList.remove('hidden');
 
+  // Word count & character count stats
+  const wc    = _doc.wordCount || 0;
+  const chars = _charCount(_doc.content);
+  _setText('insp-word-count', wc.toLocaleString());
+  _setText('insp-char-count', chars.toLocaleString());
+
   _setVal('insp-synopsis', _doc.synopsis || '');
   _setVal('insp-status',   _doc.status   || 'draft');
   _setVal('insp-label',    _doc.label    || '');
@@ -298,6 +394,14 @@ function _updateTargetProgress() {
   label.textContent = `${count.toLocaleString()} / ${target.toLocaleString()} words (${pct}%)`;
 }
 
+function _populateEditingTab() {
+  const noDoc  = document.getElementById('editing-no-doc');
+  const docEl  = document.getElementById('editing-doc-content');
+  const hasDoc = !!(_doc && _doc.type === 'doc');
+  noDoc?.classList.toggle('hidden',  hasDoc);
+  docEl?.classList.toggle('hidden', !hasDoc);
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function _save(key, value) {
@@ -331,4 +435,11 @@ function _fmtDate(ts) {
   return new Date(ts).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
   });
+}
+
+/** Count visible characters (no whitespace) from HTML content */
+function _charCount(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+  return (tmp.innerText || tmp.textContent || '').replace(/\s/g, '').length;
 }
