@@ -1,160 +1,112 @@
-# Zero Pro — Roadmap
+# Zero Pro — Product Roadmap
 
-This document tracks the planned development of Zero Pro from its initial proof-of-concept through a mature, feature-complete writing environment. Milestones are organized by version. Features within each milestone are prioritized roughly from top to bottom.
+The project is structured into four phases, each delivering a usable, shippable product. Each phase builds on the last without requiring the next to be valuable.
 
----
-
-## v0.1 — Proof of Concept _(current)_
-
-The goal of v0.1 is a working skeleton: a writer can open the app, create a document, write in it, and have their work saved automatically.
-
-- [x] Static GitHub Pages deployment
-- [x] Single-document rich text editor (contenteditable)
-- [x] Bold, italic, underline keyboard shortcuts
-- [x] Auto-save to `localStorage`
-- [x] Basic light and dark themes
-- [x] Live word count in status bar
+| Phase | Timeline | Goal | Status |
+|---|---|---|---|
+| Phase 1 | Weeks 1–3 | Core editor with project binder and local storage | **Start Here** |
+| Phase 2 | Weeks 4–6 | Corkboard, outline view, and scene metadata | Next |
+| Phase 3 | Weeks 7–10 | AI writing assistant (Claude API integration) | Planned |
+| Phase 4 | Weeks 11–14 | Export, themes, and App Store wrapper (WKWebView) | Future |
 
 ---
 
-## v0.2 — The Binder
+## Phase 1 — The Writing Foundation _(Weeks 1–3)_
 
-Introduce multi-document support so writers can organize a real project.
+The goal of Phase 1 is to make Zero Pro genuinely useful as a daily writing tool before any of the 'fancy' features are added. A writer should be able to create a project, organise it into chapters and scenes, write in a distraction-free editor, and come back the next day with everything intact.
 
-- [ ] Binder sidebar with document tree
-- [ ] Create, rename, delete, and reorder documents
-- [ ] Folder support (nested documents)
-- [ ] Switch between documents without losing scroll position
-- [ ] Per-document auto-save
-- [ ] Document icons (scene, folder, research, trash)
-- [ ] Soft-delete to Trash with restore
-
----
-
-## v0.3 — Project Files and Export
-
-Make projects portable and give writers a way to deliver their work.
-
-- [ ] Save and open `.zeropro` project files using the File System Access API
-- [ ] Export active document to `.txt` and `.md`
-- [ ] Export full manuscript (compile) to `.txt` with configurable section separators
-- [ ] Import `.txt` and `.md` files as new binder documents
-- [ ] Paste-and-split: split pasted text into scenes on a chosen delimiter
+- [ ] Three-panel layout: Binder (left), Editor (centre), Inspector (right)
+- [ ] Binder: hierarchical project tree — folders (Parts/Acts), documents (Chapters), subdocuments (Scenes)
+- [ ] Rich text editor with basic formatting: bold, italic, heading styles, paragraph indent
+- [ ] Word count per document and project total
+- [ ] localStorage persistence — projects survive browser refresh
+- [ ] Export single document as plain text
+- [ ] Focus / typewriter mode — dims everything except the current paragraph
+- [ ] Dark mode and light mode toggle
 
 ---
 
-## v0.4 — Writing Tools
+## Phase 2 — The Corkboard & Structure _(Weeks 4–6)_
 
-Tools that help writers produce and revise more effectively.
+Phase 2 adds the visual planning tools that set Zero Pro apart from a simple editor. The corkboard is Scrivener's most iconic feature and Zero Pro's opportunity to do it better on the web.
 
-- [ ] Session word count (resets on new session)
-- [ ] Daily writing goal with progress indicator
-- [ ] Project-level word count target and deadline mode
-- [ ] Find and replace (single document)
-- [ ] Snapshots: named point-in-time saves per document
-- [ ] Snapshot diff view (side-by-side with color coding)
-
----
-
-## v0.5 — Views and Metadata
-
-Give writers multiple ways to see and organize their work.
-
-- [ ] Corkboard view (index-card layout) for folder contents
-- [ ] Outliner view (table) with title, synopsis, status, word count columns
-- [ ] Per-document metadata: synopsis, status, label, keywords
-- [ ] Color labels in binder and corkboard
-- [ ] Inspector panel (document tab): metadata and synopsis editor
-- [ ] Writing status values: To Do, In Progress, Done, Revised
+- [ ] Corkboard view: drag-and-drop index cards for each scene
+  - Cards show title, synopsis, and word count badge
+  - Colour-coded labels (e.g., POV character, act, status)
+  - Tap to open scene directly in editor
+- [ ] Outline view: collapsible tree with inline synopses
+- [ ] Scene Inspector panel: status, POV, location, custom tags
+- [ ] Manuscript targets: set word count goals per chapter and project
+- [ ] Writing session timer and daily word count tracker
+- [ ] Project notes panel (world-building, research links, character notes)
 
 ---
 
-## v0.6 — Revision and Annotation
+## Phase 3 — AI Writing Assistant _(Weeks 7–10)_
 
-Tools for the editing and revision phase.
+Phase 3 integrates Claude via the Anthropic API to give writers an intelligent creative partner. This is a major differentiator — no Scrivener-tier tool offers this natively. The user supplies their own Anthropic API key; no backend is required.
 
-- [ ] Inline comments attached to text selections
-- [ ] Comment margin column (rendered alongside the editor)
-- [ ] Multi-color highlight mode
-- [ ] Inline annotations (bracketed, stripped at compile)
-- [ ] Project-wide find and replace with regex support
-- [ ] Format paint (copy inline styles between selections)
-
----
-
-## v0.7 — Advanced Compile and Import
-
-Expand export fidelity and import flexibility.
-
-- [ ] Export to `.docx` (Microsoft Word) via a client-side library
-- [ ] Export to PDF via browser print or client-side renderer
-- [ ] Compile settings UI: include/exclude documents, separator style, front matter
-- [ ] Import a folder of files as a structured binder
-- [ ] Compile preview pane
+- [ ] 'Ask Claude' sidebar: context-aware suggestions based on selected text
+- [ ] Scene brainstorming: 'Give me 5 ways this scene could go differently'
+- [ ] Character consistency checker: flag when a character acts out of established traits
+- [ ] Prose polish: rewrite a paragraph in a different style or tighten pacing
+- [ ] Plot hole detector: summarise the manuscript and flag logical gaps
+- [ ] Name generator for characters, places, organisations
+- [ ] 'Continue writing' mode: Claude writes the next 200 words in the author's style
+- [ ] API key settings panel (key stored in localStorage)
 
 ---
 
-## v0.8 — Polish and Performance
+## Phase 4 — Export, Polish & Distribution _(Weeks 11–14)_
 
-Make the app feel fast, stable, and accessible before public launch.
+Phase 4 prepares Zero Pro for broader distribution and optional monetisation.
 
-- [ ] Service worker for offline support and asset caching
-- [ ] Virtualized document list for projects with 500+ documents
-- [ ] Editor performance testing with 100k+ word documents
-- [ ] Full keyboard navigation audit
-- [ ] ARIA label and screen reader testing pass
-- [ ] Command palette (Ctrl/Cmd+K) for actions and document search
-- [ ] Customizable keyboard shortcuts
-- [ ] Layout presets (Writing mode, Revision mode, Research mode)
-
----
-
-## v0.9 — Beta
-
-Feature freeze for community testing. Focus on stability.
-
-- [ ] GitHub Actions CI: lint and run tests on every pull request
-- [ ] Automated deployment to GitHub Pages on merge to `main`
-- [ ] Unit tests for storage, compile, and binder logic
-- [ ] In-app changelog and version display
-- [ ] Bug bash with external testers
-- [ ] Documentation site (GitHub Pages, separate repo or `/docs`)
+- [ ] Export to: Markdown, plain text, HTML, formatted PDF (via print stylesheet)
+- [ ] Manuscript formatter: standard submission format (12pt Times, double-spaced, headers)
+- [ ] Multiple project workspaces
+- [ ] Cloud backup: export/import entire project as a single JSON file
+- [ ] Custom themes: font, line height, colour palette
+- [ ] iOS App Store version: WKWebView wrapper via Xcode
+- [ ] Optional Pro tier: sync via a simple backend (Supabase or Cloudflare Workers)
 
 ---
 
-## v1.0 — Public Launch
+## Claude Code Build Order
 
-A complete, stable, public writing tool.
+Recommended session sequence for building Zero Pro with Claude Code:
 
-- [ ] All v0.x features stable and documented
-- [ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
-- [ ] Mobile-responsive layout (read and light edit on phone)
-- [ ] Onboarding walkthrough for new users
-- [ ] Sample project included with the app
-- [ ] Public announcement and README update
+| Session | Focus |
+|---|---|
+| 1 | HTML shell, CSS layout (three panels, dark/light mode) |
+| 2 | localStorage data model, project CRUD functions |
+| 3 | Binder tree with add/rename/delete/reorder |
+| 4 | Rich text editor with formatting toolbar and autosave |
+| 5 | Word count, focus mode, typewriter mode |
+| 6 | Corkboard — card grid, drag to reorder, colour labels |
+| 7 | Outline view — table layout, inline editing |
+| 8 | Inspector panel — metadata, synopsis, status, targets |
+| 9 | Export functions (text, Markdown, JSON backup/restore) |
+| 10 | Claude API integration — sidebar, prompt templates |
 
 ---
 
-## Post-1.0 Ideas (Backlog)
+## Post-Launch Backlog
 
-These are ideas under consideration for after the 1.0 launch. They are not committed to any milestone.
+Ideas under consideration after the v1.0 release. Not committed to any phase.
 
-- **Cloud sync** — optional account-based sync via a minimal backend or a third-party storage provider (e.g., Dropbox API, GitHub Gists)
 - **Real-time collaboration** — shared editing via WebRTC or a lightweight WebSocket server
 - **Writing statistics** — historical word count graphs and streak tracking
-- **Name generator** — built-in name lists filterable by region and style
 - **Scratchpad** — persistent floating notepad independent of the binder
-- **Typewriter scrolling** — keep the active line centered on screen
-- **Custom themes** — user-defined color schemes with a theme editor
-- **Plugin API** — allow third-party extensions to add binder item types, export formats, or editor commands
-- **Distraction-free full-screen mode** — OS-level full screen with all UI hidden
+- **Typewriter scrolling** — keep the active line centred on screen
+- **Plugin API** — allow third-party extensions to add binder item types or export formats
 - **Text-to-speech** — read back the current document using the Web Speech API
 - **Writing prompts** — built-in prompt generator to help beat writer's block
-- **Epub export** — package the compiled manuscript as an `.epub` file
+- **EPUB export** — package the compiled manuscript as an `.epub` file
 - **Fountain / Final Draft support** — screenplay formatting mode
+- **Split corkboard** — show two folders side-by-side
 
 ---
 
 ## Contributing
 
-If you want to help shape the roadmap, open an issue on GitHub with the `roadmap` label. Bug reports, feature requests, and pull requests are welcome at any stage.
+Open an issue on GitHub with the `roadmap` label to suggest new features or vote on existing ones. Bug reports and pull requests are welcome at any phase.
