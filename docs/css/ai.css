@@ -402,3 +402,39 @@ details[open] .ai-settings-toggle::after { transform: rotate(90deg); }
   display: flex;
   gap: 6px;
 }
+
+/* ─── Provider selector ──────────────────────────────────────────────────────── */
+
+.ai-provider-selector {
+  display: flex;
+  gap: 3px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+
+.ai-provider-btn {
+  flex: 1;
+  padding: 5px 8px;
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 1px);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+
+.ai-provider-btn:hover  { background: var(--surface); color: var(--text); }
+.ai-provider-btn.active { background: var(--surface-alt); color: var(--accent); font-weight: 600; }
+
+/* Key hint note (step-by-step path) */
+.ai-settings-hint-note {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
