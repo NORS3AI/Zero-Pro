@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/corkboard.css">
   <link rel="stylesheet" href="css/outline.css">
   <link rel="stylesheet" href="css/inspector.css">
+  <link rel="stylesheet" href="css/ai.css">
 
   <!-- Sortable.js — drag-and-drop for the binder and corkboard -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -94,6 +95,14 @@
     <!-- Toggle inspector -->
     <button class="btn btn-icon" id="btn-toggle-inspector" title="Toggle Inspector" aria-label="Toggle Inspector">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3zm1 9v1a1 1 0 0 0 1 1h1v-2H2zm2 0v2h9v-2H3zm10 0v2h1a1 1 0 0 0 1-1v-1h-2zm2-1V4h-2v7h2zM1 11h2V4H1v7zm1-8v1h12V3a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1z"/></svg>
+    </button>
+
+    <span class="toolbar-sep"></span>
+
+    <!-- Ask Claude -->
+    <button class="btn" id="btn-ai" title="Ask Claude" aria-pressed="false">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm.5 12.5h-1v-5h1v5zm0-6.5h-1V4.5h1V6z"/></svg>
+      Ask Claude
     </button>
 
   </header><!-- /toolbar -->
@@ -215,6 +224,11 @@
       <div id="inspector-content">
         <!-- Populated by inspector.js on init -->
       </div>
+    </aside>
+
+    <!-- ── AI Sidebar (Far Right, hidden by default) ─────────────────────── -->
+    <aside id="ai-panel" aria-label="Ask Claude" aria-hidden="true">
+      <!-- Populated by ai.js on init -->
     </aside>
 
   </main><!-- /workspace -->

@@ -1,5 +1,5 @@
 // app.js — Application entry point and orchestration
-// Phase 2: Corkboard, Outline, Inspector
+// Phase 3: AI Writing Assistant
 
 import { loadProject, createProject, saveProject, getDocument } from './storage.js';
 import { applyTheme, toggleTheme, showToast, showPrompt } from './ui.js';
@@ -9,6 +9,7 @@ import { exportAsTxt, exportAsMd, exportAsDocx, exportAsDoc } from './export.js'
 import { initCorkboard, renderCorkboard } from './corkboard.js';
 import { initOutline, renderOutline } from './outline.js';
 import { initInspector, updateInspector } from './inspector.js';
+import { initAI, toggleAIPanel } from './ai.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -52,6 +53,11 @@ function init() {
   initInspector({
     onDocChange:     handleDocChange,
     onProjectChange: handleProjectChange,
+  });
+
+  initAI({
+    getProject:    () => state.project,
+    getCurrentDoc: () => currentDoc(),
   });
 
   // Render binder and open first document
@@ -154,6 +160,9 @@ function bindToolbar() {
   btn('btn-view-editor',    () => switchView('editor'));
   btn('btn-view-corkboard', () => switchView('corkboard'));
   btn('btn-view-outline',   () => switchView('outline'));
+
+  // AI panel
+  btn('btn-ai', () => toggleAIPanel());
 
   // Theme
   btn('btn-theme', () => {
