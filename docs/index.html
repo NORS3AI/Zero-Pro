@@ -9,8 +9,11 @@
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/sidebar.css">
   <link rel="stylesheet" href="css/editor.css">
+  <link rel="stylesheet" href="css/corkboard.css">
+  <link rel="stylesheet" href="css/outline.css">
+  <link rel="stylesheet" href="css/inspector.css">
 
-  <!-- Sortable.js — drag-and-drop for the binder -->
+  <!-- Sortable.js — drag-and-drop for the binder and corkboard -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <!-- html-docx-js — client-side HTML → .docx conversion -->
   <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
@@ -23,7 +26,6 @@
   <header id="toolbar" role="banner">
 
     <button class="btn btn-icon" id="btn-toggle-binder" title="Toggle Binder" aria-label="Toggle Binder">
-      <!-- sidebar icon -->
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3zm5 10h7V3H5v10z"/></svg>
     </button>
 
@@ -38,6 +40,27 @@
           aria-label="Project title — double-click to rename"></span>
 
     <span class="toolbar-spacer"></span>
+
+    <!-- View switcher -->
+    <div class="view-switcher" role="group" aria-label="View mode">
+      <button class="view-btn active" id="btn-view-editor"
+              title="Editor" aria-pressed="true">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/></svg>
+        Editor
+      </button>
+      <button class="view-btn" id="btn-view-corkboard"
+              title="Corkboard" aria-pressed="false">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
+        Corkboard
+      </button>
+      <button class="view-btn" id="btn-view-outline"
+              title="Outline" aria-pressed="false">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg>
+        Outline
+      </button>
+    </div>
+
+    <span class="toolbar-sep"></span>
 
     <!-- Focus mode -->
     <button class="btn" id="btn-focus" title="Focus Mode" aria-pressed="false">
@@ -99,53 +122,98 @@
 
     </aside><!-- /binder -->
 
-    <!-- ── Editor (Centre Panel) ────────────────────────────────────────────── -->
-    <div id="editor-pane">
+    <!-- ── Centre Panel — holds Editor, Corkboard, Outline ──────────────────── -->
+    <div id="center-pane">
 
-      <!-- Formatting toolbar -->
-      <div id="editor-toolbar" role="toolbar" aria-label="Text formatting">
-        <button class="fmt-btn" data-format="bold"          title="Bold (Ctrl+B)"      aria-label="Bold"          aria-pressed="false"><strong>B</strong></button>
-        <button class="fmt-btn" data-format="italic"        title="Italic (Ctrl+I)"    aria-label="Italic"        aria-pressed="false"><em>I</em></button>
-        <button class="fmt-btn" data-format="underline"     title="Underline (Ctrl+U)" aria-label="Underline"     aria-pressed="false"><u>U</u></button>
-        <button class="fmt-btn" data-format="strikethrough" title="Strikethrough"       aria-label="Strikethrough" aria-pressed="false"><s>S</s></button>
-        <div class="fmt-sep"></div>
-        <button class="fmt-btn" data-format="h1" title="Heading 1" aria-label="Heading 1">H1</button>
-        <button class="fmt-btn" data-format="h2" title="Heading 2" aria-label="Heading 2">H2</button>
-        <button class="fmt-btn" data-format="h3" title="Heading 3" aria-label="Heading 3">H3</button>
-        <button class="fmt-btn" data-format="p"  title="Paragraph" aria-label="Paragraph">P</button>
-      </div>
+      <!-- ── Editor view ────────────────────────────────────────────────────── -->
+      <div id="editor-pane" class="view-pane active" role="region" aria-label="Editor">
 
-      <!-- Writing area -->
-      <div id="editor-container">
-        <div id="editor"
-             contenteditable="true"
-             spellcheck="true"
-             role="textbox"
-             aria-multiline="true"
-             aria-label="Document editor"></div>
-        <div id="editor-placeholder" aria-hidden="true">
-          Select or create a document to start writing.
+        <!-- Formatting toolbar -->
+        <div id="editor-toolbar" role="toolbar" aria-label="Text formatting">
+          <button class="fmt-btn" data-format="bold"          title="Bold (Ctrl+B)"      aria-label="Bold"          aria-pressed="false"><strong>B</strong></button>
+          <button class="fmt-btn" data-format="italic"        title="Italic (Ctrl+I)"    aria-label="Italic"        aria-pressed="false"><em>I</em></button>
+          <button class="fmt-btn" data-format="underline"     title="Underline (Ctrl+U)" aria-label="Underline"     aria-pressed="false"><u>U</u></button>
+          <button class="fmt-btn" data-format="strikethrough" title="Strikethrough"       aria-label="Strikethrough" aria-pressed="false"><s>S</s></button>
+          <div class="fmt-sep"></div>
+          <button class="fmt-btn" data-format="h1" title="Heading 1" aria-label="Heading 1">H1</button>
+          <button class="fmt-btn" data-format="h2" title="Heading 2" aria-label="Heading 2">H2</button>
+          <button class="fmt-btn" data-format="h3" title="Heading 3" aria-label="Heading 3">H3</button>
+          <button class="fmt-btn" data-format="p"  title="Paragraph" aria-label="Paragraph">P</button>
         </div>
-      </div>
 
-      <!-- Status bar -->
-      <div id="status-bar" role="status" aria-live="polite">
-        <span id="current-doc-title"></span>
-        <span class="status-sep"></span>
-        <span id="word-count">0 words</span>
-        <span id="project-word-count"></span>
-      </div>
+        <!-- Writing area -->
+        <div id="editor-container">
+          <div id="editor"
+               contenteditable="true"
+               spellcheck="true"
+               role="textbox"
+               aria-multiline="true"
+               aria-label="Document editor"></div>
+          <div id="editor-placeholder" aria-hidden="true">
+            Select or create a document to start writing.
+          </div>
+        </div>
 
-    </div><!-- /editor-pane -->
+        <!-- Status bar -->
+        <div id="status-bar" role="status" aria-live="polite">
+          <span id="current-doc-title"></span>
+          <span class="status-sep"></span>
+          <span id="word-count">0 words</span>
+          <span id="project-word-count"></span>
+        </div>
+
+      </div><!-- /editor-pane -->
+
+      <!-- ── Corkboard view ─────────────────────────────────────────────────── -->
+      <div id="corkboard-pane" class="view-pane" role="region" aria-label="Corkboard">
+
+        <div id="corkboard-toolbar">
+          <span id="corkboard-folder-label">All Scenes</span>
+          <div class="cork-zoom-wrap">
+            <span class="cork-zoom-label">Size</span>
+            <input type="range" id="cork-zoom" min="160" max="360" value="220"
+                   aria-label="Card size">
+          </div>
+        </div>
+
+        <div id="corkboard-grid" aria-label="Scene cards"></div>
+
+      </div><!-- /corkboard-pane -->
+
+      <!-- ── Outline view ───────────────────────────────────────────────────── -->
+      <div id="outline-pane" class="view-pane" role="region" aria-label="Outline">
+
+        <div id="outline-table-wrap">
+          <table id="outline-table" aria-label="Manuscript outline">
+            <colgroup>
+              <col class="col-title">
+              <col class="col-synopsis">
+              <col class="col-status">
+              <col class="col-wc">
+              <col class="col-label">
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Synopsis</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="col-wc">Words</th>
+                <th scope="col" class="col-label">Label</th>
+              </tr>
+            </thead>
+            <tbody id="outline-body"></tbody>
+          </table>
+        </div>
+
+      </div><!-- /outline-pane -->
+
+    </div><!-- /center-pane -->
 
     <!-- ── Inspector (Right Panel) ──────────────────────────────────────────── -->
     <aside id="inspector" aria-label="Document Inspector">
       <div id="inspector-header">Inspector</div>
       <div id="inspector-content">
-        <p class="inspector-placeholder">Select a document to view its details.</p>
-        <p class="inspector-placeholder" style="margin-top:8px; font-size:11px;">
-          Full inspector coming in Phase 2.
-        </p>
+        <!-- Populated by inspector.js on init -->
       </div>
     </aside>
 

@@ -1,0 +1,184 @@
+/* inspector.css — Inspector panel: tabs, fields, writing targets */
+
+/* ─── Inspector layout ───────────────────────────────────────────────────────── */
+
+#inspector {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#inspector-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+#inspector-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── Tabs ───────────────────────────────────────────────────────────────────── */
+
+.inspector-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.inspector-tab {
+  flex: 1;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+
+.inspector-tab:hover { color: var(--text); }
+
+.inspector-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* ─── Panels ─────────────────────────────────────────────────────────────────── */
+
+.inspector-panel {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.inspector-panel.hidden { display: none; }
+
+/* ─── Empty state ────────────────────────────────────────────────────────────── */
+
+.inspector-empty {
+  padding: 20px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.inspector-empty.hidden { display: none; }
+
+/* ─── Fields ─────────────────────────────────────────────────────────────────── */
+
+.inspector-fields {
+  padding: 10px 10px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.inspector-fields.hidden { display: none; }
+
+.inspector-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inspector-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+}
+
+/* ─── Inputs ─────────────────────────────────────────────────────────────────── */
+
+.inspector-input,
+.inspector-select,
+.inspector-textarea {
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font-ui);
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.inspector-input:focus,
+.inspector-select:focus,
+.inspector-textarea:focus { border-color: var(--accent); }
+
+.inspector-textarea {
+  resize: vertical;
+  line-height: 1.6;
+  min-height: 72px;
+}
+
+.inspector-select { cursor: pointer; }
+
+/* ─── Label row (swatch + select) ────────────────────────────────────────────── */
+
+.inspector-label-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.inspector-label-swatch {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px dashed var(--border);
+  transition: background var(--transition), border var(--transition);
+}
+
+/* ─── Project stats ──────────────────────────────────────────────────────────── */
+
+.inspector-stat {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ─── Word count target ──────────────────────────────────────────────────────── */
+
+.target-progress-wrap {
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 3px;
+}
+
+.target-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.35s ease, background 0.35s ease;
+}
+
+.target-progress-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}

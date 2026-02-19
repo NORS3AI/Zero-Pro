@@ -1,0 +1,242 @@
+/* corkboard.css — Index-card grid view */
+
+/* ─── Pane ───────────────────────────────────────────────────────────────────── */
+
+#corkboard-pane {
+  background: var(--bg);
+}
+
+/* ─── Sub-toolbar ────────────────────────────────────────────────────────────── */
+
+#corkboard-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#corkboard-folder-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex: 1;
+}
+
+.cork-zoom-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cork-zoom-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+#cork-zoom {
+  width: 80px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* ─── Grid ───────────────────────────────────────────────────────────────────── */
+
+#corkboard-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 16px;
+  /* Default card width via CSS variable; overridden by zoom slider */
+  --card-w: 220px;
+}
+
+.corkboard-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 8px 0;
+  line-height: 1.6;
+}
+
+/* ─── Card ───────────────────────────────────────────────────────────────────── */
+
+.cork-card {
+  width: var(--card-w, 220px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.14);
+  transition: box-shadow var(--transition), transform var(--transition);
+  cursor: grab;
+  user-select: none;
+}
+
+.cork-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+  transform: translateY(-1px);
+}
+
+.card-ghost  { opacity: 0.35; }
+.card-chosen {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35) !important;
+  transform: rotate(1.5deg) scale(1.02) !important;
+  cursor: grabbing;
+}
+
+/* ─── Label strip ────────────────────────────────────────────────────────────── */
+
+.card-label-strip {
+  height: 5px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ─── Card body ──────────────────────────────────────────────────────────────── */
+
+.card-body {
+  padding: 10px 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+/* ─── Card title ─────────────────────────────────────────────────────────────── */
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 3px;
+  padding: 1px 0;
+  transition: color var(--transition);
+}
+
+.card-title:hover { color: var(--accent); }
+
+/* ─── Synopsis ───────────────────────────────────────────────────────────────── */
+
+.card-synopsis {
+  font-size: 12px;
+  color: var(--text-muted);
+  min-height: 56px;
+  line-height: 1.65;
+  outline: none;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 3px 5px;
+  word-break: break-word;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.card-synopsis:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.card-synopsis:focus {
+  border-color: var(--accent);
+  background: var(--bg);
+  color: var(--text);
+  cursor: text;
+  user-select: text;
+}
+
+/* ─── Card footer ────────────────────────────────────────────────────────────── */
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+}
+
+.card-wc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ─── Label picker ───────────────────────────────────────────────────────────── */
+
+.card-label-picker { position: relative; }
+
+.card-label-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  padding: 0;
+  display: block;
+  transition: transform 0.15s;
+}
+
+.card-label-dot:hover { transform: scale(1.15); }
+
+.card-label-dropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  display: flex;
+  gap: 5px;
+  z-index: 150;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.card-label-dropdown.hidden { display: none; }
+
+.label-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.label-swatch:hover {
+  transform: scale(1.25);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+
+.label-none {
+  background: var(--surface-alt);
+  position: relative;
+  border-color: var(--border);
+}
+
+.label-none::after {
+  content: '×';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-muted);
+}
