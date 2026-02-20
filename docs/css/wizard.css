@@ -1,0 +1,288 @@
+/* wizard.css — First-run welcome wizard */
+
+/* ─── Backdrop ────────────────────────────────────────────────────────────────── */
+
+.wizard-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(6px);
+  animation: wizard-fade-in 0.3s ease;
+}
+
+.wizard-backdrop.hidden { display: none; }
+
+@keyframes wizard-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Modal ────────────────────────────────────────────────────────────────────── */
+
+.wizard-modal {
+  background: var(--surface-1, #222226);
+  border: 1px solid var(--border, #3a3a40);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+  animation: wizard-slide-up 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  padding: 0 0 8px;
+}
+
+@keyframes wizard-slide-up {
+  from { transform: translateY(40px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0)     scale(1);    opacity: 1; }
+}
+
+/* ─── Header ───────────────────────────────────────────────────────────────────── */
+
+.wizard-header {
+  text-align: center;
+  padding: 36px 32px 24px;
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--accent, #61afef) 18%, transparent) 0%,
+    transparent 60%);
+  border-radius: 16px 16px 0 0;
+}
+
+.wizard-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--accent, #61afef);
+  color: #fff;
+  font-size: 32px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent, #61afef) 40%, transparent);
+}
+
+.wizard-title {
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text, #e0e0e0);
+  letter-spacing: -0.5px;
+}
+
+.wizard-byline {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--text-muted, #888);
+}
+
+.wizard-byline strong {
+  color: var(--accent, #61afef);
+}
+
+.wizard-date {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted, #888);
+}
+
+/* ─── Intro ─────────────────────────────────────────────────────────────────────── */
+
+.wizard-intro {
+  padding: 0 32px 20px;
+}
+
+.wizard-intro p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text, #e0e0e0);
+}
+
+.wizard-intro p:last-child { margin-bottom: 0; }
+
+.wizard-audience {
+  font-size: 13px !important;
+  color: var(--text-muted, #888) !important;
+}
+
+/* ─── Features details ──────────────────────────────────────────────────────────── */
+
+.wizard-features-details {
+  margin: 0 32px 20px;
+  border: 1px solid var(--border, #3a3a40);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.wizard-features-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted, #888);
+  cursor: pointer;
+  user-select: none;
+  background: var(--surface-2, #2a2a2e);
+  list-style: none;
+  transition: color 0.15s;
+}
+
+.wizard-features-summary:hover { color: var(--text, #e0e0e0); }
+.wizard-features-summary::-webkit-details-marker { display: none; }
+
+.wizard-features-arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.wizard-features-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.wizard-feature-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border, #3a3a40);
+  transition: background 0.1s;
+}
+
+.wizard-feature-card:hover { background: var(--surface-2, #2a2a2e); }
+
+.wizard-feature-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+  margin-top: 1px;
+}
+
+.wizard-feature-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text, #e0e0e0);
+  margin-bottom: 2px;
+}
+
+.wizard-feature-desc {
+  font-size: 12px;
+  color: var(--text-muted, #888);
+  line-height: 1.5;
+}
+
+/* ─── Action buttons ────────────────────────────────────────────────────────────── */
+
+.wizard-actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 32px 16px;
+}
+
+.wizard-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 18px 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+  color: #fff;
+}
+
+.wizard-btn:hover  { transform: translateY(-2px); filter: brightness(1.1); }
+.wizard-btn:active { transform: translateY(0);    filter: brightness(0.95); }
+
+.wizard-btn--import {
+  background: linear-gradient(135deg, #56b6c2, #3d9ba8);
+  box-shadow: 0 6px 20px rgba(86, 182, 194, 0.35);
+}
+
+.wizard-btn--new {
+  background: linear-gradient(135deg, #98c379, #6aa84f);
+  box-shadow: 0 6px 20px rgba(152, 195, 121, 0.35);
+}
+
+.wizard-btn-hint {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* ─── Close row ────────────────────────────────────────────────────────────────── */
+
+.wizard-close-row {
+  display: flex;
+  justify-content: center;
+  padding: 4px 32px 20px;
+}
+
+.wizard-close-btn {
+  background: none;
+  border: 1px solid var(--border, #3a3a40);
+  border-radius: 8px;
+  color: var(--text-muted, #888);
+  font-size: 13px;
+  padding: 8px 32px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.wizard-close-btn:hover {
+  background: var(--surface-2, #2a2a2e);
+  color: var(--text, #e0e0e0);
+}
+
+/* ─── Light / sepia theme overrides ─────────────────────────────────────────────── */
+
+[data-theme="light"] .wizard-modal,
+[data-theme="sepia"] .wizard-modal {
+  background: #fafafa;
+  border-color: #ddd;
+}
+
+[data-theme="light"] .wizard-features-summary,
+[data-theme="sepia"] .wizard-features-summary {
+  background: #f0f0f0;
+}
+
+[data-theme="light"] .wizard-feature-card:hover,
+[data-theme="sepia"] .wizard-feature-card:hover {
+  background: #f0f0f0;
+}
+
+/* ─── Mobile ─────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .wizard-header { padding: 28px 20px 20px; }
+  .wizard-intro  { padding: 0 20px 16px; }
+  .wizard-actions { padding: 0 20px 14px; }
+  .wizard-features-details { margin: 0 20px 16px; }
+  .wizard-close-row { padding: 4px 20px 16px; }
+
+  .wizard-title { font-size: 22px; }
+  .wizard-logo  { width: 52px; height: 52px; font-size: 26px; }
+
+  .wizard-actions { flex-direction: column; }
+  .wizard-btn     { flex-direction: row; padding: 14px 16px; }
+  .wizard-btn-hint { margin-left: auto; }
+}

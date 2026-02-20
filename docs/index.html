@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="css/publish.css">
   <link rel="stylesheet" href="css/phase7.css">
   <link rel="stylesheet" href="css/phase8.css">
+  <link rel="stylesheet" href="css/wizard.css">
   <link rel="stylesheet" href="css/responsive.css">
 
   <!-- Sortable.js — drag-and-drop for the binder and corkboard -->
@@ -135,11 +136,6 @@
 
     <span class="toolbar-sep"></span>
 
-    <!-- Patch Notes -->
-    <button class="btn-changelog" id="btn-changelog" title="View Patch Notes" aria-label="View patch notes">v1.6</button>
-
-    <span class="toolbar-sep"></span>
-
     <!-- Cloud sync status -->
     <button id="sync-status-pill" data-status="local"
             title="Cloud Sync — click to open settings"
@@ -148,18 +144,21 @@
     <!-- Collab avatars (populated by collab.js) -->
     <div id="collab-avatars" aria-label="Active collaborators"></div>
 
-    <!-- Collab typing indicator (shown in status bar on mobile) -->
-
     <!-- Share / Collab button -->
     <button class="btn btn-icon" id="btn-collab"
             title="Share & Collaborate" aria-label="Share and collaborate">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
     </button>
 
+    <span class="toolbar-sep"></span>
+
     <!-- Theme toggle -->
     <button class="btn btn-icon" id="btn-theme" title="Toggle Theme" aria-label="Toggle dark / light theme">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/></svg>
     </button>
+
+    <!-- Patch Notes — between theme and settings -->
+    <button class="btn-changelog" id="btn-changelog" title="View Patch Notes" aria-label="View patch notes">v1.6</button>
 
     <!-- Settings -->
     <button class="btn btn-icon" id="btn-settings" title="Settings (Ctrl+,)" aria-label="Open settings">
@@ -208,6 +207,14 @@
           <button class="btn btn-icon" data-action="add-clip"
                   title="Clip a Web URL" aria-label="Clip a web URL">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/><path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/></svg>
+          </button>
+          <button class="btn btn-icon" data-action="add-audio"
+                  title="Add Audio File" aria-label="Add audio file to binder">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M6 13c0 1.105-1.12 2-2.5 2S1 14.105 1 13c0-1.104 1.12-2 2.5-2s2.5.896 2.5 2zm9-2c0 1.105-1.12 2-2.5 2s-2.5-.895-2.5-2 1.12-2 2.5-2 2.5.895 2.5 2zM6 2.5v9H5V2.5a.5.5 0 0 1 .5-.5h.5V.5a.5.5 0 0 1 1 0V2h7v1h-8z"/></svg>
+          </button>
+          <button class="btn btn-icon" data-action="pin-binder"
+                  title="Pin Binder (keep open)" aria-label="Pin binder panel" aria-pressed="false">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.146.146A.5.5 0 0 1 4.5 0h7a.5.5 0 0 1 .5.5c0 .68-.342 1.174-.646 1.479-.126.125-.25.224-.354.298v4.431l.078.048c.203.127.476.314.751.555C12.36 7.775 13 8.527 13 9.5a.5.5 0 0 1-.5.5h-4v4.5c0 .276-.224 1.5-.5 1.5s-.5-1.224-.5-1.5V10h-4a.5.5 0 0 1-.5-.5c0-.973.64-1.725 1.17-2.189A5.921 5.921 0 0 1 5 6.854V2.377a2.142 2.142 0 0 1-.354-.298C4.342 1.674 4 1.179 4 .5a.5.5 0 0 1 .146-.354z"/></svg>
           </button>
           <button class="btn btn-icon binder-drawer-close" id="btn-close-binder"
                   title="Close Binder" aria-label="Close binder panel">

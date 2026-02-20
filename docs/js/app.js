@@ -27,6 +27,9 @@ import { initStreak, openStreakCalendar, trackWordsWritten, resetWordBaseline } 
 import { initSync, pushProject, openSyncPanel, isSyncEnabled } from './sync.js';
 import { initCollab, openCollabPanel, notifyTyping } from './collab.js';
 import { initTouch } from './touch.js';
+import { maybeShowWizard } from './wizard.js';
+import { initToolbarLoop } from './toolbar-loop.js';
+import { isBinderPinned } from './binder.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -196,6 +199,22 @@ function init() {
 
   bindToolbar();
   updateProjectTitle();
+
+  // Infinite toolbar loop (activates only when toolbar overflows)
+  initToolbarLoop();
+
+  // Show first-run wizard (once)
+  maybeShowWizard({
+    onImport:      () => state.triggerDocImport?.(),
+    onNewProject:  () => {
+      state.project = createProject('My Novel');
+      saveProject(state.project);
+      renderBinder(state.project, null);
+      updateProjectTitle();
+      switchView('corkboard');
+      showToast('New project created');
+    },
+  });
 }
 
 // ─── View Switching ───────────────────────────────────────────────────────────
@@ -244,8 +263,8 @@ function _corkboardParentId(doc) {
 // ─── Event Handlers ───────────────────────────────────────────────────────────
 
 function handleSelectDocument(docId) {
-  // Close the binder drawer on compact screens after a selection
-  if (_isCompact()) workspace().classList.remove('binder-open');
+  // Close the binder drawer on compact screens after a selection (unless pinned)
+  if (_isCompact() && !isBinderPinned()) workspace().classList.remove('binder-open');
   saveCurrentContent();
   state.currentDocId = docId;
   const doc = docId ? getDocument(state.project, docId) : null;
