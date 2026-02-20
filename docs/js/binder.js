@@ -2,7 +2,7 @@
 
 import {
   getChildren, getDocument, getTrash,
-  createDocument, updateDocument, trashDocument,
+  createDocument, updateDocument, trashDocument, restoreDocument, purgeDocument,
   reorderDocuments, saveProject, generateId,
 } from './storage.js';
 import { showConfirm, showToast } from './ui.js';
@@ -17,6 +17,7 @@ let _onProjectChange = null;
 let _sortableInstances = [];
 let _ctxMenu  = null;   // context menu element (singleton)
 let _ctxDocId = null;   // doc ID targeted by current context menu
+let _trashExpanded = false;
 
 // ─── SVG Icon Strings ─────────────────────────────────────────────────────────
 
@@ -65,13 +66,27 @@ export function renderBinder(project, currentDocId) {
   const rootDocs = getChildren(project, null);
   container.appendChild(_buildList(rootDocs, null));
 
-  // Trash indicator
+  // Expandable Trash section
   const trash = getTrash(project);
   if (trash.length) {
-    const trashEl = document.createElement('div');
-    trashEl.className = 'binder-trash-row';
-    trashEl.innerHTML = `${ICON.trash}<span>Trash</span><span class="binder-trash-count">${trash.length}</span>`;
-    container.appendChild(trashEl);
+    const trashHeader = document.createElement('div');
+    trashHeader.className = 'binder-trash-row';
+    trashHeader.style.cursor = 'pointer';
+    trashHeader.innerHTML =
+      `<span class="binder-arrow">${_trashExpanded ? ICON.chevronDown : ICON.chevronRight}</span>` +
+      `${ICON.trash}<span>Trash</span><span class="binder-trash-count">${trash.length}</span>`;
+    trashHeader.addEventListener('click', () => {
+      _trashExpanded = !_trashExpanded;
+      renderBinder(_project, _currentDocId);
+    });
+    container.appendChild(trashHeader);
+
+    if (_trashExpanded) {
+      const trashList = document.createElement('ul');
+      trashList.className = 'binder-list binder-trash-list';
+      trash.forEach(doc => trashList.appendChild(_buildTrashItem(doc)));
+      container.appendChild(trashList);
+    }
   }
 }
 
@@ -438,6 +453,127 @@ function _duplicateDoc(id) {
   renderBinder(_project, _currentDocId);
   _onProjectChange?.(_project);
   showToast(`"${doc.title}" duplicated`);
+}
+
+// ─── Trash Items ──────────────────────────────────────────────────────────────
+
+function _buildTrashItem(doc) {
+  const isImage = doc.type === 'image';
+  const isFolder = doc.type === 'folder';
+
+  const li = document.createElement('li');
+  li.className = 'binder-item binder-trash-item';
+  li.dataset.docId = doc.id;
+
+  const row = document.createElement('div');
+  row.className = 'binder-item-row trash-row';
+  row.dataset.docId = doc.id;
+  row.setAttribute('tabindex', '0');
+
+  const spacer = document.createElement('span');
+  spacer.className = 'binder-arrow';
+
+  const icon = document.createElement('span');
+  icon.className = 'binder-icon';
+  icon.innerHTML = isFolder ? ICON.folder : isImage ? ICON.image : ICON.doc;
+
+  const titleSpan = document.createElement('span');
+  titleSpan.className = 'binder-title';
+  titleSpan.textContent = doc.title;
+
+  row.appendChild(spacer);
+  row.appendChild(icon);
+  row.appendChild(titleSpan);
+
+  // Click to view — images get lightbox, docs get selected into editor
+  row.addEventListener('click', () => {
+    if (isImage) _showLightbox(doc);
+    else _selectDocument(doc.id);
+  });
+  row.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (isImage) _showLightbox(doc);
+      else _selectDocument(doc.id);
+    }
+  });
+
+  // Right-click → trash context menu (restore / move to folder / delete permanently)
+  row.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    _showTrashContextMenu(doc.id, e.clientX, e.clientY);
+  });
+
+  li.appendChild(row);
+  return li;
+}
+
+function _showTrashContextMenu(docId, x, y) {
+  _ctxDocId = docId;
+  const doc = getDocument(_project, docId);
+  if (!doc) return;
+
+  _ctxMenu.innerHTML = '';
+
+  // Restore to root
+  _ctxMenu.appendChild(_ctxItem('Restore to Binder', false, () => {
+    _restoreDocTo(docId, null);
+  }));
+
+  // List all non-trash folders the user can restore into
+  const folders = _project.documents.filter(d => d.type === 'folder' && !d.inTrash);
+  if (folders.length) {
+    const sep = document.createElement('div');
+    sep.className = 'ctx-sep';
+    _ctxMenu.appendChild(sep);
+
+    const label = document.createElement('div');
+    label.className = 'ctx-section-label';
+    label.textContent = 'Move to folder';
+    _ctxMenu.appendChild(label);
+
+    folders.forEach(f => {
+      _ctxMenu.appendChild(_ctxItem(f.title, false, () => {
+        _restoreDocTo(docId, f.id);
+      }));
+    });
+  }
+
+  // Permanent delete
+  const sep2 = document.createElement('div');
+  sep2.className = 'ctx-sep';
+  _ctxMenu.appendChild(sep2);
+  _ctxMenu.appendChild(_ctxItem('Delete Permanently', true, () => {
+    purgeDocument(_project, docId);
+    if (_currentDocId === docId) {
+      _currentDocId = null;
+      _onSelectDoc?.(null);
+    }
+    saveProject(_project);
+    renderBinder(_project, _currentDocId);
+    _onProjectChange?.(_project);
+    showToast('Permanently deleted');
+  }));
+
+  // Position — keep inside viewport
+  _ctxMenu.classList.remove('hidden');
+  const { offsetWidth: mw, offsetHeight: mh } = _ctxMenu;
+  _ctxMenu.style.left = `${Math.min(x, window.innerWidth  - mw - 4)}px`;
+  _ctxMenu.style.top  = `${Math.min(y, window.innerHeight - mh - 4)}px`;
+}
+
+function _restoreDocTo(docId, parentId) {
+  restoreDocument(_project, docId);
+  updateDocument(_project, docId, { parentId });
+  // Re-order at end of target folder's children
+  const siblings = getChildren(_project, parentId);
+  const maxOrder = siblings.length ? Math.max(...siblings.map(d => d.order)) : -1;
+  updateDocument(_project, docId, { order: maxOrder + 1 });
+  saveProject(_project);
+  renderBinder(_project, _currentDocId);
+  _onProjectChange?.(_project);
+  const dest = parentId ? getDocument(_project, parentId)?.title : 'Binder';
+  showToast(`Restored to ${dest}`);
 }
 
 // ─── Image Items ──────────────────────────────────────────────────────────────
