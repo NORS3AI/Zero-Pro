@@ -1,0 +1,320 @@
+/* publish.css — Phase 5: Kindle & Publishing Support modals */
+
+/* ─── Publish Modal (wider than the standard confirm/prompt modal) ─────────── */
+
+.publish-modal {
+  width: min(680px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.pub-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.pub-modal-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.pub-modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+}
+
+.pub-modal-close:hover {
+  color: var(--text);
+  background: var(--surface-alt);
+}
+
+.pub-modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.pub-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ─── Wizard Layout ─────────────────────────────────────────────────────────── */
+
+.pub-wizard {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pub-wizard-info {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.pub-wizard-info p { margin: 0 0 8px; }
+.pub-wizard-info p:last-child { margin: 0; }
+
+.pub-wizard-info ul {
+  margin: 6px 0 0 16px;
+  padding: 0;
+  color: var(--text-muted);
+}
+
+.pub-wizard-info li { margin: 3px 0; }
+
+.pub-wizard-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pub-wizard-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.pub-wizard-fields .modal-input {
+  width: 100%;
+  margin: 0;
+}
+
+/* Full-width inputs that should span both columns */
+.pub-wizard-fields label:has(select) {
+  grid-column: span 2;
+}
+
+.pub-wizard-checklist {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.pub-wizard-checklist h4 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pub-wizard-checklist label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.pub-wizard-checklist input[type="checkbox"] {
+  flex-shrink: 0;
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+/* ─── Self-Publishing Checklist ─────────────────────────────────────────────── */
+
+.pub-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.checklist-section h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  padding: 4px 0;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.checklist-item:has(input:checked) {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.checklist-item input[type="checkbox"] {
+  flex-shrink: 0;
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+/* ─── Genre Style Guide Tabs ─────────────────────────────────────────────────── */
+
+.pub-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.pub-tab-bar {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.pub-tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+  margin-bottom: -1px;
+}
+
+.pub-tab-btn:hover  { color: var(--text); }
+
+.pub-tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.pub-tab-panel { display: none; }
+.pub-tab-panel.active { display: block; }
+
+.pub-tab-panel h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 10px;
+  color: var(--text);
+}
+
+.pub-tab-panel p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0 0 10px;
+}
+
+.pub-tab-panel ul {
+  margin: 0 0 0 16px;
+  padding: 0;
+}
+
+.pub-tab-panel li {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 4px 0;
+}
+
+.pub-tab-panel li strong { color: var(--text); }
+
+/* ─── Front / Back Matter Templates ─────────────────────────────────────────── */
+
+.pub-templates > p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+
+.pub-template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.pub-template-btn {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 12px 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.pub-template-btn:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pub-template-btn:disabled {
+  color: var(--green);
+  border-color: var(--green);
+  background: var(--surface-alt);
+  cursor: default;
+}
+
+/* ─── Responsive adjustments ─────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .pub-wizard-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .pub-wizard-fields label:has(select) {
+    grid-column: span 1;
+  }
+
+  .pub-tab-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .pub-template-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pub-modal-footer {
+    flex-wrap: wrap;
+  }
+}

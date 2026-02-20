@@ -1,7 +1,7 @@
 // app.js — Application entry point and orchestration
-// Phase 3: AI Writing Assistant
+// Phase 5: Kindle & Publishing Support
 
-import { loadProject, createProject, saveProject, getDocument } from './storage.js';
+import { loadProject, createProject, saveProject, getDocument, createDocument } from './storage.js';
 import { applyTheme, toggleTheme, showToast, showPrompt } from './ui.js';
 import { initBinder, renderBinder } from './binder.js';
 import { initEditor, loadDocument, saveCurrentContent, toggleFocusMode } from './editor.js';
@@ -14,6 +14,11 @@ import { initAI, toggleAIPanel } from './ai.js';
 import { initFindReplace, openFindReplace } from './find-replace.js';
 import { initCommandPalette } from './command-palette.js';
 import { initSettings, openSettings, applyEditorSettings } from './settings.js';
+import {
+  initPublish, exportAsEpub,
+  openKdpWizard, openIngramWizard, openSubmissionFormatter,
+  openSelfPublishChecklist, openGenreGuides, openFrontMatterTemplates,
+} from './publish.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -95,6 +100,13 @@ function init() {
       { icon: '💾', label: 'Export as Markdown',  hint: '',          run: () => document.getElementById('btn-export-md')?.click() },
       { icon: '💾', label: 'Backup Project',      hint: '.json',     run: () => document.getElementById('btn-export-json')?.click() },
       { icon: '⚙️', label: 'Settings',            hint: 'Ctrl+,',   run: () => openSettings() },
+      { icon: '📚', label: 'Export as EPUB',      hint: '',          run: async () => { await exportAsEpub(state.project); showToast('EPUB exported'); } },
+      { icon: '📖', label: 'KDP Wizard',          hint: '',          run: () => openKdpWizard(state.project) },
+      { icon: '🖨️', label: 'IngramSpark Wizard',  hint: '',          run: () => openIngramWizard(state.project) },
+      { icon: '✉️', label: 'Agent Submission',    hint: '',          run: () => openSubmissionFormatter(state.project) },
+      { icon: '✅', label: 'Self-Pub Checklist',  hint: '',          run: () => openSelfPublishChecklist() },
+      { icon: '📕', label: 'Genre Style Guides',  hint: '',          run: () => openGenreGuides() },
+      { icon: '📄', label: 'Front/Back Matter',   hint: '',          run: () => openFrontMatterTemplates(state.project) },
     ],
   });
 
@@ -102,6 +114,17 @@ function init() {
     getProject:       () => state.project,
     onSettingsChange: project => {
       state.project = project;
+    },
+  });
+
+  initPublish({
+    getProject: () => state.project,
+    onAddDoc: (title, content) => {
+      const doc = createDocument(state.project, { type: 'doc', parentId: null, title });
+      doc.content = content;
+      saveProject(state.project);
+      renderBinder(state.project, state.currentDocId);
+      showToast(`"${title}" added to binder`);
     },
   });
 
@@ -305,6 +328,45 @@ function bindToolbar() {
   btn('btn-import-json', () => {
     state.triggerProjectImport?.();
     document.getElementById('export-dropdown')?.classList.remove('open');
+  });
+
+  // ── Publish (Phase 5) ──────────────────────────────────────────────────────
+  const _closeExport = () => document.getElementById('export-dropdown')?.classList.remove('open');
+
+  btn('btn-export-epub', async () => {
+    _closeExport();
+    await exportAsEpub(state.project);
+    showToast('EPUB exported');
+  });
+
+  btn('btn-pub-kdp', () => {
+    _closeExport();
+    openKdpWizard(state.project);
+  });
+
+  btn('btn-pub-ingram', () => {
+    _closeExport();
+    openIngramWizard(state.project);
+  });
+
+  btn('btn-pub-submission', () => {
+    _closeExport();
+    openSubmissionFormatter(state.project);
+  });
+
+  btn('btn-pub-checklist', () => {
+    _closeExport();
+    openSelfPublishChecklist();
+  });
+
+  btn('btn-pub-genres', () => {
+    _closeExport();
+    openGenreGuides();
+  });
+
+  btn('btn-pub-frontmatter', () => {
+    _closeExport();
+    openFrontMatterTemplates(state.project);
   });
 
   // Double-click project title to rename
