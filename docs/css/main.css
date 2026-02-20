@@ -634,3 +634,170 @@ svg { display: block; }
   line-height: 1;
   color: var(--text-muted);
 }
+
+/* ─── Patch Notes Modal ──────────────────────────────────────────────────────── */
+
+.patchnotes-backdrop { align-items: flex-start; padding: 40px 16px 40px; }
+.patchnotes-backdrop.hidden { display: none; }
+
+.patchnotes-modal {
+  width: min(620px, 100%);
+  max-width: 100%;
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Header */
+.patchnotes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.patchnotes-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.patchnotes-app-name {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.patchnotes-title {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.patchnotes-close { color: var(--text-muted); }
+.patchnotes-close:hover { color: var(--text); background: var(--surface-alt); }
+
+/* Scrollable body */
+.patchnotes-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px 0 16px;
+}
+
+/* Individual patch entry */
+.pn-entry {
+  padding: 20px 20px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pn-entry:last-child { border-bottom: none; }
+
+.pn-entry--latest { background: rgba(201, 162, 106, 0.04); }
+
+.pn-entry-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pn-version-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pn-version {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.pn-latest-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  background: var(--accent);
+  color: #1a1a1c;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.pn-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.pn-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Change list */
+.pn-changes {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 12px;
+}
+
+.pn-change {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Type tags */
+.pn-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pn-tag--feat { background: rgba(95, 158, 110, 0.18); color: #5f9e6e; }
+.pn-tag--fix  { background: rgba(201, 162, 106, 0.18); color: var(--accent); }
+.pn-tag--docs { background: rgba(140, 140, 148, 0.18); color: var(--text-muted); }
+
+.pn-change-text { color: var(--text-muted); }
+
+/* Changelog button in toolbar */
+.btn-changelog {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  flex-shrink: 0;
+}
+
+.btn-changelog:hover {
+  background: var(--surface-alt);
+  color: var(--accent);
+  border-color: var(--accent);
+}

@@ -14,6 +14,7 @@ import { initAI, toggleAIPanel } from './ai.js';
 import { initFindReplace, openFindReplace } from './find-replace.js';
 import { initCommandPalette } from './command-palette.js';
 import { initSettings, openSettings, applyEditorSettings } from './settings.js';
+import { openPatchNotes } from './patchnotes.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -246,6 +247,9 @@ function bindToolbar() {
 
   // Settings
   btn('btn-settings', () => openSettings());
+
+  // Patch Notes
+  btn('btn-changelog', () => openPatchNotes());
 
   // Focus mode (editor only)
   btn('btn-focus', () => {
