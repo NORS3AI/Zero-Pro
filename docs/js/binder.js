@@ -51,10 +51,18 @@ export function initBinder({ onSelectDoc, onProjectChange, onInsertImageInEditor
   document.querySelector('[data-action="add-folder"]')?.addEventListener('click', () => _addDocument('folder', null));
   document.querySelector('[data-action="add-image"]')?.addEventListener('click', _addImageItem);
   document.querySelector('[data-action="add-audio"]')?.addEventListener('click', _addAudioItem);
+  document.querySelector('[data-action="add-character"]')?.addEventListener('click', _addCharacterTemplate);
+  document.querySelector('[data-action="add-location"]')?.addEventListener('click', _addLocationTemplate);
   document.querySelector('[data-action="pin-binder"]')?.addEventListener('click', _togglePin);
 
-  // Reflect initial pin state
+  // Reflect initial pin state on load
   _refreshPinUI();
+  if (_binderPinned) {
+    document.getElementById('workspace')?.classList.add('binder-pinned');
+  }
+
+  // Add resize handle for when binder is pinned
+  _initResizeHandle();
 
   _initContextMenu();
 }
@@ -952,6 +960,148 @@ function _bulkTrash() {
   _onProjectChange?.(_project);
   _updateMultiSelectBar();
   showToast('Moved to Trash');
+}
+
+// ─── Sidebar Resize Handle ────────────────────────────────────────────────────
+
+function _initResizeHandle() {
+  const binderEl = document.getElementById('binder');
+  if (!binderEl) return;
+
+  const handle = document.createElement('div');
+  handle.className = 'binder-resize-handle';
+  handle.setAttribute('aria-hidden', 'true');
+  handle.title = 'Drag to resize binder';
+  binderEl.appendChild(handle);
+
+  let _dragging = false;
+  let _startX   = 0;
+  let _startW   = 0;
+
+  handle.addEventListener('mousedown', e => {
+    if (!_binderPinned) return;
+    e.preventDefault();
+    _dragging = true;
+    _startX   = e.clientX;
+    _startW   = parseInt(getComputedStyle(document.documentElement)
+                  .getPropertyValue('--binder-w') || '240', 10);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!_dragging) return;
+    const delta = e.clientX - _startX;
+    const newW  = Math.max(160, Math.min(480, _startW + delta));
+    document.documentElement.style.setProperty('--binder-w', `${newW}px`);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!_dragging) return;
+    _dragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    // Persist
+    const w = getComputedStyle(document.documentElement).getPropertyValue('--binder-w').trim();
+    localStorage.setItem('zp_binder_w', w);
+  });
+
+  // Restore saved width
+  const savedW = localStorage.getItem('zp_binder_w');
+  if (savedW) document.documentElement.style.setProperty('--binder-w', savedW);
+}
+
+// ─── Character Template ────────────────────────────────────────────────────────
+
+function _addCharacterTemplate() {
+  if (!_project) return;
+  let researchFolder = _project.documents.find(
+    d => d.type === 'folder' && d.title === 'Characters' && !d.inTrash
+  );
+  if (!researchFolder) {
+    researchFolder = createDocument(_project, { type: 'folder', parentId: null, title: 'Characters' });
+  }
+
+  const doc = createDocument(_project, {
+    type: 'doc',
+    parentId: researchFolder.id,
+    title: 'New Character',
+  });
+
+  doc.content = `<h2>Character Sheet</h2>
+<h3>Basic Info</h3>
+<p><strong>Full Name:</strong> </p>
+<p><strong>Nickname / Alias:</strong> </p>
+<p><strong>Age:</strong> </p>
+<p><strong>Gender / Pronouns:</strong> </p>
+<p><strong>Occupation:</strong> </p>
+<h3>Appearance</h3>
+<p><strong>Height / Build:</strong> </p>
+<p><strong>Hair &amp; Eyes:</strong> </p>
+<p><strong>Distinguishing features:</strong> </p>
+<h3>Personality</h3>
+<p><strong>Core traits:</strong> </p>
+<p><strong>Greatest strength:</strong> </p>
+<p><strong>Fatal flaw:</strong> </p>
+<p><strong>Fears:</strong> </p>
+<p><strong>Desires / Goals:</strong> </p>
+<h3>Background</h3>
+<p><strong>Backstory:</strong> </p>
+<p><strong>Key relationships:</strong> </p>
+<h3>Story Role</h3>
+<p><strong>Arc:</strong> </p>
+<p><strong>Notes:</strong> </p>`;
+
+  saveProject(_project);
+  renderBinder(_project, _currentDocId);
+  _onProjectChange?.(_project);
+  _onSelectDoc?.(doc.id);
+  showToast('Character sheet created');
+}
+
+// ─── Location Template ────────────────────────────────────────────────────────
+
+function _addLocationTemplate() {
+  if (!_project) return;
+  let locationFolder = _project.documents.find(
+    d => d.type === 'folder' && d.title === 'Locations' && !d.inTrash
+  );
+  if (!locationFolder) {
+    locationFolder = createDocument(_project, { type: 'folder', parentId: null, title: 'Locations' });
+  }
+
+  const doc = createDocument(_project, {
+    type: 'doc',
+    parentId: locationFolder.id,
+    title: 'New Location',
+  });
+
+  doc.content = `<h2>Location Sheet</h2>
+<h3>Overview</h3>
+<p><strong>Name:</strong> </p>
+<p><strong>Type:</strong> (city / building / wilderness / other)</p>
+<p><strong>Region / Country:</strong> </p>
+<p><strong>Time period:</strong> </p>
+<h3>Description</h3>
+<p><strong>First impression:</strong> </p>
+<p><strong>Sights:</strong> </p>
+<p><strong>Sounds:</strong> </p>
+<p><strong>Smells:</strong> </p>
+<p><strong>Atmosphere / Mood:</strong> </p>
+<h3>Details</h3>
+<p><strong>Key features / landmarks:</strong> </p>
+<p><strong>Who lives / works here:</strong> </p>
+<p><strong>Secrets or hidden aspects:</strong> </p>
+<h3>Story Significance</h3>
+<p><strong>Scenes set here:</strong> </p>
+<p><strong>Symbolic meaning:</strong> </p>
+<p><strong>Notes:</strong> </p>`;
+
+  saveProject(_project);
+  renderBinder(_project, _currentDocId);
+  _onProjectChange?.(_project);
+  _onSelectDoc?.(doc.id);
+  showToast('Location sheet created');
 }
 
 function _esc(str) {

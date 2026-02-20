@@ -2,6 +2,10 @@
 // Phase 9: UX Modernisation
 
 import { saveProject } from './storage.js';
+import {
+  playAmbientSound, stopAmbientSound,
+  getActiveSound, getSoundVolume, setSoundVolume, getSoundList,
+} from './ambient.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -21,6 +25,8 @@ const THEME_OPTIONS = [
 const SECTIONS = [
   { id: 'appearance', label: 'Appearance', icon: '◑' },
   { id: 'editor',     label: 'Editor',     icon: '✎' },
+  { id: 'ambience',   label: 'Ambience',   icon: '🎵' },
+  { id: 'backup',     label: 'Backup',     icon: '☁' },
   { id: 'export',     label: 'Export',     icon: '↓' },
 ];
 
@@ -185,6 +191,12 @@ function _populateModal() {
   } else if (_activeSection === 'editor') {
     body.innerHTML = _buildEditorSection(settings);
     _bindEditorEvents(settings);
+  } else if (_activeSection === 'ambience') {
+    body.innerHTML = _buildAmbienceSection();
+    _bindAmbienceEvents();
+  } else if (_activeSection === 'backup') {
+    body.innerHTML = _buildBackupSection(settings);
+    _bindBackupEvents();
   } else if (_activeSection === 'export') {
     body.innerHTML = _buildExportSection(settings);
     _bindExportEvents(settings);
@@ -401,6 +413,304 @@ function _bindEditorEvents(settings) {
     _saveSetting('spellLang', e.target.value);
     applyEditorSettings(_project?.settings);
   });
+}
+
+// ─── Ambience Section ─────────────────────────────────────────────────────────
+
+function _buildAmbienceSection() {
+  const sounds  = getSoundList();
+  const active  = getActiveSound();
+  const vol     = Math.round(getSoundVolume() * 100);
+
+  const btnHtml = sounds.map(s => `
+    <button class="ambient-settings-btn${active === s.id ? ' active' : ''}"
+            data-sound="${s.id}"
+            aria-pressed="${active === s.id}"
+            title="${s.label}">
+      <span class="ambient-settings-icon">${s.icon}</span>
+      <span>${s.label}</span>
+    </button>`).join('');
+
+  return `
+    <div class="settings-section">
+      <h3 class="settings-section-title">Ambient Sounds</h3>
+      <p class="settings-field-hint" style="margin-bottom:16px">
+        Procedurally generated sounds — no downloads needed. Pick one to play while you write.
+      </p>
+
+      <div class="settings-field">
+        <label class="settings-label">Sound</label>
+        <div class="ambient-settings-grid">${btnHtml}</div>
+      </div>
+
+      <div class="settings-field">
+        <label class="settings-label" for="settings-ambient-vol">
+          Volume — <span id="settings-ambient-vol-val">${vol}%</span>
+        </label>
+        <input type="range" id="settings-ambient-vol" class="settings-range"
+               min="0" max="100" step="1" value="${vol}">
+      </div>
+
+      ${active ? `<div class="settings-field">
+        <button class="btn-secondary" id="settings-ambient-stop" style="width:100%">
+          ⏹ Stop "${sounds.find(s => s.id === active)?.label ?? active}"
+        </button>
+      </div>` : ''}
+    </div>
+  `;
+}
+
+function _bindAmbienceEvents() {
+  _modal?.querySelectorAll('.ambient-settings-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      playAmbientSound(btn.dataset.sound);
+      // Re-render the section so active state updates
+      const body = document.getElementById('settings-body');
+      if (body) { body.innerHTML = _buildAmbienceSection(); _bindAmbienceEvents(); }
+    });
+  });
+
+  const volSlider = document.getElementById('settings-ambient-vol');
+  const volVal    = document.getElementById('settings-ambient-vol-val');
+  volSlider?.addEventListener('input', () => {
+    const v = parseInt(volSlider.value, 10);
+    if (volVal) volVal.textContent = `${v}%`;
+    setSoundVolume(v / 100);
+  });
+
+  document.getElementById('settings-ambient-stop')?.addEventListener('click', () => {
+    stopAmbientSound();
+    const body = document.getElementById('settings-body');
+    if (body) { body.innerHTML = _buildAmbienceSection(); _bindAmbienceEvents(); }
+  });
+}
+
+// ─── Backup Section ───────────────────────────────────────────────────────────
+
+function _buildBackupSection(settings) {
+  const gdClientId  = localStorage.getItem('zp_gdrive_client_id') || '';
+  const lastBackup  = localStorage.getItem('zp_last_backup');
+  const lastBackupStr = lastBackup
+    ? `Last backup: ${new Date(parseInt(lastBackup, 10)).toLocaleString()}`
+    : 'No backup recorded yet.';
+
+  return `
+    <div class="settings-section">
+      <h3 class="settings-section-title">Backup & Data Protection</h3>
+
+      <!-- Device backup -->
+      <div class="settings-field">
+        <label class="settings-label">Save to Device</label>
+        <p class="settings-field-hint">
+          Saves your full project as a <code>.zeropro.json</code> file.
+          On iOS, use the Share Sheet to save to Files. On Android &amp; desktop, you can choose where to save.
+        </p>
+        <button class="btn-primary" id="settings-backup-device" style="margin-top:8px;width:100%">
+          💾 Save backup to device…
+        </button>
+        <p class="settings-field-hint" style="margin-top:6px">${_esc(lastBackupStr)}</p>
+      </div>
+
+      <div class="settings-field" style="border-top:1px solid var(--border);padding-top:18px">
+        <label class="settings-label">Auto-protect against cache wipe</label>
+        <p class="settings-field-hint">
+          Keeps a copy of your project in <strong>sessionStorage</strong> and exports a backup
+          file automatically every hour of writing — so a browser cache clear never loses your work.
+        </p>
+        <div class="settings-field-row" style="margin-top:8px">
+          <div class="settings-toggle-label">
+            <span class="settings-label">Auto-backup every hour</span>
+            <span class="settings-sublabel">Saves a .zeropro.json to your downloads folder</span>
+          </div>
+          <button class="settings-toggle${settings.autoBackup ? ' on' : ''}"
+                  id="settings-auto-backup" role="switch"
+                  aria-checked="${settings.autoBackup ? 'true' : 'false'}">
+            <span class="settings-toggle-thumb"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Google Drive -->
+      <div class="settings-field" style="border-top:1px solid var(--border);padding-top:18px">
+        <label class="settings-label">Google Drive</label>
+        <p class="settings-field-hint">
+          Enter your Google OAuth Client ID to enable one-click backup to Drive.
+          <br><br>
+          <strong>How to get a Client ID:</strong><br>
+          1. Go to <strong>console.cloud.google.com</strong><br>
+          2. Create a project → APIs &amp; Services → Credentials<br>
+          3. Create an OAuth 2.0 Client ID (type: Web Application)<br>
+          4. Add <code>${location.origin}</code> as an Authorised JavaScript Origin<br>
+          5. Copy the Client ID and paste it below.
+        </p>
+        <input type="text" id="settings-gdrive-client-id" class="settings-text-input"
+               placeholder="123456789-abc….apps.googleusercontent.com"
+               value="${_esc(gdClientId)}" style="margin-top:10px">
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn-primary" id="settings-gdrive-save-id" style="flex:1">Save Client ID</button>
+          <button class="btn-secondary" id="settings-gdrive-upload" style="flex:1"
+                  ${gdClientId ? '' : 'disabled title="Enter a Client ID first"'}>
+            ☁ Back up to Google Drive
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function _bindBackupEvents() {
+  // Device backup button — uses File System Access API when available
+  document.getElementById('settings-backup-device')?.addEventListener('click', async () => {
+    if (!_project) return;
+    const json     = JSON.stringify(_project, null, 2);
+    const filename = (_project.title || 'project').replace(/[^a-z0-9\-_ ]/gi, '_') + '.zeropro.json';
+    const blob     = new Blob([json], { type: 'application/json' });
+
+    if ('showSaveFilePicker' in window) {
+      try {
+        const fh = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: 'Zero Pro backup', accept: { 'application/json': ['.zeropro.json', '.json'] } }],
+        });
+        const writable = await fh.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        _recordBackup();
+        _refreshBackupSection();
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return; // user cancelled
+        // Fall through to download link
+      }
+    }
+
+    // Fallback: browser download (iOS Files, old browsers)
+    const url = URL.createObjectURL(blob);
+    const a   = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    _recordBackup();
+    _refreshBackupSection();
+  });
+
+  // Auto-backup toggle
+  document.getElementById('settings-auto-backup')?.addEventListener('click', e => {
+    const btn = e.currentTarget;
+    const on  = btn.classList.toggle('on');
+    btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    _saveSetting('autoBackup', on);
+    if (on) _scheduleAutoBackup(); else _clearAutoBackup();
+  });
+
+  // Save Google Client ID
+  document.getElementById('settings-gdrive-save-id')?.addEventListener('click', () => {
+    const id = document.getElementById('settings-gdrive-client-id')?.value.trim();
+    localStorage.setItem('zp_gdrive_client_id', id || '');
+    _refreshBackupSection();
+  });
+
+  // Google Drive upload
+  document.getElementById('settings-gdrive-upload')?.addEventListener('click', _uploadToGoogleDrive);
+}
+
+function _recordBackup() {
+  localStorage.setItem('zp_last_backup', Date.now().toString());
+}
+
+function _refreshBackupSection() {
+  const body = document.getElementById('settings-body');
+  if (body && _activeSection === 'backup') {
+    body.innerHTML = _buildBackupSection(_project?.settings ?? {});
+    _bindBackupEvents();
+  }
+}
+
+// Auto-backup scheduling
+let _autoBackupTimer = null;
+function _scheduleAutoBackup() {
+  _clearAutoBackup();
+  _autoBackupTimer = setInterval(() => {
+    if (!_project) return;
+    const json     = JSON.stringify(_project, null, 2);
+    const filename = (_project.title || 'project').replace(/[^a-z0-9\-_ ]/gi, '_') + '-auto.zeropro.json';
+    const blob     = new Blob([json], { type: 'application/json' });
+    const url      = URL.createObjectURL(blob);
+    const a        = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    _recordBackup();
+  }, 60 * 60 * 1000); // every hour
+}
+function _clearAutoBackup() {
+  clearInterval(_autoBackupTimer);
+  _autoBackupTimer = null;
+}
+
+// Google Drive OAuth 2.0 implicit flow
+async function _uploadToGoogleDrive() {
+  const clientId = localStorage.getItem('zp_gdrive_client_id') || '';
+  if (!clientId) { alert('Please save your Google Client ID first.'); return; }
+  if (!_project) return;
+
+  const scope      = 'https://www.googleapis.com/auth/drive.file';
+  const redirectUri = location.origin + location.pathname;
+  const authUrl    = `https://accounts.google.com/o/oauth2/v2/auth` +
+    `?client_id=${encodeURIComponent(clientId)}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&response_type=token` +
+    `&scope=${encodeURIComponent(scope)}`;
+
+  // Open in popup
+  const popup = window.open(authUrl, 'gdrive-auth', 'width=520,height=620');
+  if (!popup) { alert('Please allow popups for this site to connect Google Drive.'); return; }
+
+  // Poll for the access token in the hash
+  const token = await new Promise(resolve => {
+    const timer = setInterval(() => {
+      try {
+        const hash = popup.location.hash;
+        if (hash && hash.includes('access_token=')) {
+          clearInterval(timer);
+          popup.close();
+          const params = new URLSearchParams(hash.slice(1));
+          resolve(params.get('access_token') || '');
+        }
+        if (popup.closed) { clearInterval(timer); resolve(''); }
+      } catch { /* cross-origin — still loading */ }
+    }, 300);
+  });
+
+  if (!token) { alert('Google Drive authentication was cancelled.'); return; }
+
+  // Upload via multipart to Drive API
+  const filename = (_project.title || 'project').replace(/[^a-z0-9\-_ ]/gi, '_') + '.zeropro.json';
+  const body     = JSON.stringify(_project, null, 2);
+  const meta     = JSON.stringify({ name: filename, mimeType: 'application/json' });
+
+  const form = new FormData();
+  form.append('metadata', new Blob([meta], { type: 'application/json' }));
+  form.append('file',     new Blob([body], { type: 'application/json' }));
+
+  try {
+    const res = await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+      { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form }
+    );
+    if (res.ok) {
+      _recordBackup();
+      _refreshBackupSection();
+      alert(`✅ Backup saved to Google Drive as "${filename}"`);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      alert(`Google Drive upload failed: ${err.error?.message || res.statusText}`);
+    }
+  } catch (e) {
+    alert(`Upload error: ${e.message}`);
+  }
 }
 
 // ─── Export Section ───────────────────────────────────────────────────────────

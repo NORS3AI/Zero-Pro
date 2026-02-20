@@ -1,7 +1,7 @@
 // sw.js — Zero Pro Service Worker (Phase 8)
 // Provides full offline support via Cache API + Background Sync.
 
-const CACHE_NAME = 'zeropro-v1.6';
+const CACHE_NAME = 'zeropro-v1.7';
 
 const CDN_URLS = [
   'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js',

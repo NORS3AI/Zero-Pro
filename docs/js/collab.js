@@ -66,8 +66,8 @@ export function notifyTyping() {
 /** Return current collaborator list. */
 export function getCollaborators() { return [..._collaborators]; }
 
-/** True when currently in a collab room. */
-export function isInRoom() { return Boolean(_roomToken && _wsProvider); }
+/** True when currently in a collab room (token exists, even without live WS). */
+export function isInRoom() { return Boolean(_roomToken); }
 
 // ─── Room management ─────────────────────────────────────────────────────────
 
@@ -242,19 +242,39 @@ function _renderCollabModal() {
       ?.addEventListener('click', _copyRoomLink);
   } else {
     document.getElementById('btn-collab-create')
-      ?.addEventListener('click', () => {
+      ?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        btn.textContent = '⏳ Creating room…';
+        await new Promise(r => setTimeout(r, 600));
+
         const token = _generateToken();
         _joinRoom(token);
-        // Refresh modal body
+
         const body = document.querySelector('#collab-modal-backdrop .phase8-modal-body');
-        if (body) body.innerHTML = _collabBodyHtml();
-        _rewireCollabButtons();
+        if (body) {
+          body.innerHTML = _collabBodyHtml();
+          _rewireCollabButtons();
+          setTimeout(() => {
+            const input = document.getElementById('collab-link-display');
+            if (input) { input.focus(); input.select(); }
+          }, 80);
+        }
+        showToast('🎉 Room created — share the link to invite collaborators!');
       });
+
     document.getElementById('collab-join-form')
       ?.addEventListener('submit', e => {
         e.preventDefault();
-        const token = document.getElementById('collab-join-input')?.value.trim();
-        if (token) { _joinRoom(token); _closeCollabModal(); }
+        const raw   = document.getElementById('collab-join-input')?.value.trim() || '';
+        const token = raw.includes('room=') ? raw.split('room=')[1] : raw;
+        if (token) {
+          _joinRoom(token);
+          _closeCollabModal();
+          showToast('✅ Joined collab room');
+        } else {
+          showToast('⚠️ Please paste a room link or token');
+        }
       });
   }
 

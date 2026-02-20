@@ -5,6 +5,28 @@
 
 const PATCHES = [
   {
+    version: 'v1.7',
+    date: 'February 20, 2026',
+    title: 'UX Polish, Templates & Data Protection',
+    changes: [
+      { type: 'feat', text: 'Toolbar infinite scroll completely rewritten — seamless loop with zero glitch at boundaries' },
+      { type: 'feat', text: 'View swipe (Corkboard ↔ Editor ↔ Outline) now only triggers from the bottom 35% of the pane — no more accidental switches when using the Bold/Italic toolbar' },
+      { type: 'feat', text: 'Shared room button now shows a loading state and "Room created!" toast with auto-selected invite link' },
+      { type: 'feat', text: 'Join room — paste a full URL or just the token, both work' },
+      { type: 'feat', text: 'Binder pin: sidebar can now be resized by dragging the right edge when pinned' },
+      { type: 'feat', text: 'Binder pin width is saved per-session so it persists across views' },
+      { type: 'feat', text: 'Character Sheet template — creates a pre-filled character doc in a Characters folder' },
+      { type: 'feat', text: 'Location Sheet template — creates a pre-filled location doc in a Locations folder' },
+      { type: 'feat', text: 'Ambience moved into Settings → Ambience tab with sound picker and volume slider' },
+      { type: 'feat', text: 'Backup tab in Settings — save to device (File System Access API or download fallback)' },
+      { type: 'feat', text: 'Auto-backup toggle — saves a .zeropro.json every hour during active writing sessions' },
+      { type: 'feat', text: 'Google Drive integration — enter a Google Client ID, then back up your project with one click' },
+      { type: 'feat', text: 'Ask AI button now uses a neural-network icon and is labelled "Ask AI" (supports Claude, ChatGPT, Gemini)' },
+      { type: 'fix',  text: 'Binder pin CSS: sidebar now correctly stays visible at all screen sizes when pinned' },
+      { type: 'fix',  text: 'Settings red X close button wired correctly; Escape key also closes settings' },
+    ],
+  },
+  {
     version: 'v1.6',
     date: 'February 20, 2026 at 11:00 PM',
     title: 'Cloud Sync, Collaboration & PWA',
