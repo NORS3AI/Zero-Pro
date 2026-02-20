@@ -10,7 +10,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | Phase 4 | Weeks 11–14 | Import/export, themes, App Store wrapper | **Done** |
 | Phase 5 | Weeks 15–17 | Kindle & publishing support | **Done** |
 | Phase 6 | Weeks 18–19 | Image import & media support | **Done** |
-| Phase 7 | Weeks 20–22 | Nice-to-haves & UI polish | Planned |
+| Phase 7 | Weeks 20–22 | Nice-to-haves & UI polish | **Done** |
 | Phase 8 | Weeks 23–26 | Cloud sync & real-time collaboration | Planned |
 | Phase 9 | Weeks 27–30 | UX modernisation & Android / PWA | Planned |
 | Phase 10 | Weeks 31–34 | Advanced writing tools | Planned |
@@ -228,38 +228,38 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 
 ---
 
-## Phase 7 — Nice-to-Haves & UI Polish _(Weeks 20–22)_
+## Phase 7 — Nice-to-Haves & UI Polish _(Weeks 20–22)_ ✅
 
 **Goal:** Elevate Zero Pro from functional to delightful by shipping all the quality-of-life and "Nice to Have" items from the feature spec.
 
 ### 7.1 Editor Polish
-- [ ] Find & Replace panel — regex-capable, search within the open document
-- [ ] Full project search — search across all documents, jump to result
-- [ ] Revision history / snapshots — named point-in-time saves per document
-- [ ] Snapshot diff view — side-by-side colour-coded comparison
-- [ ] Format paint — copy inline styles from one selection to another
-- [ ] Spellcheck language selector (supplement browser native spellcheck)
+- [x] Find & Replace panel — regex-capable, search within the open document
+- [x] Full project search — search across all documents (Ctrl+Shift+F), jump to result
+- [x] Revision history / snapshots — named point-in-time saves per document
+- [x] Snapshot diff view — side-by-side colour-coded LCS comparison
+- [x] Format paint — copy inline styles from one selection to another (toolbar button)
+- [x] Spellcheck language selector (sets `lang` attribute for browser native spellcheck)
 
 ### 7.2 Binder Polish
-- [ ] Colour-coded labels — pick from a palette, show as dot on binder row
-- [ ] Duplicate document — clone with new ID, append "Copy" to title
-- [ ] Multi-select — Shift+click, then drag as a group or bulk-label
-- [ ] Right-click context menu — rename, duplicate, label, delete
+- [x] Colour-coded labels — pick from a palette, show as dot on binder row
+- [x] Duplicate document — clone with new ID, append "Copy" to title
+- [x] Multi-select — Shift+click to select multiple, bulk label and bulk trash
+- [x] Right-click context menu — rename, duplicate, label, delete
 
 ### 7.3 Corkboard Polish
-- [ ] Card zoom slider — CSS variable for card width
-- [ ] Split corkboard — show two folders side-by-side
-- [ ] Status indicator on each card — draft / revised / final dot
+- [x] Card zoom slider — CSS variable for card width
+- [x] Split corkboard — show two folders side-by-side with folder picker
+- [x] Status indicator on each card — draft / revised / final dot
 
 ### 7.4 Ambient & Atmosphere
-- [ ] Ambient sound player: rain, café, white noise, fireplace (Web Audio API or small embedded audio)
-- [ ] Custom accent colour (HSL hue slider — single CSS variable)
-- [ ] Writing streak calendar (local, no backend required)
+- [x] Ambient sound player: rain, café, white noise, fireplace, wind (Web Audio API, procedural)
+- [x] Custom accent colour (HSL hue slider in Settings → Appearance)
+- [x] Writing streak calendar — GitHub-style 6-month heatmap, streak stats
 
 ### 7.5 Command Palette
-- [ ] `Ctrl/Cmd+K` command palette — fuzzy-search any action or document
-- [ ] Recent documents section
-- [ ] Actions: new document, toggle theme, export, open settings
+- [x] `Ctrl/Cmd+K` command palette — fuzzy-search any action or document
+- [x] Recent documents section
+- [x] Actions: new document, toggle theme, export, open settings, snapshots, ambient, streak
 
 ---
 
@@ -410,7 +410,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | 10 | Import (mammoth.js), compile, full export pipeline |
 | 11 | EPUB + Kindle export, publishing help modals ✅ |
 | 12 | Image import, base64 storage, editor embed ✅ |
-| 13 | Nice-to-haves: find/replace, snapshots, command palette |
+| 13 | Nice-to-haves: find/replace, snapshots, command palette ✅ |
 | 14 | Cloud sync (Supabase), offline queue (IndexedDB) |
 | 15 | Real-time collaboration (Yjs) |
 | 16 | PWA manifest, Android testing |

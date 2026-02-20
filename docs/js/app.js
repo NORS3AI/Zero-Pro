@@ -1,25 +1,28 @@
 // app.js — Application entry point and orchestration
-// Phase 6: Image Import & Media Support
+// Phase 7: Nice-to-Haves & UI Polish
 
 import { loadProject, createProject, saveProject, getDocument, createDocument } from './storage.js';
 import { applyTheme, toggleTheme, showToast, showPrompt } from './ui.js';
 import { initBinder, renderBinder } from './binder.js';
-import { initEditor, loadDocument, saveCurrentContent, toggleFocusMode, insertImageInEditor } from './editor.js';
+import { initEditor, loadDocument, saveCurrentContent, toggleFocusMode, insertImageInEditor, copyFormat, applyFormat } from './editor.js';
 import { exportAsTxt, exportAsMd, exportAsDocx, exportAsDoc, exportProjectJson } from './export.js';
 import { importTxt, importMd, importProjectJson, initImport } from './import.js';
-import { initCorkboard, renderCorkboard } from './corkboard.js';
+import { initCorkboard, renderCorkboard, toggleSplitCorkboard } from './corkboard.js';
 import { initOutline, renderOutline } from './outline.js';
 import { initInspector, updateInspector } from './inspector.js';
 import { initAI, toggleAIPanel } from './ai.js';
-import { initFindReplace, openFindReplace } from './find-replace.js';
+import { initFindReplace, openFindReplace, openProjectSearch } from './find-replace.js';
 import { initCommandPalette } from './command-palette.js';
-import { initSettings, openSettings, applyEditorSettings } from './settings.js';
+import { initSettings, openSettings, applyEditorSettings, applyAccentHue } from './settings.js';
 import {
   initPublish, exportAsEpub,
   openKdpWizard, openIngramWizard, openSubmissionFormatter,
   openSelfPublishChecklist, openGenreGuides, openFrontMatterTemplates,
 } from './publish.js';
 import { initMedia } from './media.js';
+import { initSnapshots, openSnapshots, takeSnapshot } from './snapshots.js';
+import { initAmbient, openAmbientPanel } from './ambient.js';
+import { initStreak, openStreakCalendar, trackWordsWritten, resetWordBaseline } from './streak.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -42,6 +45,7 @@ function init() {
 
   applyTheme(state.project.settings.theme);
   applyEditorSettings(state.project.settings);
+  if (state.project.settings.accentHue != null) applyAccentHue(state.project.settings.accentHue);
 
   // Init all modules
   initBinder({
@@ -82,7 +86,9 @@ function init() {
   state.triggerProjectImport = triggerProjectImport;
 
   initFindReplace({
-    getEditor: () => document.getElementById('editor'),
+    getEditor:   () => document.getElementById('editor'),
+    getProject:  () => state.project,
+    onSelectDoc: handleSelectDocument,
   });
 
   initCommandPalette({
@@ -109,6 +115,12 @@ function init() {
       { icon: '✅', label: 'Self-Pub Checklist',  hint: '',          run: () => openSelfPublishChecklist() },
       { icon: '📕', label: 'Genre Style Guides',  hint: '',          run: () => openGenreGuides() },
       { icon: '📄', label: 'Front/Back Matter',   hint: '',          run: () => openFrontMatterTemplates(state.project) },
+      { icon: '🔎', label: 'Project Search',      hint: 'Ctrl+Shift+F', run: () => openProjectSearch() },
+      { icon: '📸', label: 'Take Snapshot',        hint: '',          run: () => takeSnapshot() },
+      { icon: '📜', label: 'Revision History',     hint: '',          run: () => openSnapshots() },
+      { icon: '🎨', label: 'Format Paint',         hint: '',          run: () => copyFormat() },
+      { icon: '🔊', label: 'Ambient Sounds',       hint: '',          run: () => openAmbientPanel() },
+      { icon: '🔥', label: 'Writing Streak',       hint: '',          run: () => openStreakCalendar() },
     ],
   });
 
@@ -123,6 +135,21 @@ function init() {
     getProject:      () => state.project,
     onProjectChange: handleProjectChange,
     renderBinder:    (project, id) => renderBinder(project, id ?? state.currentDocId),
+  });
+
+  initSnapshots({
+    getProject:    () => state.project,
+    getCurrentDoc: () => currentDoc(),
+    onDocRestore:  (docId) => {
+      const doc = getDocument(state.project, docId);
+      if (doc) loadDocument(state.project, doc);
+    },
+  });
+
+  initAmbient();
+
+  initStreak({
+    getProject: () => state.project,
   });
 
   initPublish({
@@ -196,6 +223,7 @@ function handleSelectDocument(docId) {
   saveCurrentContent();
   state.currentDocId = docId;
   const doc = docId ? getDocument(state.project, docId) : null;
+  resetWordBaseline(doc?.wordCount || 0);
 
   // Clicking a scene card in corkboard or an outline row → switch to editor
   if (doc?.type === 'doc' && state.currentView !== 'editor') {
@@ -225,6 +253,8 @@ function handleProjectChange(project) {
 function handleDocChange(project, doc) {
   state.project = project;
   updateInspector(state.project, doc?.type === 'doc' ? doc : null);
+  // Track words for writing streak
+  if (doc?.wordCount) trackWordsWritten(doc.wordCount);
 }
 
 // ─── Toolbar Wiring ───────────────────────────────────────────────────────────
@@ -376,6 +406,24 @@ function bindToolbar() {
     _closeExport();
     openFrontMatterTemplates(state.project);
   });
+
+  // ── Phase 7 ─────────────────────────────────────────────────────────────────
+
+  // Format paint (click once to copy, click again to apply)
+  btn('btn-format-paint', () => {
+    const fpBtn = document.getElementById('btn-format-paint');
+    if (fpBtn?.classList.contains('active')) {
+      applyFormat();
+    } else {
+      copyFormat();
+    }
+  });
+
+  // Take snapshot
+  btn('btn-snapshot', () => takeSnapshot());
+
+  // Split corkboard
+  btn('btn-cork-split', () => toggleSplitCorkboard());
 
   // Double-click project title to rename
   document.getElementById('project-title')?.addEventListener('dblclick', () => {

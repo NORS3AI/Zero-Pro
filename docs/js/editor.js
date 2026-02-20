@@ -6,12 +6,13 @@ import { showToast, showPrompt } from './ui.js';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
-let _project     = null;
-let _currentDoc  = null;
-let _onDocChange = null;
-let _focusMode   = false;
-let _selectedImg = null;   // currently-selected <img> inside the editor
-let _sizeWarned  = false;  // show large-doc warning at most once per document load
+let _project       = null;
+let _currentDoc    = null;
+let _onDocChange   = null;
+let _focusMode     = false;
+let _selectedImg   = null;   // currently-selected <img> inside the editor
+let _sizeWarned    = false;  // show large-doc warning at most once per document load
+let _formatPaint   = null;   // stored inline styles for format paint
 
 // ─── DOM Shortcuts ────────────────────────────────────────────────────────────
 
@@ -528,6 +529,51 @@ function _checkDocumentSize(len) {
   if (_sizeWarned || len <= 5_000_000) return;
   _sizeWarned = true;
   showToast('Document is large (>5 MB) — autosave may slow down due to embedded images.', 5000);
+}
+
+// ─── Format Paint ─────────────────────────────────────────────────────────────
+
+/** Copy the inline formatting of the current selection */
+export function copyFormat() {
+  const sel = window.getSelection();
+  if (!sel?.rangeCount) { showToast('Select text first'); return; }
+
+  let node = sel.getRangeAt(0).commonAncestorContainer;
+  if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+
+  _formatPaint = {
+    bold:          document.queryCommandState('bold'),
+    italic:        document.queryCommandState('italic'),
+    underline:     document.queryCommandState('underline'),
+    strikeThrough: document.queryCommandState('strikeThrough'),
+  };
+
+  const btn = document.getElementById('btn-format-paint');
+  if (btn) { btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
+  showToast('Format copied — select text to apply');
+}
+
+/** Apply the copied formatting to the current selection */
+export function applyFormat() {
+  if (!_formatPaint) { showToast('Copy a format first'); return; }
+
+  const editor = el('editor');
+  if (!editor || editor.contentEditable !== 'true') return;
+
+  // Apply or remove each format
+  if (_formatPaint.bold !== document.queryCommandState('bold'))
+    document.execCommand('bold');
+  if (_formatPaint.italic !== document.queryCommandState('italic'))
+    document.execCommand('italic');
+  if (_formatPaint.underline !== document.queryCommandState('underline'))
+    document.execCommand('underline');
+  if (_formatPaint.strikeThrough !== document.queryCommandState('strikeThrough'))
+    document.execCommand('strikeThrough');
+
+  _formatPaint = null;
+  const btn = document.getElementById('btn-format-paint');
+  if (btn) { btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); }
+  saveCurrentContent();
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

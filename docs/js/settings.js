@@ -85,6 +85,11 @@ export function applyEditorSettings(settings) {
   if (editor) {
     editor.spellcheck = settings?.spellcheck !== false;
     editor.classList.toggle('no-indent', settings?.indent === false);
+    if (settings?.spellLang) {
+      editor.setAttribute('lang', settings.spellLang);
+    } else {
+      editor.removeAttribute('lang');
+    }
   }
 }
 
@@ -179,7 +184,8 @@ function _populateModal() {
 // ─── Appearance Section ───────────────────────────────────────────────────────
 
 function _buildAppearanceSection(settings) {
-  const current = settings.theme || 'dark';
+  const current   = settings.theme || 'dark';
+  const accentHue = settings.accentHue ?? 38;  // default golden hue
   return `
     <div class="settings-section">
       <h3 class="settings-section-title">Appearance</h3>
@@ -200,6 +206,14 @@ function _buildAppearanceSection(settings) {
           `).join('')}
         </div>
       </div>
+
+      <div class="settings-field">
+        <label class="settings-label" for="settings-accent-hue">
+          Accent Colour — <span id="settings-accent-preview" class="accent-preview" style="background:hsl(${accentHue},55%,60%)"></span>
+        </label>
+        <input type="range" id="settings-accent-hue" class="settings-range accent-range"
+               min="0" max="360" step="1" value="${accentHue}">
+      </div>
     </div>
   `;
 }
@@ -208,15 +222,23 @@ function _bindAppearanceEvents(settings) {
   _modal?.querySelectorAll('.settings-theme-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const theme = btn.dataset.theme;
-      // Apply immediately
       document.documentElement.setAttribute('data-theme', theme);
-      // Update button states
       _modal.querySelectorAll('.settings-theme-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.theme === theme);
         b.setAttribute('aria-checked', b.dataset.theme === theme ? 'true' : 'false');
       });
       _saveSetting('theme', theme);
     });
+  });
+
+  // Accent colour hue slider
+  const hueSlider = document.getElementById('settings-accent-hue');
+  const preview   = document.getElementById('settings-accent-preview');
+  hueSlider?.addEventListener('input', () => {
+    const hue = parseInt(hueSlider.value, 10);
+    applyAccentHue(hue);
+    if (preview) preview.style.background = `hsl(${hue},55%,60%)`;
+    _saveSetting('accentHue', hue);
   });
 }
 
@@ -228,6 +250,7 @@ function _buildEditorSection(settings) {
   const lineHeight = settings.lineHeight ?? 1.8;
   const spellcheck = settings.spellcheck !== false;
   const indent     = settings.indent !== false;
+  const spellLang  = settings.spellLang  ?? '';
 
   return `
     <div class="settings-section">
@@ -291,6 +314,21 @@ function _buildEditorSection(settings) {
         </button>
       </div>
 
+      <div class="settings-field">
+        <label class="settings-label" for="settings-spellcheck-lang">Spellcheck Language</label>
+        <select id="settings-spellcheck-lang" class="settings-select">
+          <option value=""${spellLang === '' ? ' selected' : ''}>Browser default</option>
+          <option value="en-US"${spellLang === 'en-US' ? ' selected' : ''}>English (US)</option>
+          <option value="en-GB"${spellLang === 'en-GB' ? ' selected' : ''}>English (UK)</option>
+          <option value="fr"${spellLang === 'fr' ? ' selected' : ''}>French</option>
+          <option value="de"${spellLang === 'de' ? ' selected' : ''}>German</option>
+          <option value="es"${spellLang === 'es' ? ' selected' : ''}>Spanish</option>
+          <option value="it"${spellLang === 'it' ? ' selected' : ''}>Italian</option>
+          <option value="pt"${spellLang === 'pt' ? ' selected' : ''}>Portuguese</option>
+        </select>
+        <p class="settings-field-hint">Sets the <code>lang</code> attribute on the editor for browser spellcheck.</p>
+      </div>
+
     </div>
   `;
 }
@@ -347,6 +385,12 @@ function _bindEditorEvents(settings) {
     _saveSetting('indent', on);
     applyEditorSettings(_project?.settings);
   });
+
+  // Spellcheck language
+  document.getElementById('settings-spellcheck-lang')?.addEventListener('change', e => {
+    _saveSetting('spellLang', e.target.value);
+    applyEditorSettings(_project?.settings);
+  });
 }
 
 // ─── Export Section ───────────────────────────────────────────────────────────
@@ -371,6 +415,19 @@ function _bindExportEvents(settings) {
   document.getElementById('settings-author')?.addEventListener('change', e => {
     _saveSetting('author', e.target.value.trim());
   });
+}
+
+// ─── Accent Colour ────────────────────────────────────────────────────────────
+
+/**
+ * Apply a custom accent hue to :root CSS variables.
+ * @param {number} hue - HSL hue (0–360)
+ */
+export function applyAccentHue(hue) {
+  if (hue == null) return;
+  const root = document.documentElement;
+  root.style.setProperty('--accent', `hsl(${hue}, 55%, 60%)`);
+  root.style.setProperty('--accent-hover', `hsl(${hue}, 55%, 68%)`);
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
