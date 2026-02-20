@@ -20,6 +20,7 @@ let _ctxMenu  = null;   // context menu element (singleton)
 let _ctxDocId = null;   // doc ID targeted by current context menu
 let _trashExpanded = false;
 let _multiSelect = new Set();  // IDs of multi-selected documents
+let _binderPinned = localStorage.getItem('zp_binder_pinned') === '1';
 
 // ─── SVG Icon Strings ─────────────────────────────────────────────────────────
 
@@ -31,6 +32,9 @@ const ICON = {
   clip: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.715 6.542L3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/><path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/></svg>`,
   chevronRight: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06z"/></svg>`,
   chevronDown: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.22 6.22a.75.75 0 0 1 1.06 0L8 9.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L3.22 7.28a.75.75 0 0 1 0-1.06z"/></svg>`,
+  audio: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2zm0-10.586V9.28a2.5 2.5 0 0 1 1 0V3h3V1H9v1.414zM10 4v5.279a2.5 2.5 0 0 1 1 0V4h-1z"/><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/></svg>`,
+  pin: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.146.146A.5.5 0 0 1 4.5 0h7a.5.5 0 0 1 .5.5c0 .68-.342 1.174-.646 1.479-.126.125-.25.224-.354.298v4.431l.078.048c.203.127.476.314.751.555C12.36 7.775 13 8.527 13 9.5a.5.5 0 0 1-.5.5h-4v4.5c0 .276-.224 1.5-.5 1.5s-.5-1.224-.5-1.5V10h-4a.5.5 0 0 1-.5-.5c0-.973.64-1.725 1.17-2.189A5.921 5.921 0 0 1 5 6.854V2.377a2.142 2.142 0 0 1-.354-.298C4.342 1.674 4 1.179 4 .5a.5.5 0 0 1 .146-.354z"/></svg>`,
+  pinSlash: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M9.086.9 8 2l.5 4.5-3.5 2.5L4 10l2 1.5v.5l-2 2 .5.5 2-2h.5L8.5 14v-2l1-.5L9 6.5l1-1 2 1.5.5-.5L9.086.9zM13.5 2.5l-1 1-1.5-1.5 1-1 1.5 1.5z"/><path d="M1 1 0 2l5.5 5.5L4 10l2 1.5v.5l-2 2 .5.5 2-2h.5L8.5 14v-2l1-.5L8 9.5 1 1z" opacity=".4"/></svg>`,
   plus: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2z"/></svg>`,
   trash: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>`,
 };
@@ -46,8 +50,33 @@ export function initBinder({ onSelectDoc, onProjectChange, onInsertImageInEditor
   document.querySelector('[data-action="add-doc"]')?.addEventListener('click', () => _addDocument('doc', null));
   document.querySelector('[data-action="add-folder"]')?.addEventListener('click', () => _addDocument('folder', null));
   document.querySelector('[data-action="add-image"]')?.addEventListener('click', _addImageItem);
+  document.querySelector('[data-action="add-audio"]')?.addEventListener('click', _addAudioItem);
+  document.querySelector('[data-action="pin-binder"]')?.addEventListener('click', _togglePin);
+
+  // Reflect initial pin state
+  _refreshPinUI();
 
   _initContextMenu();
+}
+
+/** Return true when the binder is pinned open. */
+export function isBinderPinned() { return _binderPinned; }
+
+function _togglePin() {
+  _binderPinned = !_binderPinned;
+  localStorage.setItem('zp_binder_pinned', _binderPinned ? '1' : '0');
+  _refreshPinUI();
+  const ws = document.getElementById('workspace');
+  if (ws) ws.classList.toggle('binder-pinned', _binderPinned);
+}
+
+function _refreshPinUI() {
+  const btn = document.querySelector('[data-action="pin-binder"]');
+  if (!btn) return;
+  btn.classList.toggle('active', _binderPinned);
+  btn.setAttribute('aria-pressed', _binderPinned ? 'true' : 'false');
+  btn.title = _binderPinned ? 'Unpin Binder (keep open)' : 'Pin Binder (keep open)';
+  btn.innerHTML = _binderPinned ? ICON.pin : ICON.pinSlash;
 }
 
 /** Rebuild the entire binder tree from the current project state */
@@ -142,6 +171,7 @@ function _buildItem(doc) {
   const isFolder  = doc.type === 'folder';
   const isImage   = doc.type === 'image';
   const isClip    = doc.type === 'clip';
+  const isAudio   = doc.type === 'audio';
   const isSelected = doc.id === _currentDocId;
   const children  = isFolder ? getChildren(_project, doc.id) : [];
 
@@ -174,6 +204,8 @@ function _buildItem(doc) {
     icon.innerHTML = ICON.image;
   } else if (isClip) {
     icon.innerHTML = ICON.clip;
+  } else if (isAudio) {
+    icon.innerHTML = ICON.audio;
   } else {
     icon.innerHTML = ICON.doc;
   }
@@ -241,6 +273,7 @@ function _buildItem(doc) {
       _updateMultiSelectBar();
     }
     if (isImage) return _showLightbox(doc);
+    if (isAudio) return _showAudioPlayer(doc);
     if (isClip && doc.url) return window.open(doc.url, '_blank', 'noopener');
     _selectDocument(doc.id);
   };
@@ -698,6 +731,137 @@ function _showLightbox(doc) {
   backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
   const onKey = e => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
   document.addEventListener('keydown', onKey);
+}
+
+// ─── Audio Items ──────────────────────────────────────────────────────────────
+
+const AUDIO_ACCEPT = 'audio/mpeg,audio/wav,audio/ogg,audio/flac,audio/aac,audio/mp4,audio/x-m4a,.mp3,.wav,.ogg,.flac,.aac,.m4a';
+const AUDIO_SIZE_LIMIT_MB = 20;
+
+function _addAudioItem() {
+  const input    = document.createElement('input');
+  input.type     = 'file';
+  input.accept   = AUDIO_ACCEPT;
+  input.multiple = true;
+  input.style.display = 'none';
+  document.body.appendChild(input);
+
+  input.addEventListener('change', async () => {
+    const files = Array.from(input.files);
+    document.body.removeChild(input);
+    if (!files.length) return;
+
+    const researchFolder = _ensureResearchFolder();
+
+    for (const file of files) {
+      const sizeMB = file.size / (1024 * 1024);
+      if (sizeMB > AUDIO_SIZE_LIMIT_MB) {
+        showToast(`"${file.name}" is too large (max ${AUDIO_SIZE_LIMIT_MB} MB)`);
+        continue;
+      }
+
+      const audioData = await new Promise(res => {
+        const reader  = new FileReader();
+        reader.onload = e => res(e.target.result);
+        reader.readAsDataURL(file);
+      });
+
+      const doc = createDocument(_project, {
+        type:     'audio',
+        parentId: researchFolder.id,
+        title:    file.name.replace(/\.[^.]+$/, ''),
+      });
+      doc.audioData = audioData;
+      doc.audioMime = file.type || 'audio/mpeg';
+      doc.tags      = [];
+      saveProject(_project);
+      showToast(`"${doc.title}" added to Research`);
+    }
+
+    renderBinder(_project, _currentDocId);
+    _onProjectChange?.(_project);
+  });
+
+  input.click();
+}
+
+function _showAudioPlayer(doc) {
+  if (!doc.audioData) { showToast('No audio data'); return; }
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'lightbox-backdrop audio-player-backdrop';
+  backdrop.setAttribute('role', 'dialog');
+  backdrop.setAttribute('aria-modal', 'true');
+  backdrop.setAttribute('aria-label', `Audio: ${doc.title}`);
+
+  const tagList = (doc.tags || []).map(t =>
+    `<span class="audio-tag" data-tag="${_esc(t)}">${_esc(t)} <button class="audio-tag-remove" aria-label="Remove tag ${_esc(t)}">×</button></span>`
+  ).join('');
+
+  backdrop.innerHTML = `
+    <div class="audio-player-modal">
+      <button class="lightbox-close" aria-label="Close player">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854z"/></svg>
+      </button>
+      <div class="audio-player-icon">🎵</div>
+      <div class="audio-player-title">${_esc(doc.title)}</div>
+      <audio class="audio-player-el" controls src="${doc.audioData}"></audio>
+      <div class="audio-tags-section">
+        <div class="audio-tags-label">Labels / Tags</div>
+        <div class="audio-tags-list" id="audio-tags-list-${doc.id}">${tagList}</div>
+        <div class="audio-tag-input-row">
+          <input class="audio-tag-input" id="audio-tag-input" type="text"
+                 placeholder="Add a tag…" aria-label="New tag">
+          <button class="btn btn-primary audio-tag-add-btn" id="audio-tag-add-btn">Add</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+  backdrop.querySelector('.lightbox-close').focus();
+
+  const close = () => {
+    document.body.removeChild(backdrop);
+    document.removeEventListener('keydown', onKey);
+  };
+  backdrop.querySelector('.lightbox-close').addEventListener('click', close);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+
+  // Tag management
+  const tagInput = backdrop.querySelector('#audio-tag-input');
+  const tagList2 = backdrop.querySelector(`#audio-tags-list-${doc.id}`);
+
+  const _addTag = () => {
+    const tag = tagInput.value.trim();
+    if (!tag || (doc.tags || []).includes(tag)) { tagInput.value = ''; return; }
+    doc.tags = [...(doc.tags || []), tag];
+    saveProject(_project);
+    _onProjectChange?.(_project);
+    tagInput.value = '';
+    _rerenderTags();
+  };
+
+  const _rerenderTags = () => {
+    tagList2.innerHTML = (doc.tags || []).map(t =>
+      `<span class="audio-tag" data-tag="${_esc(t)}">${_esc(t)} <button class="audio-tag-remove" aria-label="Remove tag ${_esc(t)}">×</button></span>`
+    ).join('');
+    tagList2.querySelectorAll('.audio-tag-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const t = btn.closest('.audio-tag').dataset.tag;
+        doc.tags = (doc.tags || []).filter(x => x !== t);
+        saveProject(_project);
+        _onProjectChange?.(_project);
+        _rerenderTags();
+      });
+    });
+  };
+
+  backdrop.querySelector('#audio-tag-add-btn').addEventListener('click', _addTag);
+  tagInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); _addTag(); } });
+  _rerenderTags();
 }
 
 // ─── Multi-Select ─────────────────────────────────────────────────────────────

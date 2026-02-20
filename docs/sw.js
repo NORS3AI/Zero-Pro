@@ -49,6 +49,9 @@ const APP_ASSETS = [
   './js/offline-queue.js',
   './js/collab.js',
   './js/touch.js',
+  './js/wizard.js',
+  './js/toolbar-loop.js',
+  './css/wizard.css',
 ];
 
 // ─── Install: pre-cache all assets ───────────────────────────────────────────
