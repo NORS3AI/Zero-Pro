@@ -245,3 +245,115 @@ function _handleReorder() {
   saveProject(_project);
   _onProjectChange?.(_project);
 }
+
+// ─── Split Corkboard ──────────────────────────────────────────────────────────
+
+let _splitMode    = false;
+let _splitSortable = null;
+
+/** Toggle split corkboard mode (two folders side by side) */
+export function toggleSplitCorkboard() {
+  _splitMode = !_splitMode;
+  const pane = document.getElementById('corkboard-pane');
+  if (pane) pane.classList.toggle('split-mode', _splitMode);
+
+  const splitBtn = document.getElementById('btn-cork-split');
+  if (splitBtn) {
+    splitBtn.classList.toggle('active', _splitMode);
+    splitBtn.setAttribute('aria-pressed', _splitMode ? 'true' : 'false');
+  }
+
+  if (_splitMode) {
+    _renderSplitView();
+  } else {
+    // Remove split grid
+    const splitGrid = document.getElementById('corkboard-grid-split');
+    splitGrid?.remove();
+    const splitLabel = document.getElementById('corkboard-split-label');
+    splitLabel?.remove();
+    if (_splitSortable) { _splitSortable.destroy(); _splitSortable = null; }
+  }
+}
+
+function _renderSplitView() {
+  if (!_project) return;
+
+  // Find folders to offer as split target
+  const folders = _project.documents.filter(d => d.type === 'folder' && !d.inTrash && d.id !== _parentId);
+  if (!folders.length) {
+    const pane = document.getElementById('corkboard-pane');
+    const msg = document.createElement('p');
+    msg.id = 'corkboard-split-label';
+    msg.className = 'corkboard-empty';
+    msg.textContent = 'No other folders to split with.';
+    pane?.appendChild(msg);
+    return;
+  }
+
+  // Use the first other folder as the default split target
+  const splitFolder = folders[0];
+  _buildSplitGrid(splitFolder);
+}
+
+function _buildSplitGrid(folder) {
+  // Remove existing
+  document.getElementById('corkboard-grid-split')?.remove();
+  document.getElementById('corkboard-split-label')?.remove();
+  if (_splitSortable) { _splitSortable.destroy(); _splitSortable = null; }
+
+  const pane = document.getElementById('corkboard-pane');
+  if (!pane) return;
+
+  // Label with folder picker
+  const label = document.createElement('div');
+  label.id = 'corkboard-split-label';
+  label.className = 'cork-split-header';
+
+  const folders = _project.documents.filter(d => d.type === 'folder' && !d.inTrash && d.id !== _parentId);
+  let selectHtml = `<select class="cork-split-select">`;
+  folders.forEach(f => {
+    selectHtml += `<option value="${f.id}"${f.id === folder.id ? ' selected' : ''}>${f.title}</option>`;
+  });
+  selectHtml += '</select>';
+  label.innerHTML = selectHtml;
+
+  const select = label.querySelector('select');
+  select?.addEventListener('change', () => {
+    const newFolder = _project.documents.find(d => d.id === select.value);
+    if (newFolder) _buildSplitGrid(newFolder);
+  });
+
+  pane.appendChild(label);
+
+  // Grid
+  const grid = document.createElement('div');
+  grid.id = 'corkboard-grid-split';
+  grid.className = 'corkboard-grid';
+  grid.setAttribute('aria-label', `${folder.title} scenes`);
+
+  const docs = getChildren(_project, folder.id).filter(d => d.type === 'doc');
+  if (!docs.length) {
+    grid.innerHTML = '<p class="corkboard-empty">No scenes in this folder.</p>';
+  } else {
+    docs.forEach(doc => grid.appendChild(_buildCard(doc)));
+    if (window.Sortable) {
+      _splitSortable = Sortable.create(grid, {
+        animation: 150,
+        ghostClass: 'card-ghost',
+        chosenClass: 'card-chosen',
+        group: { name: 'corkboard-split', pull: true, put: true },
+        onEnd: () => {
+          const ids = [...grid.querySelectorAll('.cork-card')].map(el => el.dataset.id);
+          ids.forEach((id, i) => {
+            const doc = _project.documents.find(d => d.id === id);
+            if (doc) { doc.order = i; doc.parentId = folder.id; }
+          });
+          saveProject(_project);
+          _onProjectChange?.(_project);
+        },
+      });
+    }
+  }
+
+  pane.appendChild(grid);
+}

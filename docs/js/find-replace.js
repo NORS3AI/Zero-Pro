@@ -1,12 +1,15 @@
-// find-replace.js — In-document find & replace (Ctrl+F / Ctrl+H)
+// find-replace.js — In-document find & replace + project-wide search
 // Phase 7: Power Features
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
-let _getEditor = null;
-let _marks     = [];    // <mark class="fr-highlight"> elements
-let _markIdx   = -1;    // index of the currently-focused mark
-let _panel     = null;
+let _getEditor   = null;
+let _getProject  = null;
+let _onSelectDoc = null;
+let _marks       = [];    // <mark class="fr-highlight"> elements
+let _markIdx     = -1;    // index of the currently-focused mark
+let _panel       = null;
+let _projectPanel = null;
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -14,8 +17,10 @@ let _panel     = null;
  * Initialise find-replace. Call once at app init.
  * @param {{ getEditor: () => HTMLElement }} opts
  */
-export function initFindReplace({ getEditor }) {
-  _getEditor = getEditor;
+export function initFindReplace({ getEditor, getProject, onSelectDoc }) {
+  _getEditor   = getEditor;
+  _getProject  = getProject;
+  _onSelectDoc = onSelectDoc;
   _panel = _buildPanel();
 
   // Insert panel at the top of #editor-pane (above the formatting toolbar)
@@ -252,6 +257,150 @@ function _replaceAll() {
 
   const countEl = _panel?.querySelector('#fr-count');
   if (countEl) countEl.textContent = replaced > 0 ? `Replaced ${replaced}` : 'No results';
+}
+
+// ─── Project-Wide Search ──────────────────────────────────────────────────────
+
+/** Open a project-wide search panel (Ctrl+Shift+F) */
+export function openProjectSearch() {
+  if (!_projectPanel) {
+    _projectPanel = _buildProjectPanel();
+    document.body.appendChild(_projectPanel);
+  }
+  _projectPanel.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  const input = _projectPanel.querySelector('#ps-input');
+  if (input) { input.value = ''; input.focus(); }
+  const results = _projectPanel.querySelector('#ps-results');
+  if (results) results.innerHTML = '<p class="ps-hint">Search across all documents in your project.</p>';
+}
+
+function _buildProjectPanel() {
+  const overlay = document.createElement('div');
+  overlay.id        = 'project-search-overlay';
+  overlay.className = 'project-search-overlay hidden';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', 'Project search');
+
+  overlay.innerHTML = `
+    <div class="project-search-modal">
+      <div class="ps-header">
+        <input id="ps-input" class="ps-input" type="text"
+               placeholder="Search all documents…"
+               autocomplete="off" spellcheck="false"
+               aria-label="Search all documents">
+        <button class="ps-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="ps-results" id="ps-results"></div>
+    </div>
+  `;
+
+  const close = () => { overlay.classList.add('hidden'); document.body.classList.remove('modal-open'); };
+
+  overlay.querySelector('.ps-close').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  let _debounce = null;
+  overlay.querySelector('#ps-input').addEventListener('input', e => {
+    clearTimeout(_debounce);
+    _debounce = setTimeout(() => _runProjectSearch(e.target.value), 200);
+  });
+
+  overlay.querySelector('#ps-input').addEventListener('keydown', e => {
+    if (e.key === 'Escape') close();
+  });
+
+  // Also bind Ctrl+Shift+F globally
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
+      e.preventDefault();
+      openProjectSearch();
+    }
+  });
+
+  return overlay;
+}
+
+function _runProjectSearch(query) {
+  const results = document.getElementById('ps-results');
+  if (!results) return;
+
+  const trimmed = query.trim();
+  if (!trimmed) {
+    results.innerHTML = '<p class="ps-hint">Search across all documents in your project.</p>';
+    return;
+  }
+
+  const project = _getProject?.();
+  if (!project) return;
+
+  const regex = new RegExp(_escRegex(trimmed), 'gi');
+  const matches = [];
+
+  project.documents
+    .filter(d => !d.inTrash && d.type === 'doc')
+    .forEach(doc => {
+      // Search in content (strip HTML)
+      const text = _stripHtmlForSearch(doc.content || '');
+      const found = [...text.matchAll(regex)];
+      if (found.length) {
+        matches.push({
+          doc,
+          count: found.length,
+          snippets: found.slice(0, 3).map(m => {
+            const start = Math.max(0, m.index - 40);
+            const end   = Math.min(text.length, m.index + m[0].length + 40);
+            const pre   = start > 0 ? '…' : '';
+            const post  = end < text.length ? '…' : '';
+            return pre + text.slice(start, end).replace(regex, '<mark>$&</mark>') + post;
+          }),
+        });
+      }
+
+      // Also match title
+      if (regex.test(doc.title) && !matches.find(m => m.doc.id === doc.id)) {
+        matches.push({ doc, count: 1, snippets: [`Title match: <mark>${_esc(doc.title)}</mark>`] });
+      }
+      regex.lastIndex = 0; // reset global regex
+    });
+
+  if (!matches.length) {
+    results.innerHTML = '<p class="ps-hint">No results found.</p>';
+    return;
+  }
+
+  results.innerHTML = '';
+  matches.forEach(({ doc, count, snippets }) => {
+    const item = document.createElement('div');
+    item.className = 'ps-result';
+    item.innerHTML = `
+      <div class="ps-result-title">${_esc(doc.title)} <span class="ps-match-count">${count} match${count > 1 ? 'es' : ''}</span></div>
+      <div class="ps-result-snippets">${snippets.map(s => `<div class="ps-snippet">${s}</div>`).join('')}</div>
+    `;
+    item.addEventListener('click', () => {
+      _onSelectDoc?.(doc.id);
+      _projectPanel.classList.add('hidden');
+      document.body.classList.remove('modal-open');
+      // Open in-document find with the same query
+      setTimeout(() => {
+        openFindReplace(false);
+        const findInput = _panel?.querySelector('#fr-find');
+        if (findInput) { findInput.value = trimmed; _runSearch(); }
+      }, 100);
+    });
+    results.appendChild(item);
+  });
+}
+
+function _stripHtmlForSearch(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.textContent || '';
+}
+
+function _esc(str) {
+  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

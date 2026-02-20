@@ -19,6 +19,7 @@ let _sortableInstances = [];
 let _ctxMenu  = null;   // context menu element (singleton)
 let _ctxDocId = null;   // doc ID targeted by current context menu
 let _trashExpanded = false;
+let _multiSelect = new Set();  // IDs of multi-selected documents
 
 // ─── SVG Icon Strings ─────────────────────────────────────────────────────────
 
@@ -215,14 +216,36 @@ function _buildItem(doc) {
     _showContextMenu(doc.id, e.clientX, e.clientY);
   });
 
+  // Multi-select highlight
+  if (_multiSelect.has(doc.id)) row.classList.add('multi-selected');
+
   // Events — image items open a lightbox; clips open the source URL; docs select into the editor
-  const handleActivate = () => {
+  const handleActivate = (e) => {
+    // Shift+click for multi-select
+    if (e?.shiftKey) {
+      e.preventDefault();
+      if (_multiSelect.has(doc.id)) {
+        _multiSelect.delete(doc.id);
+        row.classList.remove('multi-selected');
+      } else {
+        _multiSelect.add(doc.id);
+        row.classList.add('multi-selected');
+      }
+      _updateMultiSelectBar();
+      return;
+    }
+    // Clear multi-select on normal click
+    if (_multiSelect.size) {
+      _multiSelect.clear();
+      document.querySelectorAll('.binder-item-row.multi-selected').forEach(el => el.classList.remove('multi-selected'));
+      _updateMultiSelectBar();
+    }
     if (isImage) return _showLightbox(doc);
     if (isClip && doc.url) return window.open(doc.url, '_blank', 'noopener');
     _selectDocument(doc.id);
   };
   row.addEventListener('click', handleActivate);
-  row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(); } });
+  row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(e); } });
   titleSpan.addEventListener('dblclick', e => { e.stopPropagation(); _startRename(doc.id, titleSpan); });
 
   // Image items can be dragged into the editor to embed
@@ -675,6 +698,96 @@ function _showLightbox(doc) {
   backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
   const onKey = e => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
   document.addEventListener('keydown', onKey);
+}
+
+// ─── Multi-Select ─────────────────────────────────────────────────────────────
+
+function _updateMultiSelectBar() {
+  let bar = document.getElementById('binder-multiselect-bar');
+  if (!_multiSelect.size) {
+    bar?.remove();
+    return;
+  }
+
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'binder-multiselect-bar';
+    bar.className = 'binder-multiselect-bar';
+    const binderEl = document.getElementById('binder');
+    if (binderEl) binderEl.appendChild(bar);
+  }
+
+  bar.innerHTML = `
+    <span class="multi-count">${_multiSelect.size} selected</span>
+    <button class="multi-btn" data-action="label">Label</button>
+    <button class="multi-btn" data-action="trash">Trash</button>
+    <button class="multi-btn" data-action="clear">Clear</button>
+  `;
+
+  bar.querySelector('[data-action="label"]').addEventListener('click', _bulkLabel);
+  bar.querySelector('[data-action="trash"]').addEventListener('click', _bulkTrash);
+  bar.querySelector('[data-action="clear"]').addEventListener('click', () => {
+    _multiSelect.clear();
+    document.querySelectorAll('.binder-item-row.multi-selected').forEach(el => el.classList.remove('multi-selected'));
+    _updateMultiSelectBar();
+  });
+}
+
+function _bulkLabel() {
+  // Show a small label picker for bulk label assignment
+  const bar = document.getElementById('binder-multiselect-bar');
+  if (!bar) return;
+
+  let picker = bar.querySelector('.multi-label-picker');
+  if (picker) { picker.remove(); return; }
+
+  picker = document.createElement('div');
+  picker.className = 'multi-label-picker';
+
+  const noneDot = document.createElement('button');
+  noneDot.className = 'ctx-label-dot ctx-label-none';
+  noneDot.title = 'Remove label';
+  noneDot.addEventListener('click', () => { _applyBulkLabel(null); picker.remove(); });
+  picker.appendChild(noneDot);
+
+  Object.entries(LABEL_COLORS).forEach(([name, color]) => {
+    const dot = document.createElement('button');
+    dot.className = 'ctx-label-dot';
+    dot.style.background = color;
+    dot.title = name;
+    dot.addEventListener('click', () => { _applyBulkLabel(name); picker.remove(); });
+    picker.appendChild(dot);
+  });
+
+  bar.appendChild(picker);
+}
+
+function _applyBulkLabel(label) {
+  _multiSelect.forEach(id => {
+    updateDocument(_project, id, { label });
+  });
+  saveProject(_project);
+  _multiSelect.clear();
+  renderBinder(_project, _currentDocId);
+  _onProjectChange?.(_project);
+  _updateMultiSelectBar();
+  showToast(label ? `Label "${label}" applied` : 'Labels removed');
+}
+
+function _bulkTrash() {
+  _multiSelect.forEach(id => {
+    trashDocument(_project, id);
+    if (_currentDocId === id) {
+      _currentDocId = null;
+      _onSelectDoc?.(null);
+    }
+  });
+  saveProject(_project);
+  _multiSelect.clear();
+  renderBinder(_project, _currentDocId);
+  _onProjectChange?.(_project);
+  _updateMultiSelectBar();
+  showToast('Moved to Trash');
 }
 
 function _esc(str) {
