@@ -8,6 +8,10 @@
   <title>Zero Pro</title>
 
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Zero Pro">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/sidebar.css">
   <link rel="stylesheet" href="css/editor.css">
@@ -18,6 +22,7 @@
   <link rel="stylesheet" href="css/settings.css">
   <link rel="stylesheet" href="css/publish.css">
   <link rel="stylesheet" href="css/phase7.css">
+  <link rel="stylesheet" href="css/phase8.css">
   <link rel="stylesheet" href="css/responsive.css">
 
   <!-- Sortable.js — drag-and-drop for the binder and corkboard -->
@@ -28,6 +33,24 @@
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
+
+<!-- Offline indicator banner -->
+<div id="offline-banner" role="status" aria-live="polite">
+  ⚡ You're offline — all changes are saved locally and will sync when reconnected.
+</div>
+
+<!-- PWA install prompt banner -->
+<div id="pwa-install-banner" role="complementary" aria-label="Install Zero Pro">
+  <div class="pwa-icon">📝</div>
+  <div class="pwa-text">
+    <strong>Install Zero Pro</strong>
+    <span>Add to home screen for the best experience</span>
+  </div>
+  <div class="pwa-actions">
+    <button class="btn btn-primary" id="btn-pwa-install">Install</button>
+    <button class="btn btn-icon" id="btn-pwa-dismiss" aria-label="Dismiss">✕</button>
+  </div>
+</div>
 
 <div id="app">
 
@@ -113,7 +136,25 @@
     <span class="toolbar-sep"></span>
 
     <!-- Patch Notes -->
-    <button class="btn-changelog" id="btn-changelog" title="View Patch Notes" aria-label="View patch notes">v1.5</button>
+    <button class="btn-changelog" id="btn-changelog" title="View Patch Notes" aria-label="View patch notes">v1.6</button>
+
+    <span class="toolbar-sep"></span>
+
+    <!-- Cloud sync status -->
+    <button id="sync-status-pill" data-status="local"
+            title="Cloud Sync — click to open settings"
+            aria-label="Sync status">💾 Local</button>
+
+    <!-- Collab avatars (populated by collab.js) -->
+    <div id="collab-avatars" aria-label="Active collaborators"></div>
+
+    <!-- Collab typing indicator (shown in status bar on mobile) -->
+
+    <!-- Share / Collab button -->
+    <button class="btn btn-icon" id="btn-collab"
+            title="Share & Collaborate" aria-label="Share and collaborate">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
+    </button>
 
     <!-- Theme toggle -->
     <button class="btn btn-icon" id="btn-theme" title="Toggle Theme" aria-label="Toggle dark / light theme">
@@ -228,6 +269,7 @@
           <span class="status-sep"></span>
           <span id="word-count">0 words</span>
           <span id="project-word-count"></span>
+          <span id="collab-typing" aria-live="polite"></span>
         </div>
 
       </div><!-- /editor-pane -->

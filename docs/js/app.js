@@ -1,5 +1,5 @@
 // app.js — Application entry point and orchestration
-// Phase 7: Nice-to-Haves & UI Polish
+// Phase 8: Cloud Sync, Collaboration & PWA
 
 import { loadProject, createProject, saveProject, getDocument, createDocument } from './storage.js';
 import { applyTheme, toggleTheme, showToast, showPrompt } from './ui.js';
@@ -24,6 +24,9 @@ import { initMedia } from './media.js';
 import { initSnapshots, openSnapshots, takeSnapshot } from './snapshots.js';
 import { initAmbient, openAmbientPanel } from './ambient.js';
 import { initStreak, openStreakCalendar, trackWordsWritten, resetWordBaseline } from './streak.js';
+import { initSync, pushProject, openSyncPanel, isSyncEnabled } from './sync.js';
+import { initCollab, openCollabPanel, notifyTyping } from './collab.js';
+import { initTouch } from './touch.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -164,6 +167,29 @@ function init() {
     },
   });
 
+  // ── Phase 8: Sync, Collab, Touch ────────────────────────────────────────────
+  initSync({
+    getProjectJson: () => JSON.stringify(state.project),
+    onStatusChange: status => {
+      // Show/hide offline banner
+      document.body.classList.toggle('is-offline', status === 'offline');
+    },
+  });
+
+  initCollab({
+    onPresenceChange: _collabs => {
+      // collab.js renders avatars directly via DOM
+    },
+  });
+
+  initTouch({
+    onSwitchView:    view => switchView(view),
+    getViews:        () => ['corkboard', 'editor', 'outline'],
+    getCurrentView:  () => state.currentView,
+  });
+
+  _initPWAInstallPrompt();
+
   // Render binder and open corkboard by default
   renderBinder(state.project, null);
   switchView('corkboard');
@@ -255,6 +281,20 @@ function handleDocChange(project, doc) {
   updateInspector(state.project, doc?.type === 'doc' ? doc : null);
   // Track words for writing streak
   if (doc?.wordCount) trackWordsWritten(doc.wordCount);
+  // Notify collaborators
+  notifyTyping();
+  // Debounced cloud sync
+  _scheduleSyncPush();
+}
+
+let _syncPushTimer = null;
+function _scheduleSyncPush() {
+  clearTimeout(_syncPushTimer);
+  _syncPushTimer = setTimeout(async () => {
+    if (isSyncEnabled()) {
+      await pushProject(JSON.stringify(state.project));
+    }
+  }, 5000);
 }
 
 // ─── Toolbar Wiring ───────────────────────────────────────────────────────────
@@ -432,6 +472,29 @@ function bindToolbar() {
   // Split corkboard
   btn('btn-cork-split', () => toggleSplitCorkboard());
 
+  // ── Phase 8 ─────────────────────────────────────────────────────────────────
+
+  // Sync status pill → open sync panel
+  btn('sync-status-pill', () => openSyncPanel());
+
+  // Collab / Share button
+  btn('btn-collab', () => openCollabPanel());
+
+  // PWA install button
+  btn('btn-pwa-install', () => {
+    if (state._pwaPrompt) {
+      state._pwaPrompt.prompt();
+      state._pwaPrompt.userChoice.then(() => {
+        state._pwaPrompt = null;
+        document.getElementById('pwa-install-banner')?.classList.remove('visible');
+      });
+    }
+  });
+  btn('btn-pwa-dismiss', () => {
+    document.getElementById('pwa-install-banner')?.classList.remove('visible');
+    localStorage.setItem('zp_pwa_dismissed', '1');
+  });
+
   // Double-click project title to rename
   document.getElementById('project-title')?.addEventListener('dblclick', () => {
     showPrompt('Rename Project', 'Project title', state.project.title, newTitle => {
@@ -449,6 +512,10 @@ function bindToolbar() {
       saveCurrentContent();
       saveProject(state.project);
       showToast('Saved');
+      // Push to cloud if sync is enabled
+      if (isSyncEnabled()) {
+        pushProject(JSON.stringify(state.project));
+      }
     }
   });
 }
@@ -504,6 +571,26 @@ function updateProjectTitle() {
 function _syncStatusBar(doc) {
   const titleEl = document.getElementById('current-doc-title');
   if (titleEl) titleEl.textContent = doc?.title ?? '';
+}
+
+// ─── Phase 8 Helpers ──────────────────────────────────────────────────────────
+
+/** Set up the PWA beforeinstallprompt event to show the custom banner. */
+function _initPWAInstallPrompt() {
+  if (localStorage.getItem('zp_pwa_dismissed')) return;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    state._pwaPrompt = e;
+    const banner = document.getElementById('pwa-install-banner');
+    if (banner) banner.classList.add('visible');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    state._pwaPrompt = null;
+    document.getElementById('pwa-install-banner')?.classList.remove('visible');
+    showToast('Zero Pro installed — find it on your home screen');
+  });
 }
 
 // ─── Import Handlers ──────────────────────────────────────────────────────────
