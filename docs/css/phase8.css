@@ -1,0 +1,470 @@
+/* phase8.css — Cloud Sync, Collaboration, Offline & PWA styles */
+
+/* ─── Sync Status Indicator ───────────────────────────────────────────────── */
+
+.sync-status-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: default;
+  user-select: none;
+}
+
+.sync-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background var(--transition);
+}
+
+#sync-status[data-state="synced"]       .sync-dot { background: var(--green); }
+#sync-status[data-state="syncing"]      .sync-dot { background: var(--accent); animation: pulse-dot 1s ease-in-out infinite; }
+#sync-status[data-state="offline"]      .sync-dot { background: var(--text-muted); }
+#sync-status[data-state="error"]        .sync-dot { background: var(--danger); }
+#sync-status[data-state="disconnected"] .sync-dot { background: var(--border); }
+#sync-status[data-state="idle"]         .sync-dot { background: var(--border); }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+
+/* ─── Offline Indicator ───────────────────────────────────────────────────── */
+
+#offline-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+}
+
+#offline-indicator.hidden { display: none; }
+
+.offline-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ─── Collaboration: Remote Cursors ───────────────────────────────────────── */
+
+.remote-cursor {
+  position: absolute;
+  width: 2px;
+  height: 1.2em;
+  border-left: 2px solid;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.remote-cursor-label {
+  position: absolute;
+  top: -18px;
+  left: -1px;
+  padding: 1px 6px;
+  border-radius: 3px 3px 3px 0;
+  font-size: 10px;
+  font-family: var(--font-ui);
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  line-height: 14px;
+}
+
+.remote-selection {
+  position: absolute;
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 9;
+}
+
+/* ─── Collaboration: Typing Indicator ─────────────────────────────────────── */
+
+#collab-typing {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#collab-typing.hidden { display: none; }
+
+/* ─── Collaboration: Avatars (toolbar) ────────────────────────────────────── */
+
+.collab-avatars {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 4px;
+}
+
+.collab-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  border: 2px solid var(--surface);
+  margin-left: -6px;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.collab-avatar:first-child { margin-left: 0; }
+
+.collab-avatar[title]::after {
+  content: attr(title);
+}
+
+/* ─── Collaboration: Share Panel ──────────────────────────────────────────── */
+
+.collab-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  min-width: 360px;
+  max-width: 480px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  z-index: 1001;
+}
+
+.collab-panel h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.collab-share-url {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.collab-share-url input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  outline: none;
+}
+
+.collab-share-url input:focus {
+  border-color: var(--accent);
+}
+
+.collab-share-url button {
+  padding: 8px 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.collab-share-url button:hover { background: var(--accent-hover); }
+
+/* Permission selector */
+.collab-permission-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  margin-bottom: 12px;
+}
+
+/* Collaborator list */
+.collab-member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+}
+
+.collab-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.collab-member:last-child { border-bottom: none; }
+
+.collab-member-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.collab-member-info { flex: 1; min-width: 0; }
+.collab-member-name { font-size: 13px; font-weight: 500; }
+.collab-member-role { font-size: 11px; color: var(--text-muted); }
+
+/* ─── Comments Panel ──────────────────────────────────────────────────────── */
+
+.comment-thread {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.comment-thread:last-child { border-bottom: none; }
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.comment-author {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.comment-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.comment-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.comment-action-btn {
+  padding: 2px 8px;
+  font-size: 11px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.comment-action-btn:hover {
+  background: var(--surface-alt);
+  color: var(--text);
+}
+
+.comment-resolved {
+  opacity: 0.5;
+}
+
+.comment-reply {
+  margin-left: 20px;
+  padding-left: 10px;
+  border-left: 2px solid var(--border);
+}
+
+/* ─── Conflict Resolution Modal ───────────────────────────────────────────── */
+
+.conflict-modal {
+  max-width: 480px;
+}
+
+.conflict-options {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.conflict-option {
+  flex: 1;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--transition), background var(--transition);
+  font-family: var(--font-ui);
+  color: var(--text);
+}
+
+.conflict-option:hover {
+  border-color: var(--accent);
+  background: var(--surface-alt);
+}
+
+.conflict-option strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.conflict-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ─── Settings: Cloud Sync Section ────────────────────────────────────────── */
+
+.settings-cloud-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+
+.settings-cloud-status .cloud-user-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.settings-cloud-status .cloud-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-cloud-status .cloud-user-email {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-cloud-status .cloud-user-state {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.settings-cloud-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ─── PWA Install Banner ──────────────────────────────────────────────────── */
+
+.pwa-install-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2100;
+  transform: translateY(100%);
+  transition: transform 300ms ease;
+}
+
+.pwa-install-bar.visible {
+  transform: translateY(0);
+}
+
+.pwa-install-bar .pwa-text {
+  flex: 1;
+  font-size: 13px;
+}
+
+.pwa-install-bar .pwa-text strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.pwa-install-btn {
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+}
+
+.pwa-install-btn:hover { background: var(--accent-hover); }
+
+.pwa-dismiss-btn {
+  padding: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* ─── Touch Gesture Visual Feedback ───────────────────────────────────────── */
+
+@media (pointer: coarse) {
+  /* Slightly larger tap targets on touch */
+  .btn { min-height: 36px; min-width: 36px; }
+  .binder-row { min-height: 36px; }
+  .dropdown-item { min-height: 40px; padding: 10px 12px; }
+  .fmt-btn { min-width: 36px; min-height: 36px; }
+}
+
+/* Standalone PWA adjustments */
+@media (display-mode: standalone) {
+  /* Account for safe area insets on notched devices */
+  #toolbar {
+    padding-top: env(safe-area-inset-top, 0);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+  }
+
+  #status-bar {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+}

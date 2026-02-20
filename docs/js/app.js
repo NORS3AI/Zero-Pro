@@ -1,5 +1,5 @@
 // app.js — Application entry point and orchestration
-// Phase 7: Nice-to-Haves & UI Polish
+// Phase 8: Cloud Sync & Real-Time Collaboration
 
 import { loadProject, createProject, saveProject, getDocument, createDocument } from './storage.js';
 import { applyTheme, toggleTheme, showToast, showPrompt } from './ui.js';
@@ -23,6 +23,11 @@ import { initMedia } from './media.js';
 import { initSnapshots, openSnapshots, takeSnapshot } from './snapshots.js';
 import { initAmbient, openAmbientPanel } from './ambient.js';
 import { initStreak, openStreakCalendar, trackWordsWritten, resetWordBaseline } from './streak.js';
+// Phase 8
+import { initSync, syncProjectDebounced, syncNow, getUser, getSyncState, onSyncStateChange } from './sync.js';
+import { initCollab, createRoom, leaveRoom, getRoomId, getCollaborators, copyShareUrl, onCollabChange, setTypingStatus } from './collab.js';
+import { initOfflineQueue, enqueue, isOnline, onStatusChange } from './offline-queue.js';
+import { initTouch } from './touch.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -32,6 +37,7 @@ const state = {
   currentView:          'editor', // 'editor' | 'corkboard' | 'outline'
   triggerDocImport:     null,
   triggerProjectImport: null,
+  _typingTimer:         null,
 };
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
@@ -121,6 +127,10 @@ function init() {
       { icon: '🎨', label: 'Format Paint',         hint: '',          run: () => copyFormat() },
       { icon: '🔊', label: 'Ambient Sounds',       hint: '',          run: () => openAmbientPanel() },
       { icon: '🔥', label: 'Writing Streak',       hint: '',          run: () => openStreakCalendar() },
+      // Phase 8
+      { icon: '☁', label: 'Cloud Sync Settings',  hint: '',          run: () => openSettings('cloud') },
+      { icon: '🔄', label: 'Sync Now',             hint: '',          run: () => { syncNow(); showToast('Syncing\u2026'); } },
+      { icon: '👥', label: 'Collaborate',           hint: '',          run: () => _openCollabPanel() },
     ],
   });
 
@@ -161,6 +171,67 @@ function init() {
       renderBinder(state.project, state.currentDocId);
       showToast(`"${title}" added to binder`);
     },
+  });
+
+  // ── Phase 8: Cloud Sync, Collaboration, Offline, Touch ─────────────────
+
+  initSync({
+    getProject:    () => state.project,
+    onProjectSync: (project) => {
+      state.project = project;
+      saveProject(project);
+      renderBinder(project, state.currentDocId);
+      updateProjectTitle();
+      showToast('Project synced from cloud');
+    },
+  });
+
+  initCollab({
+    getProject:     () => state.project,
+    getCurrentDoc:  () => currentDoc(),
+    onRemoteChange: () => {
+      // Reload the current document when a remote collaborator changes it
+      const doc = currentDoc();
+      if (doc) loadDocument(state.project, doc);
+    },
+  });
+
+  initOfflineQueue({
+    onFlush: async (entries) => {
+      // When we come back online, push queued writes to the cloud
+      for (const entry of entries) {
+        if (entry.type === 'sync_push') {
+          await syncNow();
+        }
+      }
+    },
+  });
+
+  initTouch({
+    onSwipeRight: () => {
+      // Swipe right from left edge → open binder
+      if (_isCompact()) {
+        workspace().classList.add('binder-open');
+        workspace().classList.remove('inspector-open');
+      }
+    },
+    onSwipeLeft: () => {
+      // Swipe left from right edge → open inspector
+      if (_isCompact()) {
+        workspace().classList.add('inspector-open');
+        workspace().classList.remove('binder-open');
+      }
+    },
+  });
+
+  // Update collab avatars in toolbar when collaborators change
+  onCollabChange(({ collaborators }) => {
+    _renderCollabAvatars(collaborators);
+  });
+
+  // Listen for service worker sync-flush events
+  window.addEventListener('sw-sync-flush', () => {
+    syncNow();
   });
 
   // Render binder and open first document
@@ -248,6 +319,9 @@ function handleProjectChange(project) {
     renderOutline(state.project);
   }
   updateInspector(state.project, doc?.type === 'doc' ? doc : null);
+
+  // Phase 8: Trigger cloud sync on project changes
+  syncProjectDebounced();
 }
 
 function handleDocChange(project, doc) {
@@ -255,6 +329,11 @@ function handleDocChange(project, doc) {
   updateInspector(state.project, doc?.type === 'doc' ? doc : null);
   // Track words for writing streak
   if (doc?.wordCount) trackWordsWritten(doc.wordCount);
+  // Phase 8: Trigger cloud sync + typing presence
+  syncProjectDebounced();
+  setTypingStatus(true);
+  clearTimeout(state._typingTimer);
+  state._typingTimer = setTimeout(() => setTypingStatus(false), 3000);
 }
 
 // ─── Toolbar Wiring ───────────────────────────────────────────────────────────
@@ -435,15 +514,19 @@ function bindToolbar() {
     });
   });
 
-  // Ctrl/Cmd+S — force-save
+  // Ctrl/Cmd+S — force-save + cloud sync
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
       saveCurrentContent();
       saveProject(state.project);
+      syncProjectDebounced();
       showToast('Saved');
     }
   });
+
+  // ── Phase 8: Collaboration button ──────────────────────────────────────────
+  btn('btn-collab', () => _openCollabPanel());
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -497,6 +580,145 @@ function updateProjectTitle() {
 function _syncStatusBar(doc) {
   const titleEl = document.getElementById('current-doc-title');
   if (titleEl) titleEl.textContent = doc?.title ?? '';
+}
+
+// ─── Phase 8: Collaboration Panel ────────────────────────────────────────────
+
+function _openCollabPanel() {
+  const roomId = getRoomId();
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+
+  if (roomId) {
+    // Already in a room — show share panel
+    const collabs = getCollaborators();
+    backdrop.innerHTML = `
+      <div class="collab-panel" role="dialog" aria-modal="true">
+        <h3>Collaboration Room</h3>
+        <div class="collab-share-url">
+          <input type="text" value="${_getCollabUrl()}" readonly id="collab-url-input">
+          <button id="collab-copy-url">Copy</button>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">
+          ${collabs.length} collaborator${collabs.length !== 1 ? 's' : ''} connected
+        </div>
+        ${collabs.length > 0 ? `<ul class="collab-member-list">
+          ${collabs.map(c => `
+            <li class="collab-member">
+              <div class="collab-member-avatar" style="background:${c.color}">${(c.name || '?')[0].toUpperCase()}</div>
+              <div class="collab-member-info">
+                <div class="collab-member-name">${c.name}</div>
+                <div class="collab-member-role">${c.typing ? 'Writing\u2026' : 'Connected'}</div>
+              </div>
+            </li>
+          `).join('')}
+        </ul>` : ''}
+        <div class="modal-actions">
+          <button class="btn-danger" id="collab-leave">Leave Room</button>
+          <button class="btn-secondary" id="collab-close">Close</button>
+        </div>
+      </div>
+    `;
+  } else {
+    // Not in a room — offer to create or join
+    backdrop.innerHTML = `
+      <div class="collab-panel" role="dialog" aria-modal="true">
+        <h3>Start Collaborating</h3>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+          Create a room to invite collaborators, or join an existing room.
+        </p>
+        <div class="modal-actions" style="flex-direction:column;gap:10px">
+          <button class="btn-primary" id="collab-create" style="width:100%">Create Room</button>
+          <div style="display:flex;gap:8px;width:100%">
+            <input type="text" id="collab-join-id" class="modal-input" style="margin:0;flex:1"
+                   placeholder="Paste room URL or ID…">
+            <button class="btn-secondary" id="collab-join">Join</button>
+          </div>
+          <button class="btn-secondary" id="collab-cancel" style="width:100%">Cancel</button>
+        </div>
+      </div>
+    `;
+  }
+
+  document.body.appendChild(backdrop);
+
+  // Event handlers
+  backdrop.querySelector('#collab-copy-url')?.addEventListener('click', () => {
+    copyShareUrl();
+  });
+
+  backdrop.querySelector('#collab-leave')?.addEventListener('click', () => {
+    leaveRoom();
+    document.body.removeChild(backdrop);
+  });
+
+  backdrop.querySelector('#collab-close')?.addEventListener('click', () => {
+    document.body.removeChild(backdrop);
+  });
+
+  backdrop.querySelector('#collab-create')?.addEventListener('click', async () => {
+    const url = await createRoom();
+    document.body.removeChild(backdrop);
+    if (url) _openCollabPanel(); // re-open to show the share URL
+  });
+
+  backdrop.querySelector('#collab-join')?.addEventListener('click', async () => {
+    const input = backdrop.querySelector('#collab-join-id')?.value?.trim();
+    if (!input) return;
+    // Extract room ID from URL or use raw ID
+    let roomId = input;
+    try {
+      const url = new URL(input);
+      roomId = url.searchParams.get('room') || input;
+    } catch { /* not a URL, use as-is */ }
+    const { joinRoom } = await import('./collab.js');
+    joinRoom(roomId);
+    document.body.removeChild(backdrop);
+  });
+
+  backdrop.querySelector('#collab-cancel')?.addEventListener('click', () => {
+    document.body.removeChild(backdrop);
+  });
+
+  // Click backdrop → close
+  backdrop.addEventListener('click', e => {
+    if (e.target === backdrop) document.body.removeChild(backdrop);
+  });
+}
+
+function _getCollabUrl() {
+  const roomId = getRoomId();
+  if (!roomId) return '';
+  const url = new URL(window.location.href);
+  url.searchParams.set('room', roomId);
+  return url.toString();
+}
+
+function _renderCollabAvatars(collaborators) {
+  const container = document.getElementById('collab-avatars');
+  if (!container) return;
+
+  container.innerHTML = '';
+  if (!collaborators || collaborators.length === 0) return;
+
+  // Show up to 4 avatars
+  const shown = collaborators.slice(0, 4);
+  shown.forEach(c => {
+    const avatar = document.createElement('span');
+    avatar.className = 'collab-avatar';
+    avatar.style.backgroundColor = c.color;
+    avatar.title = c.name;
+    avatar.textContent = (c.name || '?')[0].toUpperCase();
+    container.appendChild(avatar);
+  });
+
+  if (collaborators.length > 4) {
+    const more = document.createElement('span');
+    more.className = 'collab-avatar';
+    more.style.backgroundColor = 'var(--text-muted)';
+    more.textContent = `+${collaborators.length - 4}`;
+    container.appendChild(more);
+  }
 }
 
 // ─── Import Handlers ──────────────────────────────────────────────────────────

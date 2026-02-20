@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">
+  <rect width="144" height="144" rx="24" ry="24" fill="#1a1a1c"/>
+  <text x="72" y="88" font-family="Georgia, 'Times New Roman', serif" font-size="56" font-weight="bold" fill="#c9a26a" text-anchor="middle" letter-spacing="-2">ZP</text>
+  <line x1="32" y1="108" x2="112" y2="108" stroke="#c9a26a" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+</svg>

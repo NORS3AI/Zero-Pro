@@ -1,7 +1,11 @@
 // settings.js — Settings modal: themes, typography, editor preferences
-// Phase 9: UX Modernisation
+// Phase 8: Cloud Sync & Collaboration + Phase 9: UX Modernisation
 
 import { saveProject } from './storage.js';
+import {
+  configureSupabase, signInWithEmail, signOut, getUser,
+  getSyncState, clearConfig, openFromFileSystem, saveToFileSystem,
+} from './sync.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -21,6 +25,7 @@ const THEME_OPTIONS = [
 const SECTIONS = [
   { id: 'appearance', label: 'Appearance', icon: '◑' },
   { id: 'editor',     label: 'Editor',     icon: '✎' },
+  { id: 'cloud',      label: 'Cloud Sync', icon: '☁' },
   { id: 'export',     label: 'Export',     icon: '↓' },
 ];
 
@@ -175,6 +180,9 @@ function _populateModal() {
   } else if (_activeSection === 'editor') {
     body.innerHTML = _buildEditorSection(settings);
     _bindEditorEvents(settings);
+  } else if (_activeSection === 'cloud') {
+    body.innerHTML = _buildCloudSection(settings);
+    _bindCloudEvents(settings);
   } else if (_activeSection === 'export') {
     body.innerHTML = _buildExportSection(settings);
     _bindExportEvents(settings);
@@ -390,6 +398,177 @@ function _bindEditorEvents(settings) {
   document.getElementById('settings-spellcheck-lang')?.addEventListener('change', e => {
     _saveSetting('spellLang', e.target.value);
     applyEditorSettings(_project?.settings);
+  });
+}
+
+// ─── Cloud Sync Section ──────────────────────────────────────────────────
+
+function _buildCloudSection(settings) {
+  const user         = getUser();
+  const syncState    = getSyncState();
+  const supabaseUrl  = settings.supabaseUrl  ?? '';
+  const supabaseKey  = settings.supabaseKey  ?? '';
+  const gdriveApiKey = settings.gdriveApiKey ?? '';
+  const gdriveClientId = settings.gdriveClientId ?? '';
+
+  const userHtml = user ? `
+    <div class="settings-cloud-status">
+      <div class="cloud-user-icon">${(user.email || '?')[0].toUpperCase()}</div>
+      <div class="cloud-user-info">
+        <div class="cloud-user-email">${_esc(user.email || 'Unknown')}</div>
+        <div class="cloud-user-state">Status: ${syncState}</div>
+      </div>
+      <button class="btn-secondary" id="settings-cloud-signout">Sign Out</button>
+    </div>
+  ` : `
+    <div class="settings-cloud-status">
+      <div class="cloud-user-icon" style="background:var(--text-muted)">?</div>
+      <div class="cloud-user-info">
+        <div class="cloud-user-email">Not signed in</div>
+        <div class="cloud-user-state">Sign in to sync your projects across devices</div>
+      </div>
+    </div>
+  `;
+
+  return `
+    <div class="settings-section">
+      <h3 class="settings-section-title">Cloud Sync</h3>
+
+      ${userHtml}
+
+      ${!user ? `
+        <div class="settings-field">
+          <label class="settings-label" for="settings-cloud-email">Email</label>
+          <div style="display:flex;gap:8px">
+            <input type="email" id="settings-cloud-email" class="settings-text-input"
+                   placeholder="your@email.com" style="flex:1">
+            <button class="btn-primary" id="settings-cloud-signin">Sign In</button>
+          </div>
+          <p class="settings-field-hint">We'll send a magic link — no password needed.</p>
+        </div>
+      ` : ''}
+
+      <div class="settings-field">
+        <label class="settings-label" for="settings-supabase-url">Supabase Project URL</label>
+        <input type="url" id="settings-supabase-url" class="settings-text-input"
+               placeholder="https://your-project.supabase.co" value="${_esc(supabaseUrl)}">
+      </div>
+
+      <div class="settings-field">
+        <label class="settings-label" for="settings-supabase-key">Supabase Anon Key</label>
+        <input type="password" id="settings-supabase-key" class="settings-text-input"
+               placeholder="eyJ…" value="${_esc(supabaseKey)}">
+        <p class="settings-field-hint">Your Supabase project's public anon key. Found in Project Settings &gt; API.</p>
+      </div>
+
+      <div class="settings-cloud-actions">
+        <button class="btn-primary" id="settings-cloud-connect">Connect</button>
+        ${supabaseUrl ? '<button class="btn-secondary" id="settings-cloud-disconnect">Disconnect</button>' : ''}
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+
+      <h3 class="settings-section-title">File System Sync</h3>
+      <p class="settings-field-hint" style="margin-bottom:12px">
+        Use iCloud Drive, Google Drive, OneDrive, or any mounted cloud folder via the File System Access API.
+      </p>
+      <div class="settings-cloud-actions">
+        <button class="btn-secondary" id="settings-fs-open">Open from File&hellip;</button>
+        <button class="btn-secondary" id="settings-fs-save">Save to File&hellip;</button>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+
+      <h3 class="settings-section-title">Google Drive (Optional)</h3>
+      <div class="settings-field">
+        <label class="settings-label" for="settings-gdrive-apikey">Google API Key</label>
+        <input type="text" id="settings-gdrive-apikey" class="settings-text-input"
+               placeholder="AIza…" value="${_esc(gdriveApiKey)}">
+      </div>
+      <div class="settings-field">
+        <label class="settings-label" for="settings-gdrive-clientid">Google Client ID</label>
+        <input type="text" id="settings-gdrive-clientid" class="settings-text-input"
+               placeholder="1234…apps.googleusercontent.com" value="${_esc(gdriveClientId)}">
+        <p class="settings-field-hint">Enable the Google Drive Picker API in the Google Cloud Console.</p>
+      </div>
+    </div>
+  `;
+}
+
+function _bindCloudEvents(settings) {
+  // Sign in with email
+  document.getElementById('settings-cloud-signin')?.addEventListener('click', async () => {
+    const email = document.getElementById('settings-cloud-email')?.value?.trim();
+    if (!email) return;
+
+    const btn = document.getElementById('settings-cloud-signin');
+    btn.textContent = 'Sending…';
+    btn.disabled = true;
+
+    const result = await signInWithEmail(email);
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
+
+    if (result.success) {
+      const { showToast } = await import('./ui.js');
+      showToast(result.message);
+    } else {
+      const { showToast } = await import('./ui.js');
+      showToast(result.message);
+    }
+  });
+
+  // Sign out
+  document.getElementById('settings-cloud-signout')?.addEventListener('click', async () => {
+    await signOut();
+    _populateModal();
+  });
+
+  // Connect Supabase
+  document.getElementById('settings-cloud-connect')?.addEventListener('click', async () => {
+    const url = document.getElementById('settings-supabase-url')?.value?.trim();
+    const key = document.getElementById('settings-supabase-key')?.value?.trim();
+    if (!url || !key) return;
+
+    _saveSetting('supabaseUrl', url);
+    _saveSetting('supabaseKey', key);
+
+    const ok = await configureSupabase(url, key);
+    const { showToast } = await import('./ui.js');
+    showToast(ok ? 'Connected to Supabase' : 'Connection failed — check URL and key');
+    _populateModal();
+  });
+
+  // Disconnect Supabase
+  document.getElementById('settings-cloud-disconnect')?.addEventListener('click', () => {
+    clearConfig();
+    _saveSetting('supabaseUrl', '');
+    _saveSetting('supabaseKey', '');
+    _populateModal();
+  });
+
+  // File System Access API — Open
+  document.getElementById('settings-fs-open')?.addEventListener('click', async () => {
+    const result = await openFromFileSystem();
+    if (result?.project) {
+      _onSettingsChange?.(result.project);
+      _close();
+    }
+  });
+
+  // File System Access API — Save
+  document.getElementById('settings-fs-save')?.addEventListener('click', async () => {
+    const project = _getProject();
+    if (project) await saveToFileSystem(project);
+  });
+
+  // Google Drive credentials
+  document.getElementById('settings-gdrive-apikey')?.addEventListener('change', e => {
+    _saveSetting('gdriveApiKey', e.target.value.trim());
+  });
+
+  document.getElementById('settings-gdrive-clientid')?.addEventListener('change', e => {
+    _saveSetting('gdriveClientId', e.target.value.trim());
   });
 }
 
