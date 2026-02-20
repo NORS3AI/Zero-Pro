@@ -9,7 +9,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | Phase 3 | Weeks 7–10 | AI writing assistant (Claude API) | **Done** |
 | Phase 4 | Weeks 11–14 | Import/export, themes, App Store wrapper | **Done** |
 | Phase 5 | Weeks 15–17 | Kindle & publishing support | **Done** |
-| Phase 6 | Weeks 18–19 | Image import & media support | Planned |
+| Phase 6 | Weeks 18–19 | Image import & media support | **Done** |
 | Phase 7 | Weeks 20–22 | Nice-to-haves & UI polish | Planned |
 | Phase 8 | Weeks 23–26 | Cloud sync & real-time collaboration | Planned |
 | Phase 9 | Weeks 27–30 | UX modernisation & Android / PWA | Planned |
@@ -195,34 +195,36 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 
 ---
 
-## Phase 6 — Image Import & Media Support _(Weeks 18–19)_
+## Phase 6 — Image Import & Media Support _(Weeks 18–19)_ ✅
 
 **Goal:** Writers can include images in their documents — useful for non-fiction, illustrated novels, and research notes.
 
 ### 6.1 Image Import (`media.js`)
-- [ ] Drag-and-drop images into the editor (JPEG, PNG, WebP, GIF)
-- [ ] Click-to-insert via file picker button in the editor toolbar
-- [ ] Paste images from clipboard (screenshots, copied web images)
-- [ ] Images stored as base64 data URLs in the document JSON
-- [ ] Warn when a document exceeds 5MB due to embedded images
+- [x] Drag-and-drop images into the editor (JPEG, PNG, WebP, GIF)
+- [x] Click-to-insert via file picker button in the editor toolbar
+- [x] Paste images from clipboard (screenshots, copied web images)
+- [x] Images stored as base64 data URLs in the document JSON
+- [x] Warn when a document exceeds 5MB due to embedded images
 
 ### 6.2 Image Management in Editor
-- [ ] Click image to show resize handles (CSS resize or drag corners)
-- [ ] Set image alignment: inline / float-left / float-right / centred
-- [ ] Add alt-text for accessibility and EPUB metadata
-- [ ] Delete image with the Delete key when selected
-- [ ] Images stripped from plain-text export; preserved in HTML, EPUB, DOCX
+- [x] Click image to show floating toolbar with size presets (S/M/L/Full)
+- [x] Set image alignment: inline / float-left / float-right / centred
+- [x] Add alt-text for accessibility and EPUB metadata
+- [x] Delete image with the Delete key when selected
+- [x] Images stripped from plain-text and Markdown export; preserved in HTML, EPUB, DOCX
 
 ### 6.3 Research Image Binder Items
-- [ ] New binder item type: `image` — stores a single image with a caption
-- [ ] Image items display in a lightbox when clicked from the binder
-- [ ] Drag an image binder item into the editor to embed it
-- [ ] Research folder: grouping for image and web-clipping items
+- [x] New binder item type: `image` — stores a single image with a caption
+- [x] Image items display in a lightbox when clicked from the binder
+- [x] Drag an image binder item into the editor to embed it
+- [x] "Insert in Editor" context menu option for image binder items
+- [x] Research folder: auto-created grouping for image and web-clipping items
 
 ### 6.4 Web Clipping (Basic)
-- [ ] Paste a URL → fetch page title and a text snippet (CORS-permitting)
-- [ ] Store clippings as research binder items with source URL
-- [ ] Clippings are never compiled into the manuscript
+- [x] Paste a URL → fetch page title and a text snippet (CORS-permitting)
+- [x] Store clippings as research binder items with source URL
+- [x] Clippings are never compiled into the manuscript
+- [x] Clip button in binder header for quick URL clipping
 
 ---
 
@@ -407,7 +409,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | 9 | Claude API sidebar, prompt templates |
 | 10 | Import (mammoth.js), compile, full export pipeline |
 | 11 | EPUB + Kindle export, publishing help modals ✅ |
-| 12 | Image import, base64 storage, editor embed |
+| 12 | Image import, base64 storage, editor embed ✅ |
 | 13 | Nice-to-haves: find/replace, snapshots, command palette |
 | 14 | Cloud sync (Supabase), offline queue (IndexedDB) |
 | 15 | Real-time collaboration (Yjs) |
