@@ -1,10 +1,10 @@
 // app.js — Application entry point and orchestration
-// Phase 5: Kindle & Publishing Support
+// Phase 6: Image Import & Media Support
 
 import { loadProject, createProject, saveProject, getDocument, createDocument } from './storage.js';
 import { applyTheme, toggleTheme, showToast, showPrompt } from './ui.js';
 import { initBinder, renderBinder } from './binder.js';
-import { initEditor, loadDocument, saveCurrentContent, toggleFocusMode } from './editor.js';
+import { initEditor, loadDocument, saveCurrentContent, toggleFocusMode, insertImageInEditor } from './editor.js';
 import { exportAsTxt, exportAsMd, exportAsDocx, exportAsDoc, exportProjectJson } from './export.js';
 import { importTxt, importMd, importProjectJson, initImport } from './import.js';
 import { initCorkboard, renderCorkboard } from './corkboard.js';
@@ -19,6 +19,7 @@ import {
   openKdpWizard, openIngramWizard, openSubmissionFormatter,
   openSelfPublishChecklist, openGenreGuides, openFrontMatterTemplates,
 } from './publish.js';
+import { initMedia } from './media.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -46,6 +47,7 @@ function init() {
   initBinder({
     onSelectDoc:     handleSelectDocument,
     onProjectChange: handleProjectChange,
+    onInsertImageInEditor: (src, alt) => insertImageInEditor(src, alt),
   });
 
   initEditor({
@@ -115,6 +117,12 @@ function init() {
     onSettingsChange: project => {
       state.project = project;
     },
+  });
+
+  initMedia({
+    getProject:      () => state.project,
+    onProjectChange: handleProjectChange,
+    renderBinder:    (project, id) => renderBinder(project, id ?? state.currentDocId),
   });
 
   initPublish({

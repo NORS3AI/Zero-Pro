@@ -287,6 +287,11 @@ function _readAndInsert(file) {
   reader.readAsDataURL(file);
 }
 
+/** Public: insert an image from an external source (e.g. binder drag) */
+export function insertImageInEditor(src, alt = '') {
+  _insertImageAtCursor(src, alt);
+}
+
 function _insertImageAtCursor(src, alt = '') {
   const editor = el('editor');
   if (!editor || editor.contentEditable !== 'true') return;
@@ -317,10 +322,26 @@ function _insertImageAtCursor(src, alt = '') {
 
 function _handleDragOver(e) {
   const hasImage = Array.from(e.dataTransfer?.items || []).some(i => i.type.startsWith('image/'));
-  if (hasImage) e.preventDefault();
+  const hasBinderImg = Array.from(e.dataTransfer?.types || []).includes('application/x-zeropro-image');
+  if (hasImage || hasBinderImg) e.preventDefault();
 }
 
 function _handleImageDrop(e) {
+  // Check for binder image item dragged into editor
+  const binderImg = e.dataTransfer?.getData('application/x-zeropro-image');
+  if (binderImg) {
+    e.preventDefault();
+    const range = _caretRangeFromPoint(e.clientX, e.clientY);
+    if (range) {
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    const alt = e.dataTransfer?.getData('text/plain') || '';
+    _insertImageAtCursor(binderImg, alt);
+    return;
+  }
+
   const files = Array.from(e.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'));
   if (!files.length) return;
   e.preventDefault();
@@ -373,6 +394,12 @@ function _showImageToolbar(img) {
     b.classList.toggle('active', b.dataset.align === currentAlign);
   });
 
+  // Reflect current size preset
+  const currentSize = _getImageSize(img);
+  toolbar.querySelectorAll('[data-size]').forEach(b => {
+    b.classList.toggle('active', b.dataset.size === currentSize);
+  });
+
   // Position the toolbar directly above the image (fixed positioning)
   const rect = img.getBoundingClientRect();
   toolbar.style.left = `${Math.max(4, rect.left)}px`;
@@ -402,6 +429,11 @@ function _createImageToolbar() {
       <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M6 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-4-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm4-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-4-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>
     </button>
     <div class="img-tb-sep"></div>
+    <button class="img-tb-btn img-size-btn" data-size="25"  title="25% width"  aria-label="25% width">S</button>
+    <button class="img-tb-btn img-size-btn" data-size="50"  title="50% width"  aria-label="50% width">M</button>
+    <button class="img-tb-btn img-size-btn" data-size="75"  title="75% width"  aria-label="75% width">L</button>
+    <button class="img-tb-btn img-size-btn" data-size="100" title="Full width"  aria-label="Full width">F</button>
+    <div class="img-tb-sep"></div>
     <button class="img-tb-btn" id="btn-img-alt"    title="Set alt text"   aria-label="Set alt text">ALT</button>
     <button class="img-tb-btn danger" id="btn-img-remove" title="Remove image" aria-label="Remove image">✕</button>
   `;
@@ -410,6 +442,17 @@ function _createImageToolbar() {
 
   t.querySelectorAll('[data-align]').forEach(btn => {
     btn.addEventListener('click', () => { if (_selectedImg) _applyImageAlign(_selectedImg, btn.dataset.align); });
+  });
+
+  t.querySelectorAll('[data-size]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!_selectedImg) return;
+      const pct = btn.dataset.size;
+      _selectedImg.style.maxWidth = pct === '100' ? '100%' : `${pct}%`;
+      _selectedImg.style.width = '';
+      t.querySelectorAll('[data-size]').forEach(b => b.classList.toggle('active', b.dataset.size === pct));
+      saveCurrentContent();
+    });
   });
 
   t.querySelector('#btn-img-alt')?.addEventListener('click', () => {
@@ -426,6 +469,15 @@ function _createImageToolbar() {
   });
 
   return t;
+}
+
+/** Determine current size preset from maxWidth */
+function _getImageSize(img) {
+  const mw = img.style.maxWidth;
+  if (mw === '25%') return '25';
+  if (mw === '50%') return '50';
+  if (mw === '75%') return '75';
+  return '100';
 }
 
 /** Determine current alignment of an img element from its inline styles */

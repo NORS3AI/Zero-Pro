@@ -14,6 +14,7 @@ let _project = null;
 let _currentDocId = null;
 let _onSelectDoc = null;
 let _onProjectChange = null;
+let _onInsertImageInEditor = null;
 let _sortableInstances = [];
 let _ctxMenu  = null;   // context menu element (singleton)
 let _ctxDocId = null;   // doc ID targeted by current context menu
@@ -26,6 +27,7 @@ const ICON = {
   folder: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/></svg>`,
   folderOpen: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14V3.5zm1.5-.5a.5.5 0 0 0-.5.5v2.5h13V5.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5z"/></svg>`,
   image: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/></svg>`,
+  clip: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.715 6.542L3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/><path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/></svg>`,
   chevronRight: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06z"/></svg>`,
   chevronDown: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.22 6.22a.75.75 0 0 1 1.06 0L8 9.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L3.22 7.28a.75.75 0 0 1 0-1.06z"/></svg>`,
   plus: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2z"/></svg>`,
@@ -35,9 +37,10 @@ const ICON = {
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /** Wire up binder header buttons */
-export function initBinder({ onSelectDoc, onProjectChange }) {
+export function initBinder({ onSelectDoc, onProjectChange, onInsertImageInEditor }) {
   _onSelectDoc = onSelectDoc;
   _onProjectChange = onProjectChange;
+  _onInsertImageInEditor = onInsertImageInEditor;
 
   document.querySelector('[data-action="add-doc"]')?.addEventListener('click', () => _addDocument('doc', null));
   document.querySelector('[data-action="add-folder"]')?.addEventListener('click', () => _addDocument('folder', null));
@@ -137,6 +140,7 @@ function _buildList(docs, parentId) {
 function _buildItem(doc) {
   const isFolder  = doc.type === 'folder';
   const isImage   = doc.type === 'image';
+  const isClip    = doc.type === 'clip';
   const isSelected = doc.id === _currentDocId;
   const children  = isFolder ? getChildren(_project, doc.id) : [];
 
@@ -167,6 +171,8 @@ function _buildItem(doc) {
     icon.innerHTML = doc.collapsed ? ICON.folder : ICON.folderOpen;
   } else if (isImage) {
     icon.innerHTML = ICON.image;
+  } else if (isClip) {
+    icon.innerHTML = ICON.clip;
   } else {
     icon.innerHTML = ICON.doc;
   }
@@ -209,11 +215,25 @@ function _buildItem(doc) {
     _showContextMenu(doc.id, e.clientX, e.clientY);
   });
 
-  // Events — image items open a lightbox; other items select into the editor
-  const handleActivate = () => isImage ? _showLightbox(doc) : _selectDocument(doc.id);
+  // Events — image items open a lightbox; clips open the source URL; docs select into the editor
+  const handleActivate = () => {
+    if (isImage) return _showLightbox(doc);
+    if (isClip && doc.url) return window.open(doc.url, '_blank', 'noopener');
+    _selectDocument(doc.id);
+  };
   row.addEventListener('click', handleActivate);
   row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(); } });
   titleSpan.addEventListener('dblclick', e => { e.stopPropagation(); _startRename(doc.id, titleSpan); });
+
+  // Image items can be dragged into the editor to embed
+  if (isImage && doc.imageData) {
+    row.draggable = true;
+    row.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('application/x-zeropro-image', doc.imageData);
+      e.dataTransfer.setData('text/plain', doc.title);
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+  }
 
   li.appendChild(row);
 
@@ -357,6 +377,13 @@ function _showContextMenu(docId, x, y) {
   });
   _ctxMenu.appendChild(renameBtn);
 
+  // Insert in Editor (image items only)
+  if (doc.type === 'image' && doc.imageData) {
+    _ctxMenu.appendChild(_ctxItem('Insert in Editor', false, () => {
+      _onInsertImageInEditor?.(doc.imageData, doc.title);
+    }));
+  }
+
   // Duplicate (docs only)
   if (doc.type === 'doc') {
     _ctxMenu.appendChild(_ctxItem('Duplicate', false, () => _duplicateDoc(docId)));
@@ -458,8 +485,9 @@ function _duplicateDoc(id) {
 // ─── Trash Items ──────────────────────────────────────────────────────────────
 
 function _buildTrashItem(doc) {
-  const isImage = doc.type === 'image';
+  const isImage  = doc.type === 'image';
   const isFolder = doc.type === 'folder';
+  const isClip   = doc.type === 'clip';
 
   const li = document.createElement('li');
   li.className = 'binder-item binder-trash-item';
@@ -475,7 +503,7 @@ function _buildTrashItem(doc) {
 
   const icon = document.createElement('span');
   icon.className = 'binder-icon';
-  icon.innerHTML = isFolder ? ICON.folder : isImage ? ICON.image : ICON.doc;
+  icon.innerHTML = isFolder ? ICON.folder : isImage ? ICON.image : isClip ? ICON.clip : ICON.doc;
 
   const titleSpan = document.createElement('span');
   titleSpan.className = 'binder-title';
@@ -576,6 +604,17 @@ function _restoreDocTo(docId, parentId) {
   showToast(`Restored to ${dest}`);
 }
 
+// ─── Research Folder ──────────────────────────────────────────────────────────
+
+/** Find or create the "Research" folder used to hold images and clips */
+function _ensureResearchFolder() {
+  let folder = _project.documents.find(d => d.type === 'folder' && d.title === 'Research' && !d.inTrash);
+  if (!folder) {
+    folder = createDocument(_project, { type: 'folder', parentId: null, title: 'Research' });
+  }
+  return folder;
+}
+
 // ─── Image Items ──────────────────────────────────────────────────────────────
 
 function _addImageItem() {
@@ -590,17 +629,19 @@ function _addImageItem() {
     document.body.removeChild(input);
     if (!file) return;
 
+    const researchFolder = _ensureResearchFolder();
     const reader   = new FileReader();
     reader.onload  = e => {
       const doc = createDocument(_project, {
-        type:  'image',
-        title: file.name.replace(/\.[^.]+$/, ''),
+        type:     'image',
+        parentId: researchFolder.id,
+        title:    file.name.replace(/\.[^.]+$/, ''),
       });
       doc.imageData = e.target.result;
       saveProject(_project);
       renderBinder(_project, _currentDocId);
       _onProjectChange?.(_project);
-      showToast(`Image "${doc.title}" added to Binder`);
+      showToast(`Image "${doc.title}" added to Research`);
     };
     reader.readAsDataURL(file);
   });
