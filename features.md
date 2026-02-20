@@ -95,7 +95,7 @@ Powered by the Anthropic Claude API. The user provides their own API key — sto
 | Character voice checker | Should Have | 3 | High | Compare dialogue against character profile notes |
 | Plot hole detector | Nice to Have | 3 | High | Requires full context window — worth adding in v2 |
 | AI grammar & style checking | Should Have | 10 | High | Inline underlines for grammar errors and style suggestions |
-| Tone analyser | Nice to Have | 10 | Medium | Detect dominant tone per scene via Claude |
+| Tone analyzer | Nice to Have | 10 | Medium | Detect dominant tone per scene via Claude |
 | Readability score | Nice to Have | 10 | Low | Flesch-Kincaid score displayed in inspector |
 | Batch style-check report | Nice to Have | 10 | High | Scan entire manuscript; produce a style report |
 | Custom prompt library | Nice to Have | 11 | Low | Save and reuse personal Claude prompt templates |

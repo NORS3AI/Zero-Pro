@@ -334,7 +334,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 - [ ] Grammar and style checking via Claude API (user's own key)
 - [ ] Inline underlines for grammar errors, style suggestions, and pacing issues
 - [ ] "Explain this suggestion" — Claude explains why a change is recommended
-- [ ] Tone analyser: detect dominant tone per scene (tense / relaxed / humorous / dark)
+- [ ] Tone analyzer: detect dominant tone per scene (tense / relaxed / humorous / dark)
 - [ ] Readability score (Flesch-Kincaid) displayed in inspector
 - [ ] Batch style-check: scan the entire manuscript and produce a report
 
