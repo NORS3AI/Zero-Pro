@@ -375,7 +375,17 @@ function _showContextMenu(docId, x, y) {
   const sep2 = document.createElement('div');
   sep2.className = 'ctx-sep';
   _ctxMenu.appendChild(sep2);
-  _ctxMenu.appendChild(_ctxItem('Move to Trash', true, () => _deleteItem(docId)));
+  _ctxMenu.appendChild(_ctxItem('Move to Trash', true, () => {
+    trashDocument(_project, docId);
+    if (_currentDocId === docId) {
+      _currentDocId = null;
+      _onSelectDoc?.(null);
+    }
+    saveProject(_project);
+    renderBinder(_project, _currentDocId);
+    _onProjectChange?.(_project);
+    showToast('Moved to Trash');
+  }));
 
   // Position — keep inside viewport
   _ctxMenu.classList.remove('hidden');
