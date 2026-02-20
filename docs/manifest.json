@@ -1,10 +1,35 @@
 {
   "name": "Zero Pro",
   "short_name": "Zero Pro",
-  "description": "A browser-based writing suite for novelists",
+  "description": "A browser-based writing suite for novelists — no install, no account, no limits.",
   "display": "standalone",
   "start_url": "./",
+  "scope": "./",
   "background_color": "#1a1a1c",
   "theme_color": "#1a1a1c",
-  "icons": []
+  "orientation": "any",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "New Document",
+      "short_name": "New Doc",
+      "description": "Create a new document",
+      "url": "./?action=new-doc"
+    }
+  ]
 }

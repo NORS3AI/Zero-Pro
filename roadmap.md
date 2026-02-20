@@ -11,7 +11,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | Phase 5 | Weeks 15–17 | Kindle & publishing support | **Done** |
 | Phase 6 | Weeks 18–19 | Image import & media support | **Done** |
 | Phase 7 | Weeks 20–22 | Nice-to-haves & UI polish | **Done** |
-| Phase 8 | Weeks 23–26 | Cloud sync & real-time collaboration | Planned |
+| Phase 8 | Weeks 23–26 | Cloud sync & real-time collaboration | **Done** |
 | Phase 9 | Weeks 27–30 | UX modernisation & Android / PWA | Planned |
 | Phase 10 | Weeks 31–34 | Advanced writing tools | Planned |
 | Phase 11 | Weeks 35–38 | Quality of life & power features | Planned |
