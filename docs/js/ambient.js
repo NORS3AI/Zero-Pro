@@ -37,6 +37,34 @@ export function openAmbientPanel() {
   _panel.classList.toggle('hidden');
 }
 
+/** Play a sound by ID, or stop if it's already active */
+export function playAmbientSound(id) {
+  if (_activeId === id) { _stop(); } else { _play(id); }
+  // Re-sync any ambient panel if open
+  if (_panel) _updateButtons(_panel);
+}
+
+/** Stop all ambient sound */
+export function stopAmbientSound() {
+  _stop();
+  if (_panel) _updateButtons(_panel);
+}
+
+/** Return the currently playing sound ID, or null */
+export function getActiveSound() { return _activeId; }
+
+/** Return current volume (0–1) */
+export function getSoundVolume() { return _volume; }
+
+/** Set volume (0–1) */
+export function setSoundVolume(v) {
+  _volume = Math.max(0, Math.min(1, v));
+  if (_gainNode) _gainNode.gain.value = _volume;
+}
+
+/** Return the SOUNDS array for rendering UI */
+export function getSoundList() { return SOUNDS; }
+
 // ─── Panel Construction ───────────────────────────────────────────────────────
 
 function _buildPanel() {

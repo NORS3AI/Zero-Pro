@@ -1,111 +1,137 @@
-// toolbar-loop.js — Infinite horizontal scroll loop for the toolbar (Phase 8)
-// Wraps the toolbar in a scroll track with cloned copies on each side.
-// When the user scrolls into a clone, the track teleports back to the original
-// — creating a seamless infinite loop.
-// Clone clicks are forwarded to the matching original button via data-forward-id.
+// toolbar-loop.js — Smooth infinite horizontal scroll loop for the toolbar
+// Strategy: three groups (before-clone, original, after-clone).
+// When the user scrolls into a clone, instantly teleport to the equivalent
+// position in the original — invisible to the eye, no jank.
 
 export function initToolbarLoop() {
   const toolbar = document.getElementById('toolbar');
   if (!toolbar) return;
 
-  // Only activate when the toolbar actually overflows (mobile / compact screens)
+  let _built = false;
+
   const _tryInit = () => {
-    if (toolbar.scrollWidth <= toolbar.clientWidth + 4) return; // fits — no loop needed
-    _buildLoop(toolbar);
-    window.removeEventListener('resize', _tryInit);
+    if (_built) return;
+    // Give layout time to paint
+    requestAnimationFrame(() => {
+      if (toolbar.scrollWidth > toolbar.clientWidth + 8) {
+        _buildLoop(toolbar);
+        _built = true;
+        window.removeEventListener('resize', _tryInit);
+      }
+    });
   };
 
-  // Delay slightly so layout has settled
-  setTimeout(_tryInit, 200);
+  setTimeout(_tryInit, 250);
   window.addEventListener('resize', _tryInit, { passive: true });
 }
 
+// ─── Build ────────────────────────────────────────────────────────────────────
+
 function _buildLoop(toolbar) {
-  // Already initialised?
   if (document.getElementById('toolbar-scroll-track')) return;
 
-  // Collect all current toolbar children
+  // Gather all current toolbar children
   const children = Array.from(toolbar.childNodes);
 
-  // Build the original group (keeps all IDs and live event listeners)
-  const origGroup = document.createElement('div');
-  origGroup.className = 'toolbar-loop-group toolbar-loop-orig';
-  children.forEach(n => origGroup.appendChild(n));
+  // Original group — keeps all IDs and live event listeners untouched
+  const orig = document.createElement('div');
+  orig.className = 'toolbar-loop-group toolbar-loop-orig';
+  children.forEach(n => orig.appendChild(n));
 
-  // Build clones — strip IDs, mark aria-hidden, forward clicks
-  const cloneBefore = _buildClone(origGroup, 'before');
-  const cloneAfter  = _buildClone(origGroup, 'after');
-
-  // Scroll track — horizontally scrollable flex row
+  // Scroll track wraps the three groups
   const track = document.createElement('div');
   track.id        = 'toolbar-scroll-track';
   track.className = 'toolbar-scroll-track';
-
-  track.appendChild(cloneBefore);
-  track.appendChild(origGroup);
-  track.appendChild(cloneAfter);
   toolbar.appendChild(track);
 
-  // Scroll to show the original (middle) group
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      track.scrollLeft = cloneBefore.offsetWidth;
-    });
-  });
+  const before = _buildClone(orig, 'before');
+  const after  = _buildClone(orig, 'after');
 
-  // Infinite loop via teleport
-  let _raf = null;
+  track.appendChild(before);
+  track.appendChild(orig);
+  track.appendChild(after);
+
+  // Scroll to the original (center group) without animation
+  const _jumpToOrig = () => {
+    const w = orig.offsetWidth;
+    if (!w) { requestAnimationFrame(_jumpToOrig); return; }
+    _setScrollInstant(track, w);
+    _attachScrollLoop(track, orig);
+  };
+  requestAnimationFrame(() => requestAnimationFrame(_jumpToOrig));
+}
+
+// ─── Infinite-loop scroll handler ─────────────────────────────────────────────
+
+function _attachScrollLoop(track, orig) {
+  let _busy = false;  // guard: skip events fired by our own teleport
+
   track.addEventListener('scroll', () => {
-    if (_raf) return;
-    _raf = requestAnimationFrame(() => {
-      _raf = null;
-      const origW = origGroup.offsetWidth;
-      const beforeW = cloneBefore.offsetWidth;
+    if (_busy) return;
 
-      // If we've scrolled into the before-clone territory → jump forward by origW
-      if (track.scrollLeft < beforeW * 0.5) {
-        track.scrollLeft += origW;
+    requestAnimationFrame(() => {
+      if (_busy) return;
+      const w  = orig.offsetWidth;
+      if (!w) return;
+      const sl = track.scrollLeft;
+
+      // Entered before-clone territory (scrolled left past 30% of its width)
+      if (sl < w * 0.3) {
+        _busy = true;
+        _setScrollInstant(track, sl + w);
+        requestAnimationFrame(() => { _busy = false; });
+        return;
       }
-      // If we've scrolled into the after-clone territory → jump back by origW
-      else if (track.scrollLeft > beforeW + origW * 0.75) {
-        track.scrollLeft -= origW;
+
+      // Entered after-clone territory (scrolled right past 70% of orig + clone-before)
+      if (sl > w * 1.7) {
+        _busy = true;
+        _setScrollInstant(track, sl - w);
+        requestAnimationFrame(() => { _busy = false; });
       }
     });
   }, { passive: true });
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Set scrollLeft without triggering smooth-scroll animation */
+function _setScrollInstant(el, value) {
+  // Temporarily override any smooth behaviour
+  const prev = el.style.scrollBehavior;
+  el.style.scrollBehavior = 'auto';
+  el.scrollLeft = value;
+  // Restore after browser has applied the new scrollLeft
+  requestAnimationFrame(() => { el.style.scrollBehavior = prev; });
+}
+
+/** Deep-clone source, strip IDs (store as data-forward-id), forward clicks */
 function _buildClone(source, side) {
   const clone = source.cloneNode(true);
   clone.className = `toolbar-loop-group toolbar-loop-clone toolbar-loop-clone--${side}`;
   clone.setAttribute('aria-hidden', 'true');
 
-  // Strip all IDs to avoid duplicates; store original ID in data-forward-id
+  // Strip IDs to avoid duplicates; remember originals for click forwarding
   clone.querySelectorAll('[id]').forEach(el => {
     el.dataset.forwardId = el.id;
     el.removeAttribute('id');
   });
 
-  // Forward clicks on clone buttons to their originals
   clone.addEventListener('click', e => {
     e.stopPropagation();
-    const btn = e.target.closest('[data-forward-id]') || e.target.closest('button');
-    const fwdId = btn?.dataset?.forwardId;
-    if (fwdId) {
-      const orig = document.getElementById(fwdId);
-      if (orig) {
-        orig.click();
-        return;
-      }
+    // Try data-forward-id first
+    const fromAttr = e.target.closest('[data-forward-id]');
+    if (fromAttr?.dataset.forwardId) {
+      document.getElementById(fromAttr.dataset.forwardId)?.click();
+      return;
     }
-    // Fallback: find by matching text content for buttons without an ID
-    const clicked = e.target.closest('button');
-    if (clicked && !clicked.dataset.forwardId) {
-      const text = clicked.textContent?.trim();
+    // Fallback: match by button text content
+    const btn = e.target.closest('button');
+    if (btn) {
+      const text = btn.textContent?.trim();
       if (text) {
-        const origBtns = document.querySelectorAll('#toolbar button');
-        const match = Array.from(origBtns).find(b =>
-          b.textContent?.trim() === text && b.id
-        );
+        const match = Array.from(document.querySelectorAll('#toolbar button'))
+          .find(b => b.textContent?.trim() === text);
         match?.click();
       }
     }

@@ -49,15 +49,28 @@ export function initTouch({ onSwitchView, getViews, getCurrentView }) {
 let _viewStartX = 0;
 let _viewStartY = 0;
 let _viewStartT = 0;
+let _inSwipeZone = false;  // only allow view-switch from the bottom 35% of the pane
+
+const SWIPE_ZONE_FRACTION = 0.65; // touch must start below this fraction of pane height
 
 function _onTouchStart(e) {
   const t = e.changedTouches[0];
   _viewStartX = t.clientX;
   _viewStartY = t.clientY;
   _viewStartT = Date.now();
+
+  // Determine if the touch started in the bottom swipe zone
+  const pane = e.currentTarget;
+  const rect = pane.getBoundingClientRect();
+  const relY = (t.clientY - rect.top) / rect.height;
+  _inSwipeZone = relY >= SWIPE_ZONE_FRACTION;
 }
 
 function _onTouchEnd(e) {
+  // Only handle swipes that began in the bottom zone — prevents conflicts with
+  // the formatting toolbar (Bold/Italic etc.) in the editor pane
+  if (!_inSwipeZone) return;
+
   const t  = e.changedTouches[0];
   const dx = t.clientX - _viewStartX;
   const dy = t.clientY - _viewStartY;
