@@ -51,6 +51,7 @@ const APP_ASSETS = [
   './js/touch.js',
   './js/wizard.js',
   './js/toolbar-loop.js',
+  './js/config.js',
   './css/wizard.css',
 ];
 

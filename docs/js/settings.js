@@ -2,6 +2,7 @@
 // Phase 9: UX Modernisation
 
 import { saveProject } from './storage.js';
+import { GOOGLE_CLIENT_ID } from './config.js';
 import {
   playAmbientSound, stopAmbientSound,
   getActiveSound, getSoundVolume, setSoundVolume, getSoundList,
@@ -488,15 +489,36 @@ function _bindAmbienceEvents() {
 // ─── Backup Section ───────────────────────────────────────────────────────────
 
 function _buildBackupSection(settings) {
-  const gdClientId  = localStorage.getItem('zp_gdrive_client_id') || '';
   const lastBackup  = localStorage.getItem('zp_last_backup');
   const lastBackupStr = lastBackup
     ? `Last backup: ${new Date(parseInt(lastBackup, 10)).toLocaleString()}`
     : 'No backup recorded yet.';
+  const lastDriveBackup  = localStorage.getItem('zp_last_drive_backup');
+  const lastDriveBackupStr = lastDriveBackup
+    ? `Last Drive backup: ${new Date(parseInt(lastDriveBackup, 10)).toLocaleString()}`
+    : '';
+
+  const driveHtml = GOOGLE_CLIENT_ID
+    ? `
+        <button class="btn-primary" id="settings-gdrive-signin"
+                style="margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Sign in with Google to back up to Drive
+        </button>
+        ${lastDriveBackupStr ? `<p class="settings-field-hint" style="margin-top:6px">${_esc(lastDriveBackupStr)}</p>` : ''}
+      `
+    : `<p class="settings-field-hint" style="margin-top:8px;font-style:italic">
+        Google Drive backup is not configured for this deployment.
+       </p>`;
 
   return `
     <div class="settings-section">
-      <h3 class="settings-section-title">Backup & Data Protection</h3>
+      <h3 class="settings-section-title">Backup &amp; Data Protection</h3>
 
       <!-- Device backup -->
       <div class="settings-field">
@@ -534,25 +556,9 @@ function _buildBackupSection(settings) {
       <div class="settings-field" style="border-top:1px solid var(--border);padding-top:18px">
         <label class="settings-label">Google Drive</label>
         <p class="settings-field-hint">
-          Enter your Google OAuth Client ID to enable one-click backup to Drive.
-          <br><br>
-          <strong>How to get a Client ID:</strong><br>
-          1. Go to <strong>console.cloud.google.com</strong><br>
-          2. Create a project → APIs &amp; Services → Credentials<br>
-          3. Create an OAuth 2.0 Client ID (type: Web Application)<br>
-          4. Add <code>${location.origin}</code> as an Authorised JavaScript Origin<br>
-          5. Copy the Client ID and paste it below.
+          Back up your project to Google Drive with one click. Sign in with your Google account — no extra setup needed.
         </p>
-        <input type="text" id="settings-gdrive-client-id" class="settings-text-input"
-               placeholder="123456789-abc….apps.googleusercontent.com"
-               value="${_esc(gdClientId)}" style="margin-top:10px">
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn-primary" id="settings-gdrive-save-id" style="flex:1">Save Client ID</button>
-          <button class="btn-secondary" id="settings-gdrive-upload" style="flex:1"
-                  ${gdClientId ? '' : 'disabled title="Enter a Client ID first"'}>
-            ☁ Back up to Google Drive
-          </button>
-        </div>
+        ${driveHtml}
       </div>
     </div>
   `;
@@ -604,15 +610,8 @@ function _bindBackupEvents() {
     if (on) _scheduleAutoBackup(); else _clearAutoBackup();
   });
 
-  // Save Google Client ID
-  document.getElementById('settings-gdrive-save-id')?.addEventListener('click', () => {
-    const id = document.getElementById('settings-gdrive-client-id')?.value.trim();
-    localStorage.setItem('zp_gdrive_client_id', id || '');
-    _refreshBackupSection();
-  });
-
-  // Google Drive upload
-  document.getElementById('settings-gdrive-upload')?.addEventListener('click', _uploadToGoogleDrive);
+  // Google Drive — sign in & upload
+  document.getElementById('settings-gdrive-signin')?.addEventListener('click', _uploadToGoogleDrive);
 }
 
 function _recordBackup() {
@@ -651,22 +650,25 @@ function _clearAutoBackup() {
 }
 
 // Google Drive OAuth 2.0 implicit flow
+// Client ID is configured in config.js — end users just click "Sign in with Google".
 async function _uploadToGoogleDrive() {
-  const clientId = localStorage.getItem('zp_gdrive_client_id') || '';
-  if (!clientId) { alert('Please save your Google Client ID first.'); return; }
+  if (!GOOGLE_CLIENT_ID) {
+    alert('Google Drive backup is not configured for this deployment.');
+    return;
+  }
   if (!_project) return;
 
-  const scope      = 'https://www.googleapis.com/auth/drive.file';
+  const scope       = 'https://www.googleapis.com/auth/drive.file';
   const redirectUri = location.origin + location.pathname;
-  const authUrl    = `https://accounts.google.com/o/oauth2/v2/auth` +
-    `?client_id=${encodeURIComponent(clientId)}` +
+  const authUrl     = `https://accounts.google.com/o/oauth2/v2/auth` +
+    `?client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
     `&response_type=token` +
     `&scope=${encodeURIComponent(scope)}`;
 
-  // Open in popup
+  // Open sign-in popup
   const popup = window.open(authUrl, 'gdrive-auth', 'width=520,height=620');
-  if (!popup) { alert('Please allow popups for this site to connect Google Drive.'); return; }
+  if (!popup) { alert('Please allow popups for this site to sign in with Google.'); return; }
 
   // Poll for the access token in the hash
   const token = await new Promise(resolve => {
@@ -680,20 +682,20 @@ async function _uploadToGoogleDrive() {
           resolve(params.get('access_token') || '');
         }
         if (popup.closed) { clearInterval(timer); resolve(''); }
-      } catch { /* cross-origin — still loading */ }
+      } catch { /* cross-origin — still loading, ignore */ }
     }, 300);
   });
 
-  if (!token) { alert('Google Drive authentication was cancelled.'); return; }
+  if (!token) { alert('Google sign-in was cancelled.'); return; }
 
   // Upload via multipart to Drive API
   const filename = (_project.title || 'project').replace(/[^a-z0-9\-_ ]/gi, '_') + '.zeropro.json';
-  const body     = JSON.stringify(_project, null, 2);
+  const fileBody = JSON.stringify(_project, null, 2);
   const meta     = JSON.stringify({ name: filename, mimeType: 'application/json' });
 
   const form = new FormData();
   form.append('metadata', new Blob([meta], { type: 'application/json' }));
-  form.append('file',     new Blob([body], { type: 'application/json' }));
+  form.append('file',     new Blob([fileBody], { type: 'application/json' }));
 
   try {
     const res = await fetch(
@@ -701,6 +703,7 @@ async function _uploadToGoogleDrive() {
       { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form }
     );
     if (res.ok) {
+      localStorage.setItem('zp_last_drive_backup', Date.now().toString());
       _recordBackup();
       _refreshBackupSection();
       alert(`✅ Backup saved to Google Drive as "${filename}"`);

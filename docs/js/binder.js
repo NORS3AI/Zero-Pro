@@ -58,7 +58,9 @@ export function initBinder({ onSelectDoc, onProjectChange, onInsertImageInEditor
   // Reflect initial pin state on load
   _refreshPinUI();
   if (_binderPinned) {
-    document.getElementById('workspace')?.classList.add('binder-pinned');
+    const ws = document.getElementById('workspace');
+    ws?.classList.add('binder-pinned');
+    ws?.classList.remove('binder-hidden'); // keep binder visible when pinned
   }
 
   // Add resize handle for when binder is pinned
@@ -75,7 +77,13 @@ function _togglePin() {
   localStorage.setItem('zp_binder_pinned', _binderPinned ? '1' : '0');
   _refreshPinUI();
   const ws = document.getElementById('workspace');
-  if (ws) ws.classList.toggle('binder-pinned', _binderPinned);
+  if (ws) {
+    ws.classList.toggle('binder-pinned', _binderPinned);
+    if (_binderPinned) {
+      // Ensure the binder is visible when pinned — remove hidden class
+      ws.classList.remove('binder-hidden');
+    }
+  }
 }
 
 function _refreshPinUI() {
@@ -984,7 +992,7 @@ function _initResizeHandle() {
     _dragging = true;
     _startX   = e.clientX;
     _startW   = parseInt(getComputedStyle(document.documentElement)
-                  .getPropertyValue('--binder-w') || '240', 10);
+                  .getPropertyValue('--binder-pinned-w') || '240', 10);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   });
@@ -993,7 +1001,7 @@ function _initResizeHandle() {
     if (!_dragging) return;
     const delta = e.clientX - _startX;
     const newW  = Math.max(160, Math.min(480, _startW + delta));
-    document.documentElement.style.setProperty('--binder-w', `${newW}px`);
+    document.documentElement.style.setProperty('--binder-pinned-w', `${newW}px`);
   });
 
   document.addEventListener('mouseup', () => {
@@ -1002,13 +1010,14 @@ function _initResizeHandle() {
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     // Persist
-    const w = getComputedStyle(document.documentElement).getPropertyValue('--binder-w').trim();
+    const w = getComputedStyle(document.documentElement).getPropertyValue('--binder-pinned-w').trim();
     localStorage.setItem('zp_binder_w', w);
   });
 
-  // Restore saved width
+  // Restore saved width — use --binder-pinned-w so it never conflicts with
+  // the --binder-w: 0px that binder-hidden sets on the workspace.
   const savedW = localStorage.getItem('zp_binder_w');
-  if (savedW) document.documentElement.style.setProperty('--binder-w', savedW);
+  if (savedW) document.documentElement.style.setProperty('--binder-pinned-w', savedW);
 }
 
 // ─── Character Template ────────────────────────────────────────────────────────
