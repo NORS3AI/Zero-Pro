@@ -218,6 +218,10 @@ function bindToolbar() {
     }
   });
 
+  // Close buttons inside drawers (mobile / tablet)
+  btn('btn-close-binder',    () => workspace().classList.remove('binder-open'));
+  btn('btn-close-inspector', () => workspace().classList.remove('inspector-open'));
+
   // View switcher
   btn('btn-view-editor',    () => switchView('editor'));
   btn('btn-view-corkboard', () => switchView('corkboard'));

@@ -11,6 +11,9 @@
 }
 
 #inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   font-size: 12px;
