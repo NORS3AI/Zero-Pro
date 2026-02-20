@@ -488,33 +488,51 @@ function _bindAmbienceEvents() {
 
 // ─── Backup Section ───────────────────────────────────────────────────────────
 
+const _GDRIVE_LOGO = `
+  <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" style="flex-shrink:0">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+  </svg>`;
+
 function _buildBackupSection(settings) {
   const lastBackup  = localStorage.getItem('zp_last_backup');
   const lastBackupStr = lastBackup
     ? `Last backup: ${new Date(parseInt(lastBackup, 10)).toLocaleString()}`
     : 'No backup recorded yet.';
-  const lastDriveBackup  = localStorage.getItem('zp_last_drive_backup');
+  const lastDriveBackup    = localStorage.getItem('zp_last_drive_backup');
   const lastDriveBackupStr = lastDriveBackup
     ? `Last Drive backup: ${new Date(parseInt(lastDriveBackup, 10)).toLocaleString()}`
     : '';
 
-  const driveHtml = GOOGLE_CLIENT_ID
-    ? `
-        <button class="btn-primary" id="settings-gdrive-signin"
-                style="margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px">
-          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-          </svg>
-          Sign in with Google to back up to Drive
-        </button>
-        ${lastDriveBackupStr ? `<p class="settings-field-hint" style="margin-top:6px">${_esc(lastDriveBackupStr)}</p>` : ''}
-      `
-    : `<p class="settings-field-hint" style="margin-top:8px;font-style:italic">
-        Google Drive backup is not configured for this deployment.
-       </p>`;
+  // Use config.js value OR a developer-supplied ID stored in localStorage
+  const storedId = localStorage.getItem('zp_gdrive_client_id') || '';
+  const clientIdAvailable = !!(GOOGLE_CLIENT_ID || storedId);
+
+  // When no client ID is available anywhere, show a first-time setup section
+  const setupSection = !clientIdAvailable ? `
+    <details id="gdrive-setup" style="margin-top:10px">
+      <summary style="font-size:11px;color:var(--accent);cursor:pointer;user-select:none">
+        ▶ First-time setup — connect your Google account
+      </summary>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+        <p class="settings-field-hint">
+          To enable Google Drive backups, a Google OAuth Client ID is required.<br>
+          <strong>One-time setup (takes ~2 min):</strong><br>
+          1. Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:var(--accent)">Google Cloud Console → Credentials</a><br>
+          2. Create project → OAuth Client ID → Web application<br>
+          3. Add <code>${location.origin}</code> as an Authorised JavaScript Origin<br>
+          4. Paste the Client ID below and click Save
+        </p>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="settings-gdrive-client-id" class="settings-text-input"
+                 placeholder="123456789-abc….apps.googleusercontent.com"
+                 style="flex:1;font-size:11px">
+          <button class="btn-primary" id="settings-gdrive-save-id">Save</button>
+        </div>
+      </div>
+    </details>` : '';
 
   return `
     <div class="settings-section">
@@ -555,10 +573,14 @@ function _buildBackupSection(settings) {
       <!-- Google Drive -->
       <div class="settings-field" style="border-top:1px solid var(--border);padding-top:18px">
         <label class="settings-label">Google Drive</label>
-        <p class="settings-field-hint">
-          Back up your project to Google Drive with one click. Sign in with your Google account — no extra setup needed.
-        </p>
-        ${driveHtml}
+        <p class="settings-field-hint">Sign in with your Google account to save a backup directly to your Drive.</p>
+        <button class="btn-primary" id="settings-gdrive-signin"
+                style="margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px">
+          ${_GDRIVE_LOGO}
+          Sign in with Google
+        </button>
+        ${lastDriveBackupStr ? `<p class="settings-field-hint" style="margin-top:6px">${_esc(lastDriveBackupStr)}</p>` : ''}
+        ${setupSection}
       </div>
     </div>
   `;
@@ -612,6 +634,14 @@ function _bindBackupEvents() {
 
   // Google Drive — sign in & upload
   document.getElementById('settings-gdrive-signin')?.addEventListener('click', _uploadToGoogleDrive);
+
+  // First-time setup: save a developer-supplied Client ID to localStorage
+  document.getElementById('settings-gdrive-save-id')?.addEventListener('click', () => {
+    const id = document.getElementById('settings-gdrive-client-id')?.value.trim();
+    if (!id) return;
+    localStorage.setItem('zp_gdrive_client_id', id);
+    _refreshBackupSection(); // re-render to show sign-in button active
+  });
 }
 
 function _recordBackup() {
@@ -650,10 +680,14 @@ function _clearAutoBackup() {
 }
 
 // Google Drive OAuth 2.0 implicit flow
-// Client ID is configured in config.js — end users just click "Sign in with Google".
+// Client ID comes from config.js (developer-configured) or localStorage (first-time setup).
 async function _uploadToGoogleDrive() {
-  if (!GOOGLE_CLIENT_ID) {
-    alert('Google Drive backup is not configured for this deployment.');
+  // Prefer config.js value; fall back to developer-entered ID stored in localStorage
+  const clientId = GOOGLE_CLIENT_ID || localStorage.getItem('zp_gdrive_client_id') || '';
+  if (!clientId) {
+    // Toggle the setup section open if it exists
+    const setup = document.getElementById('gdrive-setup');
+    if (setup) { setup.open = true; setup.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
     return;
   }
   if (!_project) return;
@@ -661,7 +695,7 @@ async function _uploadToGoogleDrive() {
   const scope       = 'https://www.googleapis.com/auth/drive.file';
   const redirectUri = location.origin + location.pathname;
   const authUrl     = `https://accounts.google.com/o/oauth2/v2/auth` +
-    `?client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
+    `?client_id=${encodeURIComponent(clientId)}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
     `&response_type=token` +
     `&scope=${encodeURIComponent(scope)}`;

@@ -162,6 +162,7 @@ svg { display: block; }
 #workspace {
   display: grid;
   grid-template-columns: var(--binder-w) 1fr var(--inspector-w) var(--ai-panel-w);
+  grid-template-rows: 1fr;   /* one row that fills workspace height — panels can scroll internally */
   overflow: hidden;
   transition: grid-template-columns var(--transition);
 }
