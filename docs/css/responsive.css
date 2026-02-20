@@ -12,6 +12,87 @@
  *   - Toolbar compresses to icon-only for most buttons.
  */
 
+/* ─── Safe-area insets (notch / home indicator on iOS) ──────────────────────── */
+/*
+ * Requires viewport-fit=cover in the <meta viewport> tag.
+ * env() values are 0px on devices without a notch, so no visual change there.
+ */
+
+:root {
+  --safe-top:    env(safe-area-inset-top,    0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left,   0px);
+  --safe-right:  env(safe-area-inset-right,  0px);
+}
+
+/* Toolbar: extend height and add side padding for notch/Dynamic Island */
+#toolbar {
+  padding-top:   var(--safe-top);
+  padding-left:  max(10px, var(--safe-left));
+  padding-right: max(10px, var(--safe-right));
+  min-height:    calc(var(--toolbar-h) + var(--safe-top));
+}
+
+/* App grid: grow the toolbar row to absorb the safe-area-top */
+#app {
+  grid-template-rows: calc(var(--toolbar-h) + var(--safe-top)) 1fr;
+}
+
+/* Status bar: lift it above the home indicator */
+#status-bar {
+  padding-bottom: var(--safe-bottom);
+  min-height:     calc(var(--statusbar-h) + var(--safe-bottom));
+}
+
+/* Drawers also respect the bottom safe area */
+#inspector,
+#ai-panel {
+  padding-bottom: var(--safe-bottom);
+}
+
+/* ─── Drawer close buttons ───────────────────────────────────────────────────── */
+/* Hidden on desktop; revealed when the drawer becomes an overlay */
+
+.binder-drawer-close,
+.inspector-drawer-close { display: none; }
+
+/* ─── Touch-device improvements (hover: none means touchscreen) ─────────────── */
+
+@media (hover: none) {
+  /* Binder row action buttons (delete, rename) are hidden on hover — unusable
+     on touch. Always show them on touch devices. */
+  .binder-actions {
+    opacity: 1;
+  }
+
+  .binder-action-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .binder-action-btn svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+/* ─── Smooth momentum scrolling on iOS / Android ────────────────────────────── */
+
+#binder-tree,
+#editor-container,
+.inspector-panel,
+#corkboard-grid,
+#outline-table-wrap {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent scroll from "escaping" a drawer and scrolling the page behind it */
+#binder,
+#inspector,
+#ai-panel {
+  overscroll-behavior: contain;
+}
+
 /* ─── Backdrop ───────────────────────────────────────────────────────────────── */
 
 #mobile-backdrop {
@@ -40,7 +121,7 @@
 
   #inspector {
     position: fixed;
-    top: var(--toolbar-h);
+    top: calc(var(--toolbar-h) + var(--safe-top));
     right: 0;
     bottom: 0;
     width: 280px;
@@ -55,10 +136,13 @@
     transform: translateX(0);
   }
 
+  /* Show close button inside the inspector drawer */
+  .inspector-drawer-close { display: flex; }
+
   /* AI panel: fixed right drawer */
   #ai-panel {
     position: fixed;
-    top: var(--toolbar-h);
+    top: calc(var(--toolbar-h) + var(--safe-top));
     right: 0;
     bottom: 0;
     width: min(320px, 90vw);
@@ -119,7 +203,7 @@
 
   #binder {
     position: fixed;
-    top: var(--toolbar-h);
+    top: calc(var(--toolbar-h) + var(--safe-top));
     left: 0;
     bottom: 0;
     width: min(280px, 80vw);
@@ -133,6 +217,9 @@
   #workspace.binder-open #binder {
     transform: translateX(0);
   }
+
+  /* Show the binder close button on mobile */
+  .binder-drawer-close { display: flex; }
 
   /* Backdrop: also covers binder-open on mobile */
   #workspace.binder-open    #mobile-backdrop,
@@ -154,11 +241,53 @@
     top: 24px;
   }
 
-  #editor-toolbar { padding: 4px 6px; gap: 1px; }
-  .fmt-btn        { width: 32px; height: 32px; }
+  /* Formatting toolbar: scroll horizontally so all buttons are always accessible */
+  #editor-toolbar {
+    padding: 4px 6px;
+    gap: 1px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  #editor-toolbar::-webkit-scrollbar { display: none; }
+
+  .fmt-btn { width: 32px; height: 32px; flex-shrink: 0; }
+
+  /* ── Corkboard: two-column grid ── */
+
+  #corkboard-grid {
+    padding: 12px;
+    gap: 12px;
+    --card-w: calc(50vw - 20px); /* two cards per row */
+  }
+
+  #corkboard-toolbar { padding: 5px 12px; gap: 8px; }
+  .cork-zoom-label   { display: none; }
+  #cork-zoom         { width: 60px; }
+
+  /* ── Outline: horizontal scroll to preserve all columns ── */
+
+  #outline-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #outline-table      { min-width: 480px; }
+
+  /* ── Toast: position above the status bar ── */
+
+  .toast {
+    bottom: calc(var(--statusbar-h) + 16px + var(--safe-bottom));
+  }
 
   /* ── Touch targets ── */
 
-  .binder-item-row { min-height: 36px; }
+  .binder-item-row   { min-height: 36px; }
   .binder-action-btn { width: 28px; height: 28px; }
+}
+
+/* ─── Very narrow screens (≤ 400 px) — single corkboard column ──────────────── */
+
+@media (max-width: 400px) {
+  #corkboard-grid {
+    --card-w: calc(100vw - 24px);
+  }
 }

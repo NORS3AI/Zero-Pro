@@ -88,6 +88,7 @@ svg { display: block; }
   display: grid;
   grid-template-rows: var(--toolbar-h) 1fr;
   height: 100vh;
+  height: 100dvh; /* Dynamic viewport: collapses correctly when mobile browser chrome shows/hides */
 }
 
 /* ─── Top Toolbar ────────────────────────────────────────────────────────────── */
