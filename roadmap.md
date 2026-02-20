@@ -5,12 +5,12 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | Phase | Timeline | Goal | Status |
 |---|---|---|---|
 | Phase 1 | Weeks 1–3 | Core editor, binder, local storage | **Done** |
-| Phase 2 | Weeks 4–6 | Corkboard, outline view, scene metadata | Next |
-| Phase 3 | Weeks 7–10 | AI writing assistant (Claude API) | Planned |
-| Phase 4 | Weeks 11–14 | Import/export, themes, App Store wrapper | Planned |
-| Phase 5 | Weeks 15–17 | Kindle & publishing support | Planned |
-| Phase 6 | Weeks 18–19 | Image import & media support | Planned |
-| Phase 7 | Weeks 20–22 | Nice-to-haves & UI polish | Planned |
+| Phase 2 | Weeks 4–6 | Corkboard, outline view, scene metadata | **Done** |
+| Phase 3 | Weeks 7–10 | AI writing assistant (Claude API) | **Done** |
+| Phase 4 | Weeks 11–14 | Import/export, themes, App Store wrapper | **Done** |
+| Phase 5 | Weeks 15–17 | Kindle & publishing support | **Done** |
+| Phase 6 | Weeks 18–19 | Image import & media support | **Done** |
+| Phase 7 | Weeks 20–22 | Nice-to-haves & UI polish | **Done** |
 | Phase 8 | Weeks 23–26 | Cloud sync & real-time collaboration | Planned |
 | Phase 9 | Weeks 27–30 | UX modernisation & Android / PWA | Planned |
 | Phase 10 | Weeks 31–34 | Advanced writing tools | Planned |
@@ -164,99 +164,102 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 
 ---
 
-## Phase 5 — Kindle & Publishing Support _(Weeks 15–17)_
+## Phase 5 — Kindle & Publishing Support _(Weeks 15–17)_ ✅
 
 **Goal:** Writers can go directly from Zero Pro to publishing on Amazon KDP, IngramSpark, or self-publishing platforms without needing a separate tool.
 
-### 5.1 EPUB Export (`epub.js`)
-- [ ] Package the compiled manuscript as a valid `.epub` file (client-side, using epub.js or a custom ZIP builder)
-- [ ] Embed cover image, table of contents, chapter metadata
-- [ ] Validate output against EPUB 3 spec
-- [ ] Preview EPUB in-browser before download
+### 5.1 EPUB Export (`publish.js`)
+- [x] Package the compiled manuscript as a valid EPUB 3 file client-side (JSZip-based ZIP builder)
+- [x] Embed table of contents (nav.xhtml + toc.ncx), chapter metadata, and stylesheet
+- [x] EPUB 2 toc.ncx included for Kindle / older reader compatibility
+- [ ] Preview EPUB in-browser before download _(deferred to Phase 9 — requires epub.js)_
 
 ### 5.2 Kindle Export
-- [ ] Export `.mobi`-compatible format (EPUB 2 subset that KDP accepts)
-- [ ] Guide modal: "How to upload to Amazon KDP" — step-by-step in-app walkthrough
-- [ ] KDP formatting checklist: font requirements, chapter breaks, front/back matter
-- [ ] Generate KDP-ready cover page template
+- [x] EPUB output is an EPUB 2-compatible subset accepted directly by Amazon KDP
+- [x] KDP Wizard with step-by-step upload checklist and EPUB or .docx export
+- [x] KDP formatting checklist embedded in the wizard modal
+- [x] KDP-formatted .docx with title page, copyright page, chapter breaks, Georgian body font
 
 ### 5.3 Publishing Help Modals
-- [ ] **KDP Wizard** — one-click formatting for Amazon Kindle Direct Publishing; sets margins, fonts, drop-caps, chapter headings to KDP standards
-- [ ] **IngramSpark Wizard** — print-on-demand formatting: bleed, trim size, page numbering, ISBN placeholder
-- [ ] **Submission Formatter** — literary agent standard format: 12pt Times, double-spaced, 1" margins, header with author/title/page
-- [ ] **Self-Publishing Checklist** — interactive modal checklist covering editing, cover, ISBN, distribution, pricing
-- [ ] **Genre Style Guides** — quick-reference modals for Romance, Thriller, Literary Fiction, Non-fiction formatting conventions
+- [x] **KDP Wizard** — exports EPUB or .docx with KDP-standard fonts, margins, indents, front matter
+- [x] **IngramSpark Wizard** — trim size / font picker, ISBN field, POD checklist, exports interior .docx
+- [x] **Submission Formatter** — 12pt Times, double-spaced, 1" margins, running header, title-page word count
+- [x] **Self-Publishing Checklist** — 6-section interactive checklist: editing, cover, ISBNs, metadata, distribution, launch
+- [x] **Genre Style Guides** — tabbed modals for Romance, Thriller, Literary Fiction, Non-Fiction
 
 ### 5.4 Front & Back Matter Templates
-- [ ] Title page, copyright page, dedication, acknowledgements templates
-- [ ] "Also by this author" back matter template
-- [ ] Author bio template
+- [x] Title page, copyright page, dedication, epigraph, acknowledgements templates
+- [x] "Also by this author" back matter template
+- [x] Author bio template
+- [x] All templates insert as editable binder documents
 
 ---
 
-## Phase 6 — Image Import & Media Support _(Weeks 18–19)_
+## Phase 6 — Image Import & Media Support _(Weeks 18–19)_ ✅
 
 **Goal:** Writers can include images in their documents — useful for non-fiction, illustrated novels, and research notes.
 
 ### 6.1 Image Import (`media.js`)
-- [ ] Drag-and-drop images into the editor (JPEG, PNG, WebP, GIF)
-- [ ] Click-to-insert via file picker button in the editor toolbar
-- [ ] Paste images from clipboard (screenshots, copied web images)
-- [ ] Images stored as base64 data URLs in the document JSON
-- [ ] Warn when a document exceeds 5MB due to embedded images
+- [x] Drag-and-drop images into the editor (JPEG, PNG, WebP, GIF)
+- [x] Click-to-insert via file picker button in the editor toolbar
+- [x] Paste images from clipboard (screenshots, copied web images)
+- [x] Images stored as base64 data URLs in the document JSON
+- [x] Warn when a document exceeds 5MB due to embedded images
 
 ### 6.2 Image Management in Editor
-- [ ] Click image to show resize handles (CSS resize or drag corners)
-- [ ] Set image alignment: inline / float-left / float-right / centred
-- [ ] Add alt-text for accessibility and EPUB metadata
-- [ ] Delete image with the Delete key when selected
-- [ ] Images stripped from plain-text export; preserved in HTML, EPUB, DOCX
+- [x] Click image to show floating toolbar with size presets (S/M/L/Full)
+- [x] Set image alignment: inline / float-left / float-right / centred
+- [x] Add alt-text for accessibility and EPUB metadata
+- [x] Delete image with the Delete key when selected
+- [x] Images stripped from plain-text and Markdown export; preserved in HTML, EPUB, DOCX
 
 ### 6.3 Research Image Binder Items
-- [ ] New binder item type: `image` — stores a single image with a caption
-- [ ] Image items display in a lightbox when clicked from the binder
-- [ ] Drag an image binder item into the editor to embed it
-- [ ] Research folder: grouping for image and web-clipping items
+- [x] New binder item type: `image` — stores a single image with a caption
+- [x] Image items display in a lightbox when clicked from the binder
+- [x] Drag an image binder item into the editor to embed it
+- [x] "Insert in Editor" context menu option for image binder items
+- [x] Research folder: auto-created grouping for image and web-clipping items
 
 ### 6.4 Web Clipping (Basic)
-- [ ] Paste a URL → fetch page title and a text snippet (CORS-permitting)
-- [ ] Store clippings as research binder items with source URL
-- [ ] Clippings are never compiled into the manuscript
+- [x] Paste a URL → fetch page title and a text snippet (CORS-permitting)
+- [x] Store clippings as research binder items with source URL
+- [x] Clippings are never compiled into the manuscript
+- [x] Clip button in binder header for quick URL clipping
 
 ---
 
-## Phase 7 — Nice-to-Haves & UI Polish _(Weeks 20–22)_
+## Phase 7 — Nice-to-Haves & UI Polish _(Weeks 20–22)_ ✅
 
 **Goal:** Elevate Zero Pro from functional to delightful by shipping all the quality-of-life and "Nice to Have" items from the feature spec.
 
 ### 7.1 Editor Polish
-- [ ] Find & Replace panel — regex-capable, search within the open document
-- [ ] Full project search — search across all documents, jump to result
-- [ ] Revision history / snapshots — named point-in-time saves per document
-- [ ] Snapshot diff view — side-by-side colour-coded comparison
-- [ ] Format paint — copy inline styles from one selection to another
-- [ ] Spellcheck language selector (supplement browser native spellcheck)
+- [x] Find & Replace panel — regex-capable, search within the open document
+- [x] Full project search — search across all documents (Ctrl+Shift+F), jump to result
+- [x] Revision history / snapshots — named point-in-time saves per document
+- [x] Snapshot diff view — side-by-side colour-coded LCS comparison
+- [x] Format paint — copy inline styles from one selection to another (toolbar button)
+- [x] Spellcheck language selector (sets `lang` attribute for browser native spellcheck)
 
 ### 7.2 Binder Polish
-- [ ] Colour-coded labels — pick from a palette, show as dot on binder row
-- [ ] Duplicate document — clone with new ID, append "Copy" to title
-- [ ] Multi-select — Shift+click, then drag as a group or bulk-label
-- [ ] Right-click context menu — rename, duplicate, label, delete
+- [x] Colour-coded labels — pick from a palette, show as dot on binder row
+- [x] Duplicate document — clone with new ID, append "Copy" to title
+- [x] Multi-select — Shift+click to select multiple, bulk label and bulk trash
+- [x] Right-click context menu — rename, duplicate, label, delete
 
 ### 7.3 Corkboard Polish
-- [ ] Card zoom slider — CSS variable for card width
-- [ ] Split corkboard — show two folders side-by-side
-- [ ] Status indicator on each card — draft / revised / final dot
+- [x] Card zoom slider — CSS variable for card width
+- [x] Split corkboard — show two folders side-by-side with folder picker
+- [x] Status indicator on each card — draft / revised / final dot
 
 ### 7.4 Ambient & Atmosphere
-- [ ] Ambient sound player: rain, café, white noise, fireplace (Web Audio API or small embedded audio)
-- [ ] Custom accent colour (HSL hue slider — single CSS variable)
-- [ ] Writing streak calendar (local, no backend required)
+- [x] Ambient sound player: rain, café, white noise, fireplace, wind (Web Audio API, procedural)
+- [x] Custom accent colour (HSL hue slider in Settings → Appearance)
+- [x] Writing streak calendar — GitHub-style 6-month heatmap, streak stats
 
 ### 7.5 Command Palette
-- [ ] `Ctrl/Cmd+K` command palette — fuzzy-search any action or document
-- [ ] Recent documents section
-- [ ] Actions: new document, toggle theme, export, open settings
+- [x] `Ctrl/Cmd+K` command palette — fuzzy-search any action or document
+- [x] Recent documents section
+- [x] Actions: new document, toggle theme, export, open settings, snapshots, ambient, streak
 
 ---
 
@@ -405,9 +408,9 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | 8 | Inspector panel — metadata, synopsis, status, targets |
 | 9 | Claude API sidebar, prompt templates |
 | 10 | Import (mammoth.js), compile, full export pipeline |
-| 11 | EPUB + Kindle export, publishing help modals |
-| 12 | Image import, base64 storage, editor embed |
-| 13 | Nice-to-haves: find/replace, snapshots, command palette |
+| 11 | EPUB + Kindle export, publishing help modals ✅ |
+| 12 | Image import, base64 storage, editor embed ✅ |
+| 13 | Nice-to-haves: find/replace, snapshots, command palette ✅ |
 | 14 | Cloud sync (Supabase), offline queue (IndexedDB) |
 | 15 | Real-time collaboration (Yjs) |
 | 16 | PWA manifest, Android testing |

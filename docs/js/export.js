@@ -2,10 +2,11 @@
 
 // ─── HTML Conversion Helpers ──────────────────────────────────────────────────
 
-/** Strip HTML and return plain text, preserving paragraph breaks */
+/** Strip HTML and return plain text, preserving paragraph breaks (images removed) */
 export function htmlToPlainText(html) {
   const div = document.createElement('div');
   div.innerHTML = html;
+  div.querySelectorAll('img').forEach(img => img.remove());
   div.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
   div.querySelectorAll('p, h1, h2, h3, h4, li, blockquote').forEach(el => {
     el.insertAdjacentText('afterend', '\n');
@@ -36,6 +37,13 @@ export function htmlToMarkdown(html) {
       case 'blockquote': return `> ${inner.trim()}\n\n`;
       case 'ul': return Array.from(node.children).map(li => `- ${processNode(li).trim()}`).join('\n') + '\n\n';
       case 'ol': return Array.from(node.children).map((li, i) => `${i + 1}. ${processNode(li).trim()}`).join('\n') + '\n\n';
+      case 'img': {
+        const alt = node.getAttribute('alt') || '';
+        const src = node.getAttribute('src') || '';
+        // Skip base64 data URLs (too large for markdown); keep external URLs
+        if (src.startsWith('data:')) return alt ? `[Image: ${alt}]` : '[Image]';
+        return `![${alt}](${src})`;
+      }
       case 'li': return inner;
       default:   return inner;
     }

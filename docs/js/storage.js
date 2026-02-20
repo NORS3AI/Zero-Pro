@@ -176,3 +176,83 @@ export function getProjectWordCount(project) {
     .filter(d => !d.inTrash && d.type === 'doc')
     .reduce((sum, d) => sum + (d.wordCount || 0), 0);
 }
+
+// ─── Snapshots ─────────────────────────────────────────────────────────────────
+
+/** Save a named snapshot of a document's current content */
+export function createSnapshot(project, docId, name = '') {
+  const doc = getDocument(project, docId);
+  if (!doc || doc.type !== 'doc') return null;
+  if (!doc.snapshots) doc.snapshots = [];
+
+  const snapshot = {
+    id: generateId(),
+    name: name || `Snapshot ${doc.snapshots.length + 1}`,
+    content: doc.content,
+    wordCount: doc.wordCount || 0,
+    createdAt: Date.now(),
+  };
+  doc.snapshots.push(snapshot);
+  return snapshot;
+}
+
+/** Delete a snapshot by ID */
+export function deleteSnapshot(project, docId, snapshotId) {
+  const doc = getDocument(project, docId);
+  if (!doc?.snapshots) return;
+  doc.snapshots = doc.snapshots.filter(s => s.id !== snapshotId);
+}
+
+/** Restore a snapshot — replaces the document's content */
+export function restoreSnapshot(project, docId, snapshotId) {
+  const doc = getDocument(project, docId);
+  if (!doc?.snapshots) return;
+  const snap = doc.snapshots.find(s => s.id === snapshotId);
+  if (!snap) return;
+  doc.content = snap.content;
+  doc.wordCount = countWords(_stripHtml(snap.content));
+  doc.updatedAt = Date.now();
+}
+
+/** Get all snapshots for a document, newest first */
+export function getSnapshots(docId, project) {
+  const doc = getDocument(project, docId);
+  return (doc?.snapshots || []).slice().sort((a, b) => b.createdAt - a.createdAt);
+}
+
+/** Strip HTML tags for plain-text operations */
+function _stripHtml(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || '';
+}
+
+// ─── Writing Streak ──────────────────────────────────────────────────────────
+
+const STREAK_KEY = 'zeropro_streak';
+
+/** Load streak data from localStorage */
+export function loadStreak() {
+  try {
+    const raw = localStorage.getItem(STREAK_KEY);
+    return raw ? JSON.parse(raw) : { days: {} };
+  } catch {
+    return { days: {} };
+  }
+}
+
+/** Save streak data */
+export function saveStreak(streak) {
+  try {
+    localStorage.setItem(STREAK_KEY, JSON.stringify(streak));
+  } catch { /* ignore */ }
+}
+
+/** Record words written today */
+export function recordDailyWords(count) {
+  const streak = loadStreak();
+  const today = new Date().toISOString().slice(0, 10);
+  streak.days[today] = (streak.days[today] || 0) + count;
+  saveStreak(streak);
+  return streak;
+}

@@ -16,12 +16,16 @@
   <link rel="stylesheet" href="css/inspector.css">
   <link rel="stylesheet" href="css/ai.css">
   <link rel="stylesheet" href="css/settings.css">
+  <link rel="stylesheet" href="css/publish.css">
+  <link rel="stylesheet" href="css/phase7.css">
   <link rel="stylesheet" href="css/responsive.css">
 
   <!-- Sortable.js — drag-and-drop for the binder and corkboard -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <!-- html-docx-js — client-side HTML → .docx conversion -->
   <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
+  <!-- JSZip — client-side ZIP builder used for EPUB export (Phase 5) -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
 
@@ -94,6 +98,15 @@
         <div class="dropdown-label">Import</div>
         <button class="dropdown-item" id="btn-import-docs" role="menuitem">Import .txt / .md…</button>
         <button class="dropdown-item" id="btn-import-json" role="menuitem">Restore from backup…</button>
+        <div class="dropdown-sep"></div>
+        <div class="dropdown-label">Publish</div>
+        <button class="dropdown-item" id="btn-export-epub"      role="menuitem">Export as EPUB…</button>
+        <button class="dropdown-item" id="btn-pub-kdp"          role="menuitem">KDP Wizard…</button>
+        <button class="dropdown-item" id="btn-pub-ingram"       role="menuitem">IngramSpark Wizard…</button>
+        <button class="dropdown-item" id="btn-pub-submission"   role="menuitem">Agent Submission…</button>
+        <button class="dropdown-item" id="btn-pub-checklist"    role="menuitem">Self-Publishing Checklist</button>
+        <button class="dropdown-item" id="btn-pub-genres"       role="menuitem">Genre Style Guides</button>
+        <button class="dropdown-item" id="btn-pub-frontmatter"  role="menuitem">Front &amp; Back Matter Templates…</button>
       </div>
     </div>
 
@@ -151,6 +164,10 @@
                   title="Add Image to Binder" aria-label="Add image to binder">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/></svg>
           </button>
+          <button class="btn btn-icon" data-action="add-clip"
+                  title="Clip a Web URL" aria-label="Clip a web URL">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/><path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/></svg>
+          </button>
           <button class="btn btn-icon binder-drawer-close" id="btn-close-binder"
                   title="Close Binder" aria-label="Close binder panel">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
@@ -183,6 +200,13 @@
           <button class="fmt-btn" id="btn-insert-image" title="Insert Image" aria-label="Insert image">
             <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/></svg>
           </button>
+          <div class="fmt-sep"></div>
+          <button class="fmt-btn" id="btn-format-paint" title="Format Paint — copy, then apply formatting" aria-label="Format paint" aria-pressed="false">
+            <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M15.825.12a.5.5 0 0 1 .132.584c-1.53 3.43-4.743 8.17-7.095 10.64a6.067 6.067 0 0 1-2.373 1.534c-.018.227-.06.538-.16.868-.201.659-.667 1.479-1.708 1.74a8.118 8.118 0 0 1-3.078.132 3.659 3.659 0 0 1-.562-.135 1.382 1.382 0 0 1-.466-.247.714.714 0 0 1-.204-.288.622.622 0 0 1 .004-.443c.095-.245.316-.38.461-.452.394-.197.625-.453.867-.826.095-.144.184-.297.287-.472l.117-.198c.151-.255.326-.54.546-.848.528-.739 1.201-.925 1.746-.896.126.007.243.025.348.048.062-.172.142-.38.238-.608.261-.619.658-1.419 1.187-2.069 2.176-2.67 6.18-6.206 9.117-8.104a.5.5 0 0 1 .596.04z"/></svg>
+          </button>
+          <button class="fmt-btn" id="btn-snapshot" title="Take Snapshot" aria-label="Take snapshot">
+            <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>
+          </button>
         </div>
 
         <!-- Writing area -->
@@ -213,6 +237,9 @@
 
         <div id="corkboard-toolbar">
           <span id="corkboard-folder-label">All Scenes</span>
+          <button class="btn btn-icon" id="btn-cork-split" title="Split View" aria-label="Toggle split corkboard" aria-pressed="false">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3zm7 12h7a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H7v13z"/></svg>
+          </button>
           <div class="cork-zoom-wrap">
             <span class="cork-zoom-label">Size</span>
             <input type="range" id="cork-zoom" min="160" max="360" value="220"
