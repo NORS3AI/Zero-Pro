@@ -21,7 +21,7 @@ import { openPatchNotes } from './patchnotes.js';
 const state = {
   project:              null,
   currentDocId:         null,
-  currentView:          'editor', // 'editor' | 'corkboard' | 'outline'
+  currentView:          'corkboard', // 'editor' | 'corkboard' | 'outline'
   triggerDocImport:     null,
   triggerProjectImport: null,
 };
@@ -106,10 +106,9 @@ function init() {
     },
   });
 
-  // Render binder and open first document
+  // Render binder and open corkboard by default
   renderBinder(state.project, null);
-  const firstDoc = state.project.documents.find(d => !d.inTrash && d.type === 'doc');
-  if (firstDoc) handleSelectDocument(firstDoc.id);
+  switchView('corkboard');
 
   bindToolbar();
   updateProjectTitle();

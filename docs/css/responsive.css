@@ -170,7 +170,22 @@
 
 @media (max-width: 640px) {
 
-  /* ── Toolbar ── */
+  /* ── Toolbar: horizontally scrollable so all controls stay reachable ── */
+
+  #toolbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    scrollbar-width: none; /* Firefox */
+    gap: 2px;
+  }
+
+  #toolbar::-webkit-scrollbar { display: none; }
+
+  /* Spacer must not grow — otherwise it pushes right-side buttons off screen */
+  .toolbar-spacer { flex: 0 0 auto; min-width: 8px; }
+
+  /* ── Toolbar items ── */
 
   .toolbar-brand     { display: none; }
 

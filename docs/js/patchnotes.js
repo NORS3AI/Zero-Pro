@@ -28,7 +28,7 @@ const PATCHES = [
     title: 'Polish & Bug Fixes',
     changes: [
       { type: 'fix',  text: 'Inspector panel is now fully scrollable when content overflows' },
-      { type: 'fix',  text: 'Corrected spelling: "Analyse" → "Analyze" in the Editing tab' },
+      { type: 'fix',  text: 'Fixed spelling of "Analyze" in the Editing tab' },
     ],
   },
   {
