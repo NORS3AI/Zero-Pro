@@ -5,10 +5,10 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | Phase | Timeline | Goal | Status |
 |---|---|---|---|
 | Phase 1 | Weeks 1–3 | Core editor, binder, local storage | **Done** |
-| Phase 2 | Weeks 4–6 | Corkboard, outline view, scene metadata | Next |
-| Phase 3 | Weeks 7–10 | AI writing assistant (Claude API) | Planned |
-| Phase 4 | Weeks 11–14 | Import/export, themes, App Store wrapper | Planned |
-| Phase 5 | Weeks 15–17 | Kindle & publishing support | Planned |
+| Phase 2 | Weeks 4–6 | Corkboard, outline view, scene metadata | **Done** |
+| Phase 3 | Weeks 7–10 | AI writing assistant (Claude API) | **Done** |
+| Phase 4 | Weeks 11–14 | Import/export, themes, App Store wrapper | **Done** |
+| Phase 5 | Weeks 15–17 | Kindle & publishing support | **Done** |
 | Phase 6 | Weeks 18–19 | Image import & media support | Planned |
 | Phase 7 | Weeks 20–22 | Nice-to-haves & UI polish | Planned |
 | Phase 8 | Weeks 23–26 | Cloud sync & real-time collaboration | Planned |
@@ -164,33 +164,34 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 
 ---
 
-## Phase 5 — Kindle & Publishing Support _(Weeks 15–17)_
+## Phase 5 — Kindle & Publishing Support _(Weeks 15–17)_ ✅
 
 **Goal:** Writers can go directly from Zero Pro to publishing on Amazon KDP, IngramSpark, or self-publishing platforms without needing a separate tool.
 
-### 5.1 EPUB Export (`epub.js`)
-- [ ] Package the compiled manuscript as a valid `.epub` file (client-side, using epub.js or a custom ZIP builder)
-- [ ] Embed cover image, table of contents, chapter metadata
-- [ ] Validate output against EPUB 3 spec
-- [ ] Preview EPUB in-browser before download
+### 5.1 EPUB Export (`publish.js`)
+- [x] Package the compiled manuscript as a valid EPUB 3 file client-side (JSZip-based ZIP builder)
+- [x] Embed table of contents (nav.xhtml + toc.ncx), chapter metadata, and stylesheet
+- [x] EPUB 2 toc.ncx included for Kindle / older reader compatibility
+- [ ] Preview EPUB in-browser before download _(deferred to Phase 9 — requires epub.js)_
 
 ### 5.2 Kindle Export
-- [ ] Export `.mobi`-compatible format (EPUB 2 subset that KDP accepts)
-- [ ] Guide modal: "How to upload to Amazon KDP" — step-by-step in-app walkthrough
-- [ ] KDP formatting checklist: font requirements, chapter breaks, front/back matter
-- [ ] Generate KDP-ready cover page template
+- [x] EPUB output is an EPUB 2-compatible subset accepted directly by Amazon KDP
+- [x] KDP Wizard with step-by-step upload checklist and EPUB or .docx export
+- [x] KDP formatting checklist embedded in the wizard modal
+- [x] KDP-formatted .docx with title page, copyright page, chapter breaks, Georgian body font
 
 ### 5.3 Publishing Help Modals
-- [ ] **KDP Wizard** — one-click formatting for Amazon Kindle Direct Publishing; sets margins, fonts, drop-caps, chapter headings to KDP standards
-- [ ] **IngramSpark Wizard** — print-on-demand formatting: bleed, trim size, page numbering, ISBN placeholder
-- [ ] **Submission Formatter** — literary agent standard format: 12pt Times, double-spaced, 1" margins, header with author/title/page
-- [ ] **Self-Publishing Checklist** — interactive modal checklist covering editing, cover, ISBN, distribution, pricing
-- [ ] **Genre Style Guides** — quick-reference modals for Romance, Thriller, Literary Fiction, Non-fiction formatting conventions
+- [x] **KDP Wizard** — exports EPUB or .docx with KDP-standard fonts, margins, indents, front matter
+- [x] **IngramSpark Wizard** — trim size / font picker, ISBN field, POD checklist, exports interior .docx
+- [x] **Submission Formatter** — 12pt Times, double-spaced, 1" margins, running header, title-page word count
+- [x] **Self-Publishing Checklist** — 6-section interactive checklist: editing, cover, ISBNs, metadata, distribution, launch
+- [x] **Genre Style Guides** — tabbed modals for Romance, Thriller, Literary Fiction, Non-Fiction
 
 ### 5.4 Front & Back Matter Templates
-- [ ] Title page, copyright page, dedication, acknowledgements templates
-- [ ] "Also by this author" back matter template
-- [ ] Author bio template
+- [x] Title page, copyright page, dedication, epigraph, acknowledgements templates
+- [x] "Also by this author" back matter template
+- [x] Author bio template
+- [x] All templates insert as editable binder documents
 
 ---
 
@@ -405,7 +406,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | 8 | Inspector panel — metadata, synopsis, status, targets |
 | 9 | Claude API sidebar, prompt templates |
 | 10 | Import (mammoth.js), compile, full export pipeline |
-| 11 | EPUB + Kindle export, publishing help modals |
+| 11 | EPUB + Kindle export, publishing help modals ✅ |
 | 12 | Image import, base64 storage, editor embed |
 | 13 | Nice-to-haves: find/replace, snapshots, command palette |
 | 14 | Cloud sync (Supabase), offline queue (IndexedDB) |

@@ -16,12 +16,15 @@
   <link rel="stylesheet" href="css/inspector.css">
   <link rel="stylesheet" href="css/ai.css">
   <link rel="stylesheet" href="css/settings.css">
+  <link rel="stylesheet" href="css/publish.css">
   <link rel="stylesheet" href="css/responsive.css">
 
   <!-- Sortable.js — drag-and-drop for the binder and corkboard -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <!-- html-docx-js — client-side HTML → .docx conversion -->
   <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
+  <!-- JSZip — client-side ZIP builder used for EPUB export (Phase 5) -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
 
@@ -94,6 +97,15 @@
         <div class="dropdown-label">Import</div>
         <button class="dropdown-item" id="btn-import-docs" role="menuitem">Import .txt / .md…</button>
         <button class="dropdown-item" id="btn-import-json" role="menuitem">Restore from backup…</button>
+        <div class="dropdown-sep"></div>
+        <div class="dropdown-label">Publish</div>
+        <button class="dropdown-item" id="btn-export-epub"      role="menuitem">Export as EPUB…</button>
+        <button class="dropdown-item" id="btn-pub-kdp"          role="menuitem">KDP Wizard…</button>
+        <button class="dropdown-item" id="btn-pub-ingram"       role="menuitem">IngramSpark Wizard…</button>
+        <button class="dropdown-item" id="btn-pub-submission"   role="menuitem">Agent Submission…</button>
+        <button class="dropdown-item" id="btn-pub-checklist"    role="menuitem">Self-Publishing Checklist</button>
+        <button class="dropdown-item" id="btn-pub-genres"       role="menuitem">Genre Style Guides</button>
+        <button class="dropdown-item" id="btn-pub-frontmatter"  role="menuitem">Front &amp; Back Matter Templates…</button>
       </div>
     </div>
 
