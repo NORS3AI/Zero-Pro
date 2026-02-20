@@ -190,13 +190,13 @@ function _buildUI() {
           </div>
           <div class="editing-score-meta">
             <div class="editing-score-title">Writing Score</div>
-            <div class="editing-score-sub">Analyse to reveal your score</div>
+            <div class="editing-score-sub">Analyze to reveal your score</div>
           </div>
         </div>
 
         <div class="editing-cta-wrap">
           <button class="editing-cta-btn" disabled title="Coming soon — AI-powered writing analysis">
-            <span>Analyse Writing</span>
+            <span>Analyze Writing</span>
             <span class="editing-soon-badge">Coming Soon</span>
           </button>
         </div>
