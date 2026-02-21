@@ -261,23 +261,82 @@ Powered by the Anthropic Claude API. The user provides their own API key — sto
 
 ---
 
+## 3.14 Story Planning & Smart Templates _(Phase 12)_
+
+| Feature | Priority | Phase | Complexity | Notes |
+|---|---|---|---|---|
+| Character Database | Must Have | 12 | Medium | Two-pane modal; stored as `project.characters[]` in project JSON |
+| Character fields | Must Have | 12 | Low | Name, role, age, description, appearance, arc summary, notes |
+| Character avatar initials | Should Have | 12 | Low | Auto-generated from name; coloured by first letter |
+| Character search & filter | Should Have | 12 | Low | Real-time filter on the character list |
+| Wiki-style cross-document links | Must Have | 12 | Medium | Type `[[` in editor to get autocomplete of all doc titles |
+| Wiki-link autocomplete dropdown | Must Have | 12 | Medium | Keyboard navigation ↑/↓/Enter/Esc; positioned at caret |
+| Wiki-link click-to-navigate | Must Have | 12 | Low | Clicking a rendered `[[link]]` navigates to that document |
+| Plot Structure Templates | Must Have | 12 | Medium | Three-Act, Hero's Journey (12), Save the Cat (15), Freytag's Pyramid |
+| Plot template preview | Should Have | 12 | Low | List all stages before applying |
+| Plot template apply | Must Have | 12 | Medium | Creates a binder folder + one doc per stage, synopsis pre-filled |
+| New Project from Template wizard | Must Have | 12 | Medium | Novel, Short Story, Non-Fiction, Personal Journal, Screenplay |
+| Template binder preview | Should Have | 12 | Low | Shows folder/doc tree before creating the project |
+| Template project title input | Should Have | 12 | Low | Custom name for the new project |
+
+---
+
+## 3.15 Focus, Sessions & Smart Editing _(Phase 13)_
+
+| Feature | Priority | Phase | Complexity | Notes |
+|---|---|---|---|---|
+| Writing Sprint Timer | Must Have | 13 | Medium | Floating HUD with SVG countdown ring |
+| Sprint presets | Should Have | 13 | Low | 5, 15, 25, 45 minute quick-select |
+| Sprint live stats | Should Have | 13 | Low | Real-time words written and WPM during session |
+| Sprint result card | Should Have | 13 | Low | Emoji, words, WPM, personal-best comparison on completion |
+| Sprint session history | Nice to Have | 13 | Low | Last 50 sessions in `localStorage['zp_sprints']` |
+| Personal best tracking | Should Have | 13 | Low | `localStorage['zp_sprint_best']` |
+| Reading Mode | Must Have | 13 | Medium | Full-screen overlay, removes all chrome |
+| Reading Mode: doc view | Must Have | 13 | Low | Renders the currently selected document |
+| Reading Mode: manuscript view | Must Have | 13 | Medium | Concatenates all non-trashed docs in binder order |
+| Reading Mode: font controls | Should Have | 13 | Low | Serif / Sans-serif / Monospace |
+| Reading Mode: width controls | Should Have | 13 | Low | Normal / Narrow / Wide content column |
+| Reading Mode: font size | Should Have | 13 | Low | Small → X-Large |
+| Reading Mode: estimated read time | Should Have | 13 | Low | Calculated at 250 WPM |
+| Reading Mode: print | Should Have | 13 | Low | `window.print()` — toolbar hidden with `@media print` |
+| Smart Typography — curly quotes | Must Have | 13 | Medium | Context-aware `"→""`/`'→''`; integrates with browser undo |
+| Smart Typography — em-dash | Must Have | 13 | Low | `--` → `—` on second hyphen key press |
+| Smart Typography — ellipsis | Must Have | 13 | Low | `...` → `…` on third dot key press |
+| Smart Typography: indicator toast | Should Have | 13 | Low | Shows replacement for 1.2 s; screen-reader aria-hidden |
+| Split Editor | Must Have | 13 | Medium | Side-by-side CSS Grid in `#editor-pane.split-active` |
+| Split Editor: reference doc picker | Must Have | 13 | Low | Dropdown lists all non-trashed docs |
+| Split Editor: auto-refresh | Should Have | 13 | Low | Reference pane updates when `handleDocChange` fires |
+| Split Editor: close button | Must Have | 13 | Low | Dismiss pane without a page reload |
+
+---
+
 ## Data Model
 
 All project data is stored as a single JSON object in `localStorage` (and optionally synced to Supabase from Phase 8):
 
 ```
 Project
-  id, title, createdAt, updatedAt, settings, labels[]
+  id, title, createdAt, updatedAt, settings, labels[],
+  characters[], documents[]
 
 Document
   id, parentId, type (folder/doc/image/pdf), title, synopsis,
   content (HTML or plain text), wordCount, label, status,
   target, pov, location, keywords[], order, collapsed, inTrash,
-  snapshots[], date, duration, imageData (base64), pdfRef
+  snapshots[], date, duration, imageData (base64), pdfRef,
+  annotations[]
+
+Character (project.characters[])
+  id, name, role, age, description, appearance,
+  arcSummary, notes, createdAt
+
+Annotation (doc.annotations[])
+  id, page, x, y, w, h, color, note
 
 Settings
-  theme, font, fontSize, lineHeight, apiKey,
-  compilePre set, syncEnabled, userId
+  theme, font, fontSize, lineHeight, apiKey, compilePreset,
+  syncEnabled, userId, highContrast, editorRtl,
+  smartQuotes, smartDashes
 
 Snapshot
   id, name, content, wordCount, createdAt
