@@ -24,11 +24,12 @@ const THEME_OPTIONS = [
 ];
 
 const SECTIONS = [
-  { id: 'appearance', label: 'Appearance', icon: '◑', keywords: 'theme color colour dark light sepia oled accent binder editor inspector panel background font ui pairing' },
-  { id: 'editor',     label: 'Editor',     icon: '✎', keywords: 'font size spellcheck indent line height language typeface mono serif' },
-  { id: 'ambience',   label: 'Ambience',   icon: '🎵', keywords: 'sound ambient rain cafe noise fireplace wind volume' },
-  { id: 'backup',     label: 'Backup',     icon: '☁', keywords: 'backup save device google drive auto restore' },
-  { id: 'export',     label: 'Export',     icon: '↓', keywords: 'export settings import preferences json transfer' },
+  { id: 'appearance',   label: 'Appearance',   icon: '◑', keywords: 'theme color colour dark light sepia oled accent binder editor inspector panel background font ui pairing' },
+  { id: 'editor',       label: 'Editor',       icon: '✎', keywords: 'font size spellcheck indent line height language typeface mono serif' },
+  { id: 'ambience',     label: 'Ambience',     icon: '🎵', keywords: 'sound ambient rain cafe noise fireplace wind volume' },
+  { id: 'accessibility',label: 'Accessibility',icon: '♿', keywords: 'contrast high contrast rtl right-to-left aria keyboard screen reader wcag' },
+  { id: 'backup',       label: 'Backup',       icon: '☁', keywords: 'backup save device google drive auto restore' },
+  { id: 'export',       label: 'Export',       icon: '↓', keywords: 'export settings import preferences json transfer' },
 ];
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -246,6 +247,9 @@ function _populateModal() {
   } else if (_activeSection === 'backup') {
     body.innerHTML = _buildBackupSection(settings);
     _bindBackupEvents();
+  } else if (_activeSection === 'accessibility') {
+    body.innerHTML = _buildAccessibilitySection(settings);
+    _bindAccessibilityEvents(settings);
   } else if (_activeSection === 'export') {
     body.innerHTML = _buildExportSection(settings);
     _bindExportEvents(settings);
@@ -906,6 +910,88 @@ function _bindExportEvents(settings) {
  * Apply a custom accent hue to :root CSS variables.
  * @param {number} hue - HSL hue (0–360)
  */
+// ─── Accessibility Section ─────────────────────────────────────────────────────
+
+function _buildAccessibilitySection(settings) {
+  const hcOn  = !!settings.highContrast;
+  const rtlOn = !!settings.editorRtl;
+
+  return `
+    <h2 class="settings-section-title">Accessibility</h2>
+
+    <div class="settings-group">
+      <div class="settings-row" style="justify-content:space-between;align-items:center;flex-direction:row">
+        <div>
+          <div class="settings-label" style="font-weight:600">High-Contrast Mode</div>
+          <div class="settings-hint">Black background, white text, yellow accents — WCAG AA compliant.</div>
+        </div>
+        <label class="settings-toggle" aria-label="Toggle high-contrast mode">
+          <input type="checkbox" id="settings-hc" ${hcOn ? 'checked' : ''}>
+          <span class="settings-toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-row" style="justify-content:space-between;align-items:center;flex-direction:row">
+        <div>
+          <div class="settings-label" style="font-weight:600">Right-to-Left Editor</div>
+          <div class="settings-hint">Sets <code>dir="rtl"</code> on the editor for Arabic, Hebrew, and other RTL languages.</div>
+        </div>
+        <label class="settings-toggle" aria-label="Toggle RTL editor">
+          <input type="checkbox" id="settings-rtl" ${rtlOn ? 'checked' : ''}>
+          <span class="settings-toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-label" style="font-weight:600;margin-bottom:8px">ARIA Status Announcements</div>
+      <div class="settings-hint">
+        An invisible ARIA live region announces word count changes and save events
+        to screen readers. It is always active.
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-label" style="font-weight:600;margin-bottom:8px">Keyboard Navigation Tips</div>
+      <ul class="settings-hint" style="padding-left:1.2em;margin:0;line-height:1.8">
+        <li>Press <kbd>Ctrl+?</kbd> to open the full keyboard shortcut reference.</li>
+        <li>Press <kbd>Tab</kbd> to move between toolbar buttons; <kbd>Enter</kbd> or <kbd>Space</kbd> to activate.</li>
+        <li>All modals trap focus and close on <kbd>Escape</kbd>.</li>
+        <li>The binder tree supports arrow-key navigation.</li>
+      </ul>
+    </div>`;
+}
+
+function _bindAccessibilityEvents(settings) {
+  document.getElementById('settings-hc')?.addEventListener('change', e => {
+    _saveSetting('highContrast', e.target.checked);
+    applyHighContrast({ highContrast: e.target.checked });
+  });
+
+  document.getElementById('settings-rtl')?.addEventListener('change', e => {
+    _saveSetting('editorRtl', e.target.checked);
+    applyRTL({ editorRtl: e.target.checked });
+  });
+}
+
+/** Apply or remove high-contrast theme class from <html>. */
+export function applyHighContrast(settings) {
+  document.documentElement.classList.toggle('theme-hc', !!settings?.highContrast);
+}
+
+/** Apply or remove RTL direction on the editor. */
+export function applyRTL(settings) {
+  const editor = document.getElementById('editor');
+  if (!editor) return;
+  if (settings?.editorRtl) {
+    editor.setAttribute('dir', 'rtl');
+  } else {
+    editor.removeAttribute('dir');
+  }
+}
+
 export function applyAccentHue(hue) {
   if (hue == null) return;
   const root = document.documentElement;

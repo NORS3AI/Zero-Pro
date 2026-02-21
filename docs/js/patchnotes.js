@@ -5,6 +5,24 @@
 
 const PATCHES = [
   {
+    version: 'v1.11',
+    date: 'February 21, 2026',
+    title: 'Phase 11 — Quality of Life & Power Features',
+    changes: [
+      { type: 'feat', text: 'Writing Statistics Dashboard — daily/weekly/monthly bar chart, velocity, CSV export (Ctrl+Shift+D)' },
+      { type: 'feat', text: 'Keyboard Shortcuts reference panel — searchable, click Edit to remap any rebindable shortcut (Ctrl+?)' },
+      { type: 'feat', text: 'Global keybinding system — Ctrl+1–4 for views, Ctrl+Shift+D for stats, Ctrl+M for Markdown mode' },
+      { type: 'feat', text: 'Webhooks & Automation — configure outbound webhooks for on_save, on_target, on_snapshot, on_export' },
+      { type: 'feat', text: 'Test Webhook button — fire a test POST to verify your endpoint' },
+      { type: 'feat', text: 'Batch Rename — rename all scenes in a folder using a pattern like "Chapter {n} — {title}"' },
+      { type: 'feat', text: 'Prompt Library — save and reuse Claude AI prompt templates' },
+      { type: 'feat', text: 'Accessibility: High-Contrast Mode toggle in Settings → Accessibility (WCAG AA)' },
+      { type: 'feat', text: 'Accessibility: Right-to-Left editor toggle for Arabic, Hebrew, and other RTL scripts' },
+      { type: 'feat', text: 'Accessibility: ARIA live region announces view switches and saves to screen readers' },
+      { type: 'feat', text: 'Settings → Accessibility section with keyboard navigation guide' },
+    ],
+  },
+  {
     version: 'v1.10',
     date: 'February 21, 2026',
     title: 'Phase 10 — Advanced Writing Tools',

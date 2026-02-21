@@ -13,7 +13,7 @@ import { initInspector, updateInspector } from './inspector.js';
 import { initAI, toggleAIPanel } from './ai.js';
 import { initFindReplace, openFindReplace, openProjectSearch } from './find-replace.js';
 import { initCommandPalette } from './command-palette.js';
-import { initSettings, openSettings, applyEditorSettings, applyAccentHue, applyPanelColors, applyUiFont } from './settings.js';
+import { initSettings, openSettings, applyEditorSettings, applyAccentHue, applyPanelColors, applyUiFont, applyHighContrast, applyRTL } from './settings.js';
 import { openCompileWizard } from './compile.js';
 import { enableMarkdownMode, disableMarkdownMode, isMarkdownMode, getMarkdownContent, htmlToMarkdown, markdownToHtml } from './markdown-mode.js';
 import { openPatchNotes } from './patchnotes.js';
@@ -35,6 +35,10 @@ import { initTouch } from './touch.js';
 import { maybeShowWizard } from './wizard.js';
 import { initToolbarLoop } from './toolbar-loop.js';
 import { isBinderPinned } from './binder.js';
+import { openStatsPanel } from './stats.js';
+import { registerKeybindings, openShortcutsPanel } from './keybindings.js';
+import { initWebhooks, openWebhooksPanel, fireWebhook, openBatchRename } from './webhooks.js';
+import { openPromptLibrary } from './prompt-library.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -60,6 +64,8 @@ function init() {
   if (state.project.settings.accentHue != null) applyAccentHue(state.project.settings.accentHue);
   applyPanelColors(state.project.settings);
   if (state.project.settings.uiFont) applyUiFont(state.project.settings.uiFont);
+  applyHighContrast(state.project.settings);
+  applyRTL(state.project.settings);
 
   // Init all modules
   initBinder({
@@ -137,6 +143,11 @@ function init() {
       { icon: '🔥', label: 'Writing Streak',       hint: '',          run: () => openStreakCalendar() },
       { icon: '📅', label: 'Timeline View',        hint: '',          run: () => switchView('timeline') },
       { icon: '📂', label: 'Snapshot Browser',     hint: '',          run: () => openSnapshotBrowser() },
+      { icon: '📊', label: 'Writing Statistics',   hint: 'Ctrl+⇧D',  run: () => openStatsPanel() },
+      { icon: '⌨️', label: 'Keyboard Shortcuts',   hint: 'Ctrl+?',   run: () => openShortcutsPanel() },
+      { icon: '🔗', label: 'Webhooks & Automation', hint: '',         run: () => openWebhooksPanel() },
+      { icon: '🔤', label: 'Batch Rename Scenes',  hint: '',          run: () => { const doc = currentDoc(); openBatchRename(doc?.type === 'folder' ? doc.id : (doc?.parentId ?? null)); } },
+      { icon: '📋', label: 'Prompt Library',       hint: '',          run: () => openPromptLibrary(() => {}) },
     ],
   });
 
@@ -187,6 +198,27 @@ function init() {
       const doc = getDocument(state.project, docId);
       if (doc) loadDocument(state.project, doc);
     },
+  });
+
+  // ── Phase 11 ─────────────────────────────────────────────────────────────────
+  initWebhooks({
+    getProject:      () => state.project,
+    onProjectChange: handleProjectChange,
+  });
+
+  // Register global keybindings (Ctrl+? opens shortcuts panel, Ctrl+Shift+D opens stats, etc.)
+  registerKeybindings({
+    'focus':       () => document.getElementById('btn-focus')?.click(),
+    'md-mode':     () => document.getElementById('btn-md-mode')?.click(),
+    'snapshot':    () => takeSnapshot(),
+    'view-editor':    () => switchView('editor'),
+    'view-corkboard': () => switchView('corkboard'),
+    'view-outline':   () => switchView('outline'),
+    'view-timeline':  () => switchView('timeline'),
+    'compile':     () => openCompileWizard(state.project),
+    'ai-panel':    () => toggleAIPanel(),
+    'stats':       () => openStatsPanel(),
+    'shortcuts':   () => openShortcutsPanel(),
   });
 
   initPublish({
@@ -265,6 +297,8 @@ function switchView(view) {
   document.querySelectorAll('.view-pane').forEach(pane => {
     pane.classList.toggle('active', pane.id === `${view}-pane`);
   });
+
+  _announce(`Switched to ${view} view`);
 
   // Render the newly-visible view
   const doc = state.currentDocId ? getDocument(state.project, state.currentDocId) : null;
@@ -387,6 +421,8 @@ function _scheduleSyncPush() {
     if (isSyncEnabled()) {
       await pushProject(JSON.stringify(state.project));
     }
+    // Fire on_save webhook (best-effort, silently ignored if no URL configured)
+    fireWebhook('on_save', { wordCount: state.project?.documents?.reduce((s, d) => s + (d.wordCount || 0), 0) });
   }, 5000);
 }
 
@@ -569,9 +605,6 @@ function bindToolbar() {
     }
   });
 
-  // Take snapshot
-  btn('btn-snapshot', () => takeSnapshot());
-
   // Split corkboard
   btn('btn-cork-split', () => toggleSplitCorkboard());
 
@@ -672,6 +705,30 @@ function bindToolbar() {
   // Snapshot Browser
   btn('btn-snapshot-browser', () => openSnapshotBrowser());
 
+  // ── Phase 11 ─────────────────────────────────────────────────────────────────
+
+  // Writing Statistics
+  btn('btn-stats', () => openStatsPanel());
+
+  // Keyboard shortcuts reference
+  btn('btn-shortcuts', () => openShortcutsPanel());
+
+  // Webhooks / automation panel
+  btn('btn-webhooks', () => openWebhooksPanel());
+
+  // Prompt library (opened from AI panel "📋" button wired in ai.js, or command palette)
+  btn('btn-prompt-library', () => openPromptLibrary(text => {
+    // Insert chosen prompt text into AI panel textarea
+    const ta = document.getElementById('ai-prompt');
+    if (ta) { ta.value = text; ta.focus(); }
+  }));
+
+  // Snapshot with webhook fire
+  btn('btn-snapshot', () => {
+    takeSnapshot();
+    fireWebhook('on_snapshot', { docTitle: currentDoc()?.title ?? '' });
+  });
+
   // Double-click project title to rename
   document.getElementById('project-title')?.addEventListener('dblclick', () => {
     showPrompt('Rename Project', 'Project title', state.project.title, newTitle => {
@@ -689,6 +746,7 @@ function bindToolbar() {
       saveCurrentContent();
       saveProject(state.project);
       showToast('Saved');
+      _announce('Project saved');
       // Push to cloud if sync is enabled
       if (isSyncEnabled()) {
         pushProject(JSON.stringify(state.project));
@@ -738,6 +796,14 @@ window.matchMedia('(max-width: 1023px)').addEventListener('change', e => {
 
 function currentDoc() {
   return state.currentDocId ? getDocument(state.project, state.currentDocId) : null;
+}
+
+/** Announce a message to screen readers via the ARIA live region. */
+function _announce(msg) {
+  const el = document.getElementById('aria-status');
+  if (!el) return;
+  el.textContent = '';
+  requestAnimationFrame(() => { el.textContent = msg; });
 }
 
 function updateProjectTitle() {

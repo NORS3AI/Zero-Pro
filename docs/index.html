@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="css/phase8.css">
   <link rel="stylesheet" href="css/phase9.css">
   <link rel="stylesheet" href="css/phase10.css">
+  <link rel="stylesheet" href="css/phase11.css">
   <link rel="stylesheet" href="css/wizard.css">
   <link rel="stylesheet" href="css/responsive.css">
 
@@ -167,7 +168,7 @@
     </button>
 
     <!-- Patch Notes — between theme and settings -->
-    <button class="btn-changelog" id="btn-changelog" title="View Patch Notes" aria-label="View patch notes">v1.10</button>
+    <button class="btn-changelog" id="btn-changelog" title="View Patch Notes" aria-label="View patch notes">v1.11</button>
 
     <!-- Settings -->
     <button class="btn btn-icon" id="btn-settings" title="Settings (Ctrl+,)" aria-label="Open settings">
@@ -463,5 +464,9 @@
     });
   }
 </script>
+
+<!-- ARIA live region — screen-reader announcements for dynamic updates (Phase 11) -->
+<div id="aria-status" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
 </body>
 </html>
