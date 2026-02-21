@@ -441,6 +441,12 @@ function handleSelectDocument(docId) {
     return; // switchView → _renderView handles the rest
   }
 
+  // Clicking any binder item while in timeline → exit to corkboard (folders) or stay put
+  if (state.currentView === 'timeline') {
+    switchView(doc?.type === 'folder' ? 'corkboard' : 'corkboard');
+    return;
+  }
+
   _renderView(state.currentView, doc);
   _syncStatusBar(doc);
 }

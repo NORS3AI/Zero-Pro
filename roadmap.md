@@ -17,6 +17,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | Phase 11 | Weeks 35–38 | Quality of life & power features | **Done** |
 | Phase 12 | Weeks 39–42 | Story planning & smart templates | **Done** |
 | Phase 13 | Weeks 43–46 | Focus, sessions & smart editing | **Done** |
+| Phase 14 | Weeks 47–50 | Feature onboarding & contextual help system | Planned |
 
 ---
 
@@ -463,6 +464,36 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 - [x] Toggle via editor toolbar "Split" button (⬛); button active state reflects pane visibility
 - [x] Pane auto-refreshes when `handleDocChange` fires (e.g., on word count update)
 - [x] Close button in reference pane header dismisses split without a page reload
+
+---
+
+## Phase 14 — Feature Onboarding & Contextual Help _(Weeks 47–50)_
+
+**Goal:** Make every non-obvious feature self-explanatory inside the app, so that new writers can discover and use the Timeline, Markdown Mode, Sprint Timer, Split Editor, and other advanced tools without needing external documentation.
+
+### 14.1 Empty-State Guidance
+- [ ] Timeline pane: show an illustrated empty state with a one-sentence description and a "How does this work?" link when no dated scenes exist
+- [ ] Sprint HUD: first-run tip card explaining presets and word tracking
+- [ ] Reading Mode: brief overlay hint on first open explaining doc vs manuscript toggle
+- [ ] Split Editor: inline hint when the pane first opens explaining how to use it for reference
+
+### 14.2 "What's This?" Tooltip Overlays
+- [ ] Each toolbar button gets a popover tooltip (triggered by hover or ?) with: what it does, when to use it, keyboard shortcut
+- [ ] Formatting toolbar: explain Markdown Mode button (`Markdown` / `#`), Snapshot, Format Paint, Split Editor
+- [ ] Main toolbar: explain Sprint Timer, Reading Mode, Timeline, Snapshot Browser
+- [ ] Tooltips are dismissible and remember dismissal state in localStorage
+
+### 14.3 Feature Tour / Onboarding Wizard Extension
+- [ ] Extend the Phase 9 onboarding wizard with Phase 10–13 feature highlights
+- [ ] One-slide summaries for: Timeline (plan scene order), Markdown Mode (plain text editing), Sprint Timer (timed writing sessions), Split Editor (reference while writing)
+- [ ] "Explore later" button that surfaces the relevant panel immediately
+- [ ] Skip / replay tour accessible from Settings → Help
+
+### 14.4 In-App Help Panel
+- [ ] `?` or Help button opens a searchable help panel with short articles
+- [ ] Articles: Binder organisation, Views (editor/corkboard/outline/timeline), Markdown Mode, Snapshots & Version History, Cloud Sync setup, AI Assistant setup, Keyboard Shortcuts
+- [ ] Each article links to the relevant toolbar button or opens the relevant panel
+- [ ] Content stored as a JS data structure (no server needed)
 
 ---
 

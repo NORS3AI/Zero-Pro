@@ -217,6 +217,7 @@ Claude Code with Sonnet 4.6 is the primary development tool. Here is how to get 
 | 16 | Text-to-speech — Web Speech API read-back for proofreading |
 | 17 | Writing Prompts — built-in prompt generator for writer's block |
 | 18 | Plugin API — third-party binder item types and export format extensions |
+| 19 | Feature Onboarding & Help — tooltip overlays, empty-state guidance, and a "What's this?" help system for complex features (Timeline, Markdown Mode, Sprint Timer, Split Editor, etc.) |
 
 ---
 

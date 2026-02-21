@@ -170,6 +170,7 @@ See [features.md](features.md) for the complete feature specification with prior
 | **Phase 11** | Weeks 35–38 | Statistics dashboard, webhooks, accessibility, prompt library | **Done ✅** |
 | **Phase 12** | Weeks 39–42 | Character database, wiki links, plot templates, project wizard | **Done ✅** |
 | **Phase 13** | Weeks 43–46 | Sprint timer, reading mode, smart typography, split editor | **Done ✅** |
+| **Phase 14** | Weeks 47–50 | Feature onboarding, contextual tooltips, in-app help panel | Planned |
 
 See [roadmap.md](roadmap.md) for full milestone details and implementation checklists.
 
