@@ -26,7 +26,7 @@ const TEMPLATES = [
     icon: '⚔️',
     desc: "Campbell's monomyth: 12 stages from Ordinary World to Return with Elixir.",
     stages: [
-      { name: '1. Ordinary World',     desc: 'The hero's normal life before the adventure.' },
+      { name: '1. Ordinary World',     desc: "The hero's normal life before the adventure." },
       { name: '2. Call to Adventure',  desc: 'A problem or challenge presents itself.' },
       { name: '3. Refusal of Call',    desc: 'The hero hesitates or refuses.' },
       { name: '4. Meeting the Mentor', desc: 'A wise figure offers guidance.' },
@@ -48,7 +48,7 @@ const TEMPLATES = [
     stages: [
       { name: '1. Opening Image',      desc: 'A visual that sets the tone and theme.' },
       { name: '2. Theme Stated',       desc: 'Someone states what the story is about.' },
-      { name: '3. Set-Up',             desc: 'Introduce hero's world, flaws, and needs.' },
+      { name: '3. Set-Up',             desc: "Introduce hero's world, flaws, and needs." },
       { name: '4. Catalyst',           desc: 'The inciting incident (pp. 12).' },
       { name: '5. Debate',             desc: 'Should the hero take the leap?' },
       { name: '6. Break into Two',     desc: 'Hero chooses to enter a new world (pp. 25).' },
