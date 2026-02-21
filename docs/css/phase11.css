@@ -1,0 +1,521 @@
+/* phase11.css — Phase 11: Statistics, Keybindings, Webhooks, Prompt Library, Accessibility */
+
+/* ─── Writing Statistics Dashboard ──────────────────────────────────────────── */
+
+.stats-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+.stats-overlay.hidden { display: none; }
+
+.stats-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 10px);
+  width: min(860px, 94vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+}
+
+.stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.stats-header h3 { margin: 0; font-size: 1.05rem; }
+.stats-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--fg-muted);
+  padding: 2px 6px;
+}
+.stats-close:hover { color: var(--fg); }
+
+.stats-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* summary stat pills */
+.stats-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.stats-pill {
+  flex: 1 1 120px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  text-align: center;
+}
+.stats-pill-num {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.stats-pill-label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
+/* chart tabs */
+.stats-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+.stats-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--fg-muted);
+  margin-bottom: -1px;
+}
+.stats-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.stats-tab:hover:not(.active) { color: var(--fg); }
+
+/* bar chart */
+.stats-chart-wrap {
+  overflow-x: auto;
+}
+.stats-chart-svg {
+  display: block;
+  width: 100%;
+  min-width: 400px;
+}
+
+.stats-bar { fill: var(--accent); opacity: 0.8; rx: 3; transition: opacity 0.15s; }
+.stats-bar:hover { opacity: 1; }
+.stats-axis-label { fill: var(--fg-muted); font-size: 10px; font-family: var(--font-ui, system-ui); }
+.stats-grid-line { stroke: var(--border); stroke-width: 1; }
+.stats-tooltip {
+  position: absolute;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 1300;
+}
+
+.stats-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.stats-csv-btn {
+  font-size: 0.82rem;
+}
+
+/* ─── Keyboard Shortcuts Panel ──────────────────────────────────────────────── */
+
+.kb-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+.kb-overlay.hidden { display: none; }
+
+.kb-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 10px);
+  width: min(700px, 92vw);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+}
+
+.kb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.kb-header h3 { margin: 0; font-size: 1.05rem; }
+.kb-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--fg-muted);
+  padding: 2px 6px;
+}
+.kb-close:hover { color: var(--fg); }
+
+.kb-search-wrap {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.kb-search {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: var(--fg);
+}
+.kb-search:focus { outline: 2px solid var(--accent); }
+
+.kb-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 20px 20px;
+}
+
+.kb-group { margin-bottom: 20px; }
+.kb-group-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.kb-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 6px;
+  gap: 12px;
+}
+.kb-row:hover { background: var(--bg); }
+.kb-row.hidden-row { display: none; }
+.kb-action { flex: 1; font-size: 0.85rem; color: var(--fg); }
+.kb-keys {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+kbd {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--fg);
+  white-space: nowrap;
+}
+.kb-edit-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  color: var(--fg-muted);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.kb-row:hover .kb-edit-btn { opacity: 1; }
+.kb-edit-btn:hover { color: var(--accent); border-color: var(--accent); }
+.kb-edit-btn.listening {
+  color: var(--accent);
+  border-color: var(--accent);
+  opacity: 1;
+  animation: kb-pulse 0.6s infinite alternate;
+}
+@keyframes kb-pulse { to { opacity: 0.5; } }
+
+.kb-reset-btn {
+  font-size: 0.78rem;
+  color: var(--fg-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.kb-reset-btn:hover { color: var(--fg); }
+
+.kb-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ─── Webhooks / Automation Panel ──────────────────────────────────────────── */
+
+.wh-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+.wh-overlay.hidden { display: none; }
+
+.wh-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 10px);
+  width: min(640px, 92vw);
+  max-height: 84vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+}
+.wh-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.wh-header h3 { margin: 0; font-size: 1.05rem; }
+.wh-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--fg-muted);
+  padding: 2px 6px;
+}
+.wh-close:hover { color: var(--fg); }
+
+.wh-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+
+.wh-section-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-muted);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.wh-event-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.wh-event-label { font-size: 0.85rem; font-weight: 600; }
+.wh-event-desc { font-size: 0.78rem; color: var(--fg-muted); }
+.wh-event-input-row { display: flex; gap: 8px; align-items: center; }
+.wh-url-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  color: var(--fg);
+}
+.wh-url-input:focus { outline: 2px solid var(--accent); }
+.wh-test-btn { font-size: 0.78rem; }
+
+.wh-batch-section { border-top: 1px solid var(--border); padding-top: 16px; }
+.wh-batch-desc { font-size: 0.82rem; color: var(--fg-muted); margin-bottom: 10px; }
+.wh-batch-row { display: flex; gap: 8px; }
+.wh-pattern-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: var(--fg);
+}
+.wh-pattern-hint { font-size: 0.75rem; color: var(--fg-muted); margin-top: 4px; }
+
+.wh-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ─── Prompt Library ─────────────────────────────────────────────────────────── */
+
+.pl-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+.pl-overlay.hidden { display: none; }
+
+.pl-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 10px);
+  width: min(600px, 92vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+}
+.pl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.pl-header h3 { margin: 0; font-size: 1.05rem; }
+.pl-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--fg-muted);
+  padding: 2px 6px;
+}
+.pl-close:hover { color: var(--fg); }
+
+.pl-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+.pl-empty { color: var(--fg-muted); font-size: 0.85rem; text-align: center; padding: 24px 0; }
+
+.pl-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.pl-item:hover { border-color: var(--accent); }
+.pl-item-name { flex: 1; font-size: 0.88rem; font-weight: 500; }
+.pl-item-preview { font-size: 0.76rem; color: var(--fg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.pl-item-use { font-size: 0.76rem; }
+.pl-item-del {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--fg-muted);
+  padding: 2px 4px;
+}
+.pl-item-del:hover { color: #e05; }
+
+.pl-save-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.pl-save-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: var(--fg);
+}
+.pl-save-input:focus { outline: 2px solid var(--accent); }
+
+/* ─── High-Contrast Mode ─────────────────────────────────────────────────────── */
+
+.theme-hc {
+  --bg:        #000000;
+  --surface:   #111111;
+  --border:    #ffffff;
+  --fg:        #ffffff;
+  --fg-muted:  #cccccc;
+  --accent:    #ffff00;
+}
+
+/* ─── RTL Editor support ─────────────────────────────────────────────────────── */
+
+#editor[dir="rtl"] {
+  text-align: right;
+  direction: rtl;
+}
+
+/* ─── ARIA Live Region (status announcer) ────────────────────────────────────── */
+
+#aria-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+
+/* ─── Batch-rename preview list ──────────────────────────────────────────────── */
+
+.batch-preview {
+  max-height: 160px;
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+.batch-preview-row { color: var(--fg-muted); }
+.batch-preview-row span { color: var(--fg); font-weight: 500; }

@@ -1,0 +1,513 @@
+/* phase9.css — UX Modernisation: Compile Wizard, Markdown Mode, Settings Search (Phase 9) */
+
+/* ─── Per-panel background colour overrides ──────────────────────────────────── */
+/* JS sets --binder-bg, --editor-bg, --inspector-bg via applyPanelColors()       */
+
+#binder    { background: var(--binder-bg,    var(--bg)); }
+#editor-pane { background: var(--editor-bg,  var(--bg)); }
+#inspector { background: var(--inspector-bg, var(--bg)); }
+
+/* ─── Compile Wizard ─────────────────────────────────────────────────────────── */
+
+.compile-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.compile-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: min(900px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+
+.compile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.compile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.compile-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.compile-steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.compile-step {
+  padding: 3px 10px;
+  border-radius: 20px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.compile-step.active {
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+}
+
+.compile-step.done {
+  color: var(--green);
+}
+
+.compile-step-sep {
+  color: var(--border);
+}
+
+.compile-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.compile-close:hover { background: var(--surface-alt); color: var(--text); }
+
+.compile-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.compile-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.compile-download-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* Step content */
+.compile-step-content {
+  padding: 24px 28px;
+}
+
+.compile-step-heading {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+/* Step 1 — preset grid */
+.compile-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.compile-preset-card {
+  background: var(--surface-alt);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.compile-preset-card:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.compile-preset-card.selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.compile-preset-icon { font-size: 28px; }
+
+.compile-preset-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.compile-preset-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Step 2 — configure */
+.compile-step-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.compile-col { display: flex; flex-direction: column; }
+
+.compile-doc-list {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.compile-doc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.compile-doc-row:hover { background: var(--surface); }
+
+.compile-doc-all {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+  padding-bottom: 10px;
+}
+
+.compile-doc-label { flex: 1; }
+
+.compile-doc-folder {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.compile-doc-wc {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.compile-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.compile-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.compile-option-row .settings-select,
+.compile-option-row .settings-input {
+  flex: 1;
+  max-width: 200px;
+}
+
+.compile-save-preset {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.compile-save-preset .settings-input { flex: 1; }
+
+/* Step 3 — preview */
+.compile-step-3 {
+  padding: 0;
+  height: 520px;
+}
+
+.compile-preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+
+/* ─── settings-input (reusable in compile) ──────────────────────────────────── */
+
+.settings-input {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 6px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.settings-input:focus { border-color: var(--accent); }
+
+/* ─── Settings search bar ───────────────────────────────────────────────────── */
+
+.settings-search-wrap {
+  padding: 10px 12px 6px;
+}
+
+.settings-search-input {
+  width: 100%;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.settings-search-input:focus { border-color: var(--accent); }
+
+.settings-nav-item.hidden { display: none; }
+
+/* ─── Per-panel colour pickers ───────────────────────────────────────────────── */
+
+.panel-color-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.panel-color-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.panel-color-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.panel-color-swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+}
+
+.panel-color-swatch input[type="color"] {
+  position: absolute;
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.panel-color-preview {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.panel-color-reset {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.panel-color-reset:hover { color: var(--text); }
+
+/* ─── Font pairing ───────────────────────────────────────────────────────────── */
+
+.font-pair-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.font-pair-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.font-pair-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ─── Markdown split pane ───────────────────────────────────────────────────── */
+
+.md-split-pane {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  overflow: hidden;
+}
+
+.md-source-col,
+.md-preview-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.md-col-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 6px 14px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.md-source-textarea {
+  flex: 1;
+  resize: none;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.7;
+  padding: 20px 24px;
+  border: none;
+  outline: none;
+  overflow-y: auto;
+}
+
+.md-divider {
+  width: 1px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.md-preview-pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 28px;
+  font-family: var(--editor-font);
+  font-size: var(--editor-size);
+  line-height: var(--editor-lh);
+  color: var(--text);
+  background: var(--editor-bg, var(--bg));
+}
+
+.md-preview-pane h1, .md-preview-pane h2, .md-preview-pane h3 {
+  color: var(--text);
+  margin: 1em 0 0.4em;
+}
+
+.md-preview-pane p { margin: 0 0 0.8em; }
+
+.md-preview-pane code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--surface-alt);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.md-preview-pane pre {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 0 0 1em;
+}
+
+.md-preview-pane blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 0 0 1em;
+  padding: 4px 16px;
+  color: var(--text-muted);
+}
+
+.md-preview-pane hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5em 0;
+}
+
+/* MD mode toggle button — active state */
+.fmt-btn#btn-md-mode.md-active {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ─── Compile toolbar button ─────────────────────────────────────────────────── */
+
+#btn-compile {
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .compile-step-2 { grid-template-columns: 1fr; }
+  .compile-preset-grid { grid-template-columns: 1fr 1fr; }
+  .compile-step-3 { height: 340px; }
+  .md-split-pane { flex-direction: column; }
+  .md-divider { width: 100%; height: 1px; }
+}

@@ -24,11 +24,12 @@ const THEME_OPTIONS = [
 ];
 
 const SECTIONS = [
-  { id: 'appearance', label: 'Appearance', icon: '◑' },
-  { id: 'editor',     label: 'Editor',     icon: '✎' },
-  { id: 'ambience',   label: 'Ambience',   icon: '🎵' },
-  { id: 'backup',     label: 'Backup',     icon: '☁' },
-  { id: 'export',     label: 'Export',     icon: '↓' },
+  { id: 'appearance',   label: 'Appearance',   icon: '◑', keywords: 'theme color colour dark light sepia oled accent binder editor inspector panel background font ui pairing' },
+  { id: 'editor',       label: 'Editor',       icon: '✎', keywords: 'font size spellcheck indent line height language typeface mono serif' },
+  { id: 'ambience',     label: 'Ambience',     icon: '🎵', keywords: 'sound ambient rain cafe noise fireplace wind volume' },
+  { id: 'accessibility',label: 'Accessibility',icon: '♿', keywords: 'contrast high contrast rtl right-to-left aria keyboard screen reader wcag' },
+  { id: 'backup',       label: 'Backup',       icon: '☁', keywords: 'backup save device google drive auto restore' },
+  { id: 'export',       label: 'Export',       icon: '↓', keywords: 'export settings import preferences json transfer' },
 ];
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -100,6 +101,38 @@ export function applyEditorSettings(settings) {
   }
 }
 
+/**
+ * Apply per-panel background colour overrides to CSS variables.
+ * @param {Object} settings
+ */
+export function applyPanelColors(settings) {
+  const root = document.documentElement;
+  const panels = [
+    { key: 'binderBg',    prop: '--binder-bg'    },
+    { key: 'editorBg',    prop: '--editor-bg'    },
+    { key: 'inspectorBg', prop: '--inspector-bg' },
+  ];
+  panels.forEach(({ key, prop }) => {
+    if (settings?.[key]) root.style.setProperty(prop, settings[key]);
+    else                 root.style.removeProperty(prop);
+  });
+}
+
+/**
+ * Apply the UI chrome font family.
+ * @param {'system'|'georgia'|'mono'} uiFont
+ */
+export function applyUiFont(uiFont) {
+  const root = document.documentElement;
+  if (uiFont === 'georgia') {
+    root.style.setProperty('--font-ui', "Georgia, 'Times New Roman', serif");
+  } else if (uiFont === 'mono') {
+    root.style.setProperty('--font-ui', "'Courier New', Courier, monospace");
+  } else {
+    root.style.removeProperty('--font-ui'); // revert to CSS default
+  }
+}
+
 // ─── Modal Construction ───────────────────────────────────────────────────────
 
 function _buildModal() {
@@ -123,8 +156,13 @@ function _buildModal() {
       <!-- Sidebar nav -->
       <nav class="settings-sidebar" aria-label="Settings sections">
         <div class="settings-sidebar-title">Settings</div>
+        <div class="settings-search-wrap">
+          <input type="search" class="settings-search-input" id="settings-search"
+                 placeholder="Search settings…" aria-label="Search settings" autocomplete="off">
+        </div>
         ${SECTIONS.map(s => `
-          <button class="settings-nav-item" data-section="${s.id}" aria-pressed="false">
+          <button class="settings-nav-item" data-section="${s.id}"
+                  data-keywords="${s.keywords || ''}" aria-pressed="false">
             <span class="settings-nav-icon" aria-hidden="true">${s.icon}</span>
             <span class="settings-nav-label">${s.label}</span>
           </button>
@@ -162,6 +200,17 @@ function _buildModal() {
     _activeSection = item.dataset.section;
     _populateModal();
   });
+
+  // Settings search — filter nav items by keyword
+  wrap.querySelector('#settings-search')?.addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+    wrap.querySelectorAll('.settings-nav-item').forEach(item => {
+      const label    = (item.querySelector('.settings-nav-label')?.textContent ?? '').toLowerCase();
+      const keywords = (item.dataset.keywords ?? '').toLowerCase();
+      const visible  = !q || label.includes(q) || keywords.includes(q);
+      item.classList.toggle('hidden', !visible);
+    });
+  });
 }
 
 function _close() {
@@ -198,6 +247,9 @@ function _populateModal() {
   } else if (_activeSection === 'backup') {
     body.innerHTML = _buildBackupSection(settings);
     _bindBackupEvents();
+  } else if (_activeSection === 'accessibility') {
+    body.innerHTML = _buildAccessibilitySection(settings);
+    _bindAccessibilityEvents(settings);
   } else if (_activeSection === 'export') {
     body.innerHTML = _buildExportSection(settings);
     _bindExportEvents(settings);
@@ -237,6 +289,50 @@ function _buildAppearanceSection(settings) {
         <input type="range" id="settings-accent-hue" class="settings-range accent-range"
                min="0" max="360" step="1" value="${accentHue}">
       </div>
+
+      <div class="settings-field">
+        <label class="settings-label">Panel Background Colours</label>
+        <p class="settings-field-hint">Override the background for each panel independently. Leave blank to follow the theme.</p>
+        <div class="panel-color-grid">
+          ${[
+            { key: 'binderBg',    label: 'Binder',    id: 'settings-binder-bg'    },
+            { key: 'editorBg',    label: 'Editor',    id: 'settings-editor-bg'    },
+            { key: 'inspectorBg', label: 'Inspector', id: 'settings-inspector-bg' },
+          ].map(p => `
+            <div class="panel-color-item">
+              <span class="panel-color-label">${p.label}</span>
+              <div class="panel-color-swatch" title="Click to pick colour">
+                <div class="panel-color-preview" id="${p.id}-preview"
+                     style="background:${settings[p.key] || 'var(--bg)'}"></div>
+                <input type="color" id="${p.id}"
+                       value="${settings[p.key] || '#1a1a1c'}"
+                       aria-label="${p.label} background colour">
+              </div>
+              <button class="panel-color-reset" data-panel-key="${p.key}">Reset</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="settings-field">
+        <label class="settings-label">Font Pairing</label>
+        <p class="settings-field-hint">Choose separate fonts for the UI chrome and the editor body text.</p>
+        <div class="font-pair-grid">
+          <div class="font-pair-item">
+            <span class="font-pair-label">UI Font</span>
+            <select id="settings-ui-font" class="settings-select">
+              <option value="system" ${(settings.uiFont ?? 'system') === 'system'  ? 'selected' : ''}>System default</option>
+              <option value="georgia" ${settings.uiFont === 'georgia'  ? 'selected' : ''}>Georgia (serif)</option>
+              <option value="mono"    ${settings.uiFont === 'mono'     ? 'selected' : ''}>Courier (mono)</option>
+            </select>
+          </div>
+          <div class="font-pair-item">
+            <span class="font-pair-label">Editor Font</span>
+            <span class="settings-sublabel" style="font-size:11px;color:var(--text-muted)">Set in the Editor tab</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   `;
 }
@@ -262,6 +358,40 @@ function _bindAppearanceEvents(settings) {
     applyAccentHue(hue);
     if (preview) preview.style.background = `hsl(${hue},55%,60%)`;
     _saveSetting('accentHue', hue);
+  });
+
+  // Per-panel background colour pickers
+  [
+    { key: 'binderBg',    id: 'settings-binder-bg'    },
+    { key: 'editorBg',    id: 'settings-editor-bg'    },
+    { key: 'inspectorBg', id: 'settings-inspector-bg' },
+  ].forEach(({ key, id }) => {
+    document.getElementById(id)?.addEventListener('input', e => {
+      const color = e.target.value;
+      const preview = document.getElementById(`${id}-preview`);
+      if (preview) preview.style.background = color;
+      _saveSetting(key, color);
+      applyPanelColors(_project?.settings ?? {});
+    });
+  });
+
+  // Per-panel reset buttons
+  _modal?.querySelectorAll('.panel-color-reset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.panelKey;
+      if (!key) return;
+      _saveSetting(key, null);
+      applyPanelColors(_project?.settings ?? {});
+      // Re-render to refresh the colour inputs
+      _populateModal();
+    });
+  });
+
+  // UI Font pairing selector
+  document.getElementById('settings-ui-font')?.addEventListener('change', e => {
+    const val = e.target.value;
+    _saveSetting('uiFont', val);
+    applyUiFont(val);
   });
 }
 
@@ -780,6 +910,88 @@ function _bindExportEvents(settings) {
  * Apply a custom accent hue to :root CSS variables.
  * @param {number} hue - HSL hue (0–360)
  */
+// ─── Accessibility Section ─────────────────────────────────────────────────────
+
+function _buildAccessibilitySection(settings) {
+  const hcOn  = !!settings.highContrast;
+  const rtlOn = !!settings.editorRtl;
+
+  return `
+    <h2 class="settings-section-title">Accessibility</h2>
+
+    <div class="settings-group">
+      <div class="settings-row" style="justify-content:space-between;align-items:center;flex-direction:row">
+        <div>
+          <div class="settings-label" style="font-weight:600">High-Contrast Mode</div>
+          <div class="settings-hint">Black background, white text, yellow accents — WCAG AA compliant.</div>
+        </div>
+        <label class="settings-toggle" aria-label="Toggle high-contrast mode">
+          <input type="checkbox" id="settings-hc" ${hcOn ? 'checked' : ''}>
+          <span class="settings-toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-row" style="justify-content:space-between;align-items:center;flex-direction:row">
+        <div>
+          <div class="settings-label" style="font-weight:600">Right-to-Left Editor</div>
+          <div class="settings-hint">Sets <code>dir="rtl"</code> on the editor for Arabic, Hebrew, and other RTL languages.</div>
+        </div>
+        <label class="settings-toggle" aria-label="Toggle RTL editor">
+          <input type="checkbox" id="settings-rtl" ${rtlOn ? 'checked' : ''}>
+          <span class="settings-toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-label" style="font-weight:600;margin-bottom:8px">ARIA Status Announcements</div>
+      <div class="settings-hint">
+        An invisible ARIA live region announces word count changes and save events
+        to screen readers. It is always active.
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-label" style="font-weight:600;margin-bottom:8px">Keyboard Navigation Tips</div>
+      <ul class="settings-hint" style="padding-left:1.2em;margin:0;line-height:1.8">
+        <li>Press <kbd>Ctrl+?</kbd> to open the full keyboard shortcut reference.</li>
+        <li>Press <kbd>Tab</kbd> to move between toolbar buttons; <kbd>Enter</kbd> or <kbd>Space</kbd> to activate.</li>
+        <li>All modals trap focus and close on <kbd>Escape</kbd>.</li>
+        <li>The binder tree supports arrow-key navigation.</li>
+      </ul>
+    </div>`;
+}
+
+function _bindAccessibilityEvents(settings) {
+  document.getElementById('settings-hc')?.addEventListener('change', e => {
+    _saveSetting('highContrast', e.target.checked);
+    applyHighContrast({ highContrast: e.target.checked });
+  });
+
+  document.getElementById('settings-rtl')?.addEventListener('change', e => {
+    _saveSetting('editorRtl', e.target.checked);
+    applyRTL({ editorRtl: e.target.checked });
+  });
+}
+
+/** Apply or remove high-contrast theme class from <html>. */
+export function applyHighContrast(settings) {
+  document.documentElement.classList.toggle('theme-hc', !!settings?.highContrast);
+}
+
+/** Apply or remove RTL direction on the editor. */
+export function applyRTL(settings) {
+  const editor = document.getElementById('editor');
+  if (!editor) return;
+  if (settings?.editorRtl) {
+    editor.setAttribute('dir', 'rtl');
+  } else {
+    editor.removeAttribute('dir');
+  }
+}
+
 export function applyAccentHue(hue) {
   if (hue == null) return;
   const root = document.documentElement;

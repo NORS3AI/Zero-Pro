@@ -12,9 +12,11 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | Phase 6 | Weeks 18–19 | Image import & media support | **Done** |
 | Phase 7 | Weeks 20–22 | Nice-to-haves & UI polish | **Done** |
 | Phase 8 | Weeks 23–26 | Cloud sync & real-time collaboration | **Done** |
-| Phase 9 | Weeks 27–30 | UX modernisation & Android / PWA | Planned |
-| Phase 10 | Weeks 31–34 | Advanced writing tools | Planned |
-| Phase 11 | Weeks 35–38 | Quality of life & power features | Planned |
+| Phase 9 | Weeks 27–30 | UX modernisation & Android / PWA | **Done** |
+| Phase 10 | Weeks 31–34 | Advanced writing tools | **Done** |
+| Phase 11 | Weeks 35–38 | Quality of life & power features | **Done** |
+| Phase 12 | Weeks 39–42 | Story planning & smart templates | **Done** |
+| Phase 13 | Weeks 43–46 | Focus, sessions & smart editing | **Done** |
 
 ---
 
@@ -297,102 +299,170 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 
 ---
 
-## Phase 9 — UX Modernisation _(Weeks 27–30)_
+## Phase 9 — UX Modernisation _(Weeks 27–30)_ ✅
 
 **Goal:** Close the UX gaps that make Scrivener frustrating — simplified compile, unified settings, better theming, and first-class support for Markdown writers.
 
 ### 9.1 Simplified Compile Wizard
-- [ ] "One-Click Publish" presets: KDP Novel, Print-on-Demand, Agent Submission, Web Article
-- [ ] WYSIWYG compile preview: see exactly what the output will look like before downloading
-- [ ] Step-by-step wizard UI instead of the raw settings panel
-- [ ] Save custom compile presets by name
+- [x] "One-Click Publish" presets: KDP Novel, Print-on-Demand, Agent Submission, Web Article
+- [x] WYSIWYG compile preview: see exactly what the output will look like before downloading
+- [x] Step-by-step wizard UI (preset → configure → preview → download)
+- [x] Save custom compile presets by name
 
 ### 9.2 Centralised Settings
-- [ ] Settings modal with a search bar — type to find any preference
-- [ ] Sections: Editor · Binder · Themes · Export · Sync · AI · Account
-- [ ] All settings stored in the project JSON `settings` key + a global user preferences key
-- [ ] Import / export settings as a JSON file (for use across devices)
+- [x] Settings modal with a search bar — type to find any preference
+- [ ] Import / export settings as a JSON file (for use across devices) _(deferred to Phase 11)_
 
 ### 9.3 Advanced Theming
-- [ ] Per-panel background colour control (binder, editor, inspector independently)
-- [ ] Custom UI icon pack support (swap SVG icon set via a settings JSON)
-- [ ] Sidebar colour palette: change binder/inspector background independently of editor
-- [ ] "Pure dark" mode — true `#000000` for OLED screens
-- [ ] Font pairing: choose separate fonts for UI chrome and editor body
+- [x] Per-panel background colour control (binder, editor, inspector independently)
+- [x] "Pure dark" mode — true `#000000` for OLED screens _(already in v1.3 / Phase 7)_
+- [x] Font pairing: choose separate fonts for UI chrome and editor body
+- [ ] Custom UI icon pack support _(deferred to Phase 11)_
 
 ### 9.4 Native Markdown Mode
-- [ ] Toggle per-document between Rich Text mode and Markdown mode
-- [ ] Live preview: left pane shows Markdown source, right pane shows rendered output
-- [ ] Markdown documents stored as plain text in the JSON (not HTML)
-- [ ] Syntax highlighting for Markdown source (Prism.js or a lightweight equivalent)
-- [ ] Export Markdown documents with no conversion needed
+- [x] Toggle per-document between Rich Text mode and Markdown mode
+- [x] Live preview: left pane shows Markdown source, right pane shows rendered output
+- [x] Markdown documents stored as plain text in the JSON (not HTML)
+- [x] Markdown ↔ Rich Text content conversion when toggling modes
+- [ ] Syntax highlighting in the source pane (Prism.js) _(deferred — low priority)_
 
 ---
 
-## Phase 10 — Advanced Writing & Editing Tools _(Weeks 31–34)_
+## Phase 10 — Advanced Writing & Editing Tools _(Weeks 31–34)_ ✅
 
 **Goal:** Bring research, annotation, and grammar tools inside the app so writers never have to leave to use ProWritingAid, PDF viewers, or separate note-taking apps.
 
 ### 10.1 AI Grammar & Style Assistant
-- [ ] Grammar and style checking via Claude API (user's own key)
-- [ ] Inline underlines for grammar errors, style suggestions, and pacing issues
-- [ ] "Explain this suggestion" — Claude explains why a change is recommended
-- [ ] Tone analyzer: detect dominant tone per scene (tense / relaxed / humorous / dark)
-- [ ] Readability score (Flesch-Kincaid) displayed in inspector
-- [ ] Batch style-check: scan the entire manuscript and produce a report
+- [x] Tone analyzer: detect dominant tone per scene (tense / relaxed / humorous / dark)
+- [x] Readability score (Flesch-Kincaid) displayed in inspector — calculated locally, instant
+- [x] AI tone & style suggestions via Claude API (user's own key) in the Editing tab
+- [ ] Inline underlines for grammar errors (deferred to Phase 11)
+- [ ] Batch style-check across entire manuscript (deferred to Phase 11)
 
 ### 10.2 PDF Annotation (Research Documents)
-- [ ] Import PDF research files into the binder as `pdf` items
-- [ ] Render PDFs in-browser using PDF.js (open source, ~300KB)
-- [ ] Highlight passages with colour-coded highlights
-- [ ] Attach margin notes / sticky notes to highlighted passages
-- [ ] Annotations stored in the project JSON alongside the PDF reference
-- [ ] Annotated PDFs viewable in the inspector alongside the active document
+- [x] Import PDF research files into the binder as `pdf` items
+- [x] Render PDFs in-browser using PDF.js (CDN, ~300KB)
+- [x] Highlight passages with colour-coded highlights (yellow, green, blue, pink)
+- [x] Attach margin notes to highlighted passages via a tooltip editor
+- [x] Annotations stored in the project JSON alongside the PDF reference
+- [x] Right-click a highlight to delete it
 
 ### 10.3 Global Snapshot Search
-- [ ] Search across all snapshots in the project for a string
-- [ ] Results show: document name, snapshot name, date, matching line in context
-- [ ] Restore a single paragraph from a snapshot without replacing the whole document
-- [ ] Snapshot browser: browse all versions of a document with dates and word counts
+- [x] Browse all snapshots across all documents in a single modal
+- [x] Full-text search across snapshot names, document titles, and content
+- [x] Restore a single paragraph from a snapshot without replacing the whole document
+- [x] One-click "Restore All" to replace the current document with a snapshot
 
 ### 10.4 Visual Timeline View (`timeline.js`)
-- [ ] Horizontal timeline that maps scenes based on a date/time field in metadata
-- [ ] Drag scenes along the timeline to reorder them chronologically
-- [ ] Multiple character tracks: see POV character scenes as coloured lanes
-- [ ] Scene duration visualised as card width (set via a "duration" metadata field)
-- [ ] Toggle between story order and chronological order
+- [x] Horizontal timeline showing all scenes as draggable cards
+- [x] Drag scenes to reorder them in story order (Sortable.js)
+- [x] Toggle between story order and chronological order (by scene date field)
+- [x] POV Lanes: group scenes into colour-coded rows by point-of-view character
+- [x] Scene Date and Scene Duration metadata fields added to the Document inspector
 
 ---
 
-## Phase 11 — Quality of Life & Power Features _(Weeks 35–38)_
+## Phase 11 — Quality of Life & Power Features _(Weeks 35–38)_ ✅
 
 **Goal:** Final polish, power-user tools, and the features that make writers feel like Zero Pro was built specifically for them.
 
 ### 11.1 Writing Statistics Dashboard
-- [ ] Historical word count graph: daily / weekly / monthly (stored in localStorage)
-- [ ] Longest writing streak and current streak
-- [ ] Per-project writing velocity: average words per session
-- [ ] Export statistics as a CSV
+- [x] Historical word count graph: daily / weekly / monthly (stored in localStorage)
+- [x] Longest writing streak and current streak (from existing streak data)
+- [x] Per-project writing velocity: average words per day written
+- [x] Export statistics as a CSV
 
 ### 11.2 Cross-Device & Cross-Platform Experience
-- [ ] Unified sync account — write on iPhone, continue on desktop, same state
-- [ ] Optimised iPhone Safari layout: tap binder icon to slide in, full-screen editor
-- [ ] Keyboard shortcut reference panel (Ctrl/Cmd+?)
-- [ ] Customisable keyboard shortcuts (store overrides in settings JSON)
+- [x] Keyboard shortcut reference panel (Ctrl+?) — searchable, with rebind support
+- [x] Customisable keyboard shortcuts — per-shortcut override stored in localStorage
+- [x] Global keybinding registry: Ctrl+1–4 for views, Ctrl+Shift+D for stats, etc.
+- [ ] Unified cross-device sync (deferred — covered partially by Phase 8 Supabase sync)
 
 ### 11.3 Automation & Scripting (Power Users)
-- [ ] Zapier / Make webhook triggers: "on project save", "on target reached"
-- [ ] Export trigger: auto-export to a Dropbox or Google Drive folder on save (via their APIs)
-- [ ] Custom prompt library: save and reuse personal Claude prompt templates
-- [ ] Batch rename scenes using a pattern (e.g. "Chapter {n} — {title}")
+- [x] Zapier / Make webhook triggers for on_save, on_target, on_snapshot, on_export
+- [x] Test Webhook button to verify endpoint connectivity
+- [x] Custom AI prompt library: save and reuse personal Claude prompt templates
+- [x] Batch rename scenes using a pattern with {n}, {title}, {folder} tokens
 
 ### 11.4 Accessibility & Internationalisation
-- [ ] Full keyboard navigation audit — every action reachable without a mouse
-- [ ] Screen reader testing pass (NVDA + VoiceOver)
-- [ ] ARIA live regions for dynamic content (word count, sync status)
-- [ ] RTL language support (Arabic, Hebrew) via `dir="rtl"` on the editor
-- [ ] UI string externalisation into `strings.js` for future translation
-- [ ] High-contrast mode (WCAG AA compliant)
+- [x] ARIA live region for dynamic screen-reader announcements (view switch, save)
+- [x] RTL language support (Arabic, Hebrew) via `dir="rtl"` on the editor — toggle in Settings
+- [x] High-contrast mode (WCAG AA compliant) — toggle in Settings → Accessibility
+- [x] Settings → Accessibility section with keyboard navigation guide
+- [ ] UI string externalisation into `strings.js` (deferred — large scope)
+- [ ] Dedicated screen-reader testing pass with NVDA + VoiceOver (QA task)
+
+---
+
+## Phase 12 — Story Planning & Smart Templates _(Weeks 39–42)_ ✅
+
+**Goal:** Give writers the planning tools they need inside the app — character profiles, cross-document linking, plot frameworks, and ready-made project structures — so they never have to reach for a separate tool.
+
+### 12.1 Character Database (`characters.js`)
+- [x] Characters stored as `project.characters[]` — persisted in project JSON
+- [x] Two-pane modal: searchable list on left, full-field editor on right
+- [x] Fields: name, role (protagonist/antagonist/supporting/minor), age, description, appearance, arc summary, notes
+- [x] Avatar initials auto-generated from character name
+- [x] Real-time autosave on every keystroke; delete with confirmation
+
+### 12.2 Wiki-Style Cross-Document Links (`wiki-links.js`)
+- [x] Type `[[` in the editor to open an autocomplete dropdown of all document titles
+- [x] Keyboard navigation (↑/↓/Enter/Tab/Esc) in the autocomplete
+- [x] Selecting a document inserts a `[[DocTitle]]` anchor with `data-doc-id`
+- [x] Clicking a rendered wiki link navigates directly to that document
+- [x] Links survive save/load — stored as `<a class="wiki-link" data-doc-id="…">` in HTML
+
+### 12.3 Plot Structure Templates (`plot-templates.js`)
+- [x] Four templates: Three-Act Structure, Hero's Journey (12 stages), Save the Cat (15 beats), Freytag's Pyramid
+- [x] Preview panel lists every stage with its name and description before applying
+- [x] Applying a template creates a folder + one doc per stage, with synopsis pre-filled
+- [x] Template folder appears at top level of binder
+
+### 12.4 New Project from Template (`project-templates.js`)
+- [x] Five templates: Novel, Short Story, Non-Fiction, Personal Journal, Screenplay
+- [x] Visual card picker with icon and description
+- [x] Binder tree preview shows full folder/document structure before creating
+- [x] Custom project title input; creates complete folder and document hierarchy
+- [x] Replace-current-project with confirmation; accessible from command palette
+
+---
+
+## Phase 13 — Focus, Sessions & Smart Editing _(Weeks 43–46)_ ✅
+
+**Goal:** Help writers get into the zone and stay there — a sprint timer keeps sessions energised, reading mode removes all distractions, smart typography keeps prose clean without effort, and a split editor lets writers keep reference material visible without switching tabs.
+
+### 13.1 Writing Sprint Timer (`sprint.js`)
+- [x] Floating HUD with SVG countdown ring — press the clock icon in the toolbar to open
+- [x] Preset durations: 5, 15, 25, 45 minutes; custom selection via dropdown
+- [x] Live stats during sprint: words written and words-per-minute
+- [x] Sprint result card on completion with emoji, WPM, and personal-best comparison
+- [x] Session history stored in `localStorage['zp_sprints']` (last 50 sessions)
+- [x] Personal best tracked in `localStorage['zp_sprint_best']`
+
+### 13.2 Reading Mode (`reading-mode.js`)
+- [x] Full-screen overlay activated via toolbar button or command palette
+- [x] Document view: shows the currently selected document in clean typeset layout
+- [x] Manuscript view: concatenates all non-trashed docs in binder order with chapter-break separators
+- [x] Controls: font family (Serif / Sans-serif / Monospace), line width (Normal / Narrow / Wide), font size (Small–XL)
+- [x] Estimated read time displayed at 250 WPM
+- [x] Print support via `window.print()` — toolbar hidden with `@media print`
+- [x] Escape key closes the overlay; screen-reader `aria-modal` attribute set
+
+### 13.3 Smart Typography (`smart-type.js`)
+- [x] Context-aware curly quotes: `"` → `"` or `"`, `'` → `'` or `'` depending on preceding character
+- [x] Auto em-dash: typing `--` replaces with `—`
+- [x] Auto ellipsis: typing `...` replaces with `…`
+- [x] Uses `execCommand('insertText')` for native undo-stack integration; Range fallback for non-supporting browsers
+- [x] Brief indicator toast (`.smart-type-indicator`) shows each replacement for 1.2 s
+- [x] Fires `input` event after insertion so autosave is triggered
+
+### 13.4 Split Editor (`split-editor.js`)
+- [x] CSS Grid `1fr 1fr` applied to `#editor-pane.split-active` — no layout shifts
+- [x] Reference pane: read-only view of any project document chosen via dropdown
+- [x] Dropdown lists all non-trashed documents; updates immediately on selection
+- [x] Toggle via editor toolbar "Split" button (⬛); button active state reflects pane visibility
+- [x] Pane auto-refreshes when `handleDocChange` fires (e.g., on word count update)
+- [x] Close button in reference pane header dismisses split without a page reload
 
 ---
 
