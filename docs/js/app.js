@@ -24,6 +24,9 @@ import {
 } from './publish.js';
 import { initMedia } from './media.js';
 import { initSnapshots, openSnapshots, takeSnapshot } from './snapshots.js';
+import { initSnapshotBrowser, openSnapshotBrowser } from './snapshot-browser.js';
+import { initTimeline, renderTimeline } from './timeline.js';
+import { initPdfViewer, loadPdfDoc, refreshPdfView, triggerPdfImport, togglePdfHighlightMode, setPdfColor, goPdfPage, setPdfScale } from './pdf-viewer.js';
 import { initAmbient, openAmbientPanel } from './ambient.js';
 import { initStreak, openStreakCalendar, trackWordsWritten, resetWordBaseline } from './streak.js';
 import { initSync, pushProject, openSyncPanel, isSyncEnabled } from './sync.js';
@@ -38,7 +41,7 @@ import { isBinderPinned } from './binder.js';
 const state = {
   project:              null,
   currentDocId:         null,
-  currentView:          'corkboard', // 'editor' | 'corkboard' | 'outline'
+  currentView:          'corkboard', // 'editor' | 'corkboard' | 'outline' | 'timeline' | 'pdf'
   triggerDocImport:     null,
   triggerProjectImport: null,
 };
@@ -132,6 +135,8 @@ function init() {
       { icon: '🎨', label: 'Format Paint',         hint: '',          run: () => copyFormat() },
       { icon: '🔊', label: 'Ambient Sounds',       hint: '',          run: () => openAmbientPanel() },
       { icon: '🔥', label: 'Writing Streak',       hint: '',          run: () => openStreakCalendar() },
+      { icon: '📅', label: 'Timeline View',        hint: '',          run: () => switchView('timeline') },
+      { icon: '📂', label: 'Snapshot Browser',     hint: '',          run: () => openSnapshotBrowser() },
     ],
   });
 
@@ -163,6 +168,27 @@ function init() {
     getProject: () => state.project,
   });
 
+  // ── Phase 10 ─────────────────────────────────────────────────────────────────
+  initTimeline({
+    getProject:      () => state.project,
+    onSelectDoc:     handleSelectDocument,
+    onProjectChange: handleProjectChange,
+  });
+
+  initPdfViewer({
+    getProject:        () => state.project,
+    onAnnotationChange: handleProjectChange,
+  });
+
+  initSnapshotBrowser({
+    getProject:    () => state.project,
+    getCurrentDoc: () => currentDoc(),
+    onDocRestore:  (docId) => {
+      const doc = getDocument(state.project, docId);
+      if (doc) loadDocument(state.project, doc);
+    },
+  });
+
   initPublish({
     getProject: () => state.project,
     onAddDoc: (title, content) => {
@@ -191,7 +217,7 @@ function init() {
 
   initTouch({
     onSwitchView:    view => switchView(view),
-    getViews:        () => ['corkboard', 'editor', 'outline'],
+    getViews:        () => ['corkboard', 'editor', 'outline', 'timeline'],
     getCurrentView:  () => state.currentView,
   });
 
@@ -227,7 +253,7 @@ function switchView(view) {
   state.currentView = view;
 
   // Update toolbar button states
-  ['editor', 'corkboard', 'outline'].forEach(v => {
+  ['editor', 'corkboard', 'outline', 'timeline'].forEach(v => {
     const b = document.getElementById(`btn-view-${v}`);
     if (b) {
       b.classList.toggle('active', v === view);
@@ -276,6 +302,12 @@ function _renderView(view, doc) {
   } else if (view === 'outline') {
     if (isMarkdownMode()) disableMarkdownMode();
     renderOutline(state.project);
+  } else if (view === 'timeline') {
+    if (isMarkdownMode()) disableMarkdownMode();
+    renderTimeline(state.project);
+  } else if (view === 'pdf') {
+    if (isMarkdownMode()) disableMarkdownMode();
+    if (doc?.type === 'pdf') loadPdfDoc(doc, state.project);
   }
   updateInspector(state.project, doc?.type === 'doc' ? doc : null);
 }
@@ -304,6 +336,12 @@ function handleSelectDocument(docId) {
   const doc = docId ? getDocument(state.project, docId) : null;
   resetWordBaseline(doc?.wordCount || 0);
 
+  // Clicking a PDF doc → switch to PDF viewer
+  if (doc?.type === 'pdf' && state.currentView !== 'pdf') {
+    switchView('pdf');
+    return;
+  }
+
   // Clicking a scene card in corkboard or an outline row → switch to editor
   if (doc?.type === 'doc' && state.currentView !== 'editor') {
     switchView('editor');
@@ -325,6 +363,8 @@ function handleProjectChange(project) {
     renderCorkboard(state.project, _corkboardParentId(doc));
   } else if (state.currentView === 'outline') {
     renderOutline(state.project);
+  } else if (state.currentView === 'timeline') {
+    renderTimeline(state.project);
   }
   updateInspector(state.project, doc?.type === 'doc' ? doc : null);
 }
@@ -380,6 +420,7 @@ function bindToolbar() {
   btn('btn-view-editor',    () => switchView('editor'));
   btn('btn-view-corkboard', () => switchView('corkboard'));
   btn('btn-view-outline',   () => switchView('outline'));
+  btn('btn-view-timeline',  () => switchView('timeline'));
 
   // AI panel — on compact screens close other drawers first
   btn('btn-ai', () => {
@@ -592,6 +633,44 @@ function bindToolbar() {
       showToast('Rich text mode restored');
     }
   });
+
+  // ── Phase 10 ─────────────────────────────────────────────────────────────────
+
+  // PDF viewer controls
+  btn('pdf-highlight-mode-btn', () => togglePdfHighlightMode());
+
+  document.querySelectorAll('.pdf-color-btn').forEach(b => {
+    b.addEventListener('click', () => setPdfColor(b.dataset.color));
+  });
+
+  btn('pdf-prev-btn', () => {
+    const inp = document.getElementById('pdf-page-input');
+    const cur = parseInt(inp?.value ?? '1', 10);
+    goPdfPage(cur - 1);
+  });
+
+  btn('pdf-next-btn', () => {
+    const inp = document.getElementById('pdf-page-input');
+    const cur = parseInt(inp?.value ?? '1', 10);
+    goPdfPage(cur + 1);
+  });
+
+  document.getElementById('pdf-page-input')?.addEventListener('change', e => {
+    goPdfPage(parseInt(e.target.value, 10) || 1);
+  });
+
+  document.getElementById('pdf-zoom-select')?.addEventListener('change', e => {
+    setPdfScale(parseFloat(e.target.value) || 1.5);
+  });
+
+  btn('pdf-import-btn', () => {
+    const doc = currentDoc();
+    if (doc?.type === 'pdf') triggerPdfImport(doc, state.project);
+    else showToast('Select a PDF document in the binder first');
+  });
+
+  // Snapshot Browser
+  btn('btn-snapshot-browser', () => openSnapshotBrowser());
 
   // Double-click project title to rename
   document.getElementById('project-title')?.addEventListener('dblclick', () => {

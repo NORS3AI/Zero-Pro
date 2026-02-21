@@ -5,6 +5,24 @@
 
 const PATCHES = [
   {
+    version: 'v1.10',
+    date: 'February 21, 2026',
+    title: 'Phase 10 — Advanced Writing Tools',
+    changes: [
+      { type: 'feat', text: 'Visual Timeline view — see all scenes on a horizontal track in story or chronological order' },
+      { type: 'feat', text: 'POV Lanes — group timeline scenes into separate rows by point-of-view character' },
+      { type: 'feat', text: 'Drag-to-reorder scenes on the timeline (story mode)' },
+      { type: 'feat', text: 'Scene Date and Scene Duration metadata fields in the Document inspector' },
+      { type: 'feat', text: 'PDF Viewer — import a PDF binder doc, view all pages rendered via PDF.js' },
+      { type: 'feat', text: 'PDF colour-coded highlights — draw yellow, green, blue, or pink highlight boxes by dragging' },
+      { type: 'feat', text: 'PDF margin notes — click any highlight to add or edit a text note, right-click to delete' },
+      { type: 'feat', text: 'Global Snapshot Browser — search and browse all snapshots across every document in one modal' },
+      { type: 'feat', text: 'Paragraph-level snapshot restore — click any paragraph in a snapshot preview to insert it at the cursor' },
+      { type: 'feat', text: 'Flesch-Kincaid readability score in the Editing inspector tab — calculated instantly, no API needed' },
+      { type: 'feat', text: 'AI tone & style analysis in the Editing inspector tab — powered by Claude API (requires API key)' },
+    ],
+  },
+  {
     version: 'v1.9',
     date: 'February 21, 2026',
     title: 'Phase 9 — UX Modernisation',

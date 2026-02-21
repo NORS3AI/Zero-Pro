@@ -1,8 +1,9 @@
 // inspector.js — Document & project metadata inspector panel
-// Phase 2: The Corkboard & Structure
+// Phase 2: The Corkboard & Structure / Phase 10: AI readability + writing analysis
 
 import { updateDocument, saveProject, getProjectWordCount } from './storage.js';
 import { LABEL_COLORS } from './corkboard.js';
+import { analyzeReadability, readabilityLabel, analyzeWithAI, htmlToPlainText } from './ai-analysis.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -129,6 +130,18 @@ function _buildUI() {
         </div>
 
         <div class="inspector-field">
+          <label class="inspector-label" for="insp-date">Scene Date</label>
+          <input id="insp-date" type="text" class="inspector-input"
+                 placeholder="e.g. March 1st, 1843 or Day 14…">
+        </div>
+
+        <div class="inspector-field">
+          <label class="inspector-label" for="insp-duration">Scene Duration</label>
+          <input id="insp-duration" type="text" class="inspector-input"
+                 placeholder="e.g. 2 hours, 3 days…">
+        </div>
+
+        <div class="inspector-field">
           <label class="inspector-label" for="insp-target">Word Count Target</label>
           <input id="insp-target" type="number" class="inspector-input"
                  placeholder="0" min="0" step="100">
@@ -180,33 +193,42 @@ function _buildUI() {
       </div>
       <div id="editing-doc-content" class="hidden">
 
-        <div class="editing-score-header">
-          <div class="editing-ring-wrap">
-            <svg class="editing-ring-svg" viewBox="0 0 56 56" aria-hidden="true">
-              <circle class="editing-ring-track" cx="28" cy="28" r="22"/>
-              <circle class="editing-ring-fill"  cx="28" cy="28" r="22"/>
-            </svg>
-            <span class="editing-ring-label">—</span>
+        <!-- Readability card (Phase 10 — calculated locally) -->
+        <div class="readability-card" id="readability-card">
+          <div class="readability-card-header">
+            <span class="readability-card-label">Readability</span>
+            <span class="readability-grade" id="readability-grade">—</span>
           </div>
-          <div class="editing-score-meta">
-            <div class="editing-score-title">Writing Score</div>
-            <div class="editing-score-sub">Analyze to reveal your score</div>
+          <div class="readability-score" id="readability-score">—</div>
+          <div class="readability-bar-track">
+            <div class="readability-bar" id="readability-bar" style="width:0%"></div>
           </div>
+          <div class="readability-desc" id="readability-desc">Open a document to see its reading level.</div>
+          <div class="readability-stats" id="readability-stats"></div>
         </div>
 
+        <!-- AI tone + style analysis (Phase 10 — requires Claude API key) -->
         <div class="editing-cta-wrap">
-          <button class="editing-cta-btn" disabled title="Coming soon — AI-powered writing analysis">
-            <span>Analyze Writing</span>
-            <span class="editing-soon-badge">Coming Soon</span>
+          <button class="editing-cta-btn" id="btn-analyze-ai"
+                  title="Analyze tone and style with the Claude API (requires API key in AI panel)">
+            <span id="analyze-ai-label">Analyze Writing (AI)</span>
           </button>
+        </div>
+
+        <!-- AI results appear here -->
+        <div id="ai-analysis-results" class="hidden">
+          <div class="ai-tone-row">
+            <span class="ai-tone-label">Tone</span>
+            <span class="ai-tone-value" id="ai-tone-value">—</span>
+          </div>
+          <div id="ai-suggestions-list"></div>
         </div>
 
         <div class="editing-cat-list" id="editing-cat-list"></div>
 
         <p class="editing-note">
-          Professional editing analysis — grammar, style, readability,
-          pacing, consistency, and dialogue checks. Powered by AI,
-          inspired by ProWritingAid.
+          Readability uses Flesch-Kincaid (calculated locally). AI tone &amp; style analysis
+          uses your Claude API key — set it in the AI panel.
         </p>
 
       </div>
@@ -308,6 +330,8 @@ function _bindFields() {
   _on('insp-pov',      'change', () => _save('pov',      _val('insp-pov')));
   _on('insp-location', 'change', () => _save('location', _val('insp-location')));
   _on('insp-keywords', 'change', () => _save('keywords', _val('insp-keywords')));
+  _on('insp-date',     'change', () => _save('date',     _val('insp-date')));
+  _on('insp-duration', 'change', () => _save('duration', _val('insp-duration')));
 
   // Target word count
   _on('insp-target', 'change', () => {
@@ -344,6 +368,8 @@ function _populateDocTab() {
   _setVal('insp-pov',      _doc.pov      || '');
   _setVal('insp-location', _doc.location || '');
   _setVal('insp-keywords', _doc.keywords || '');
+  _setVal('insp-date',     _doc.date     || '');
+  _setVal('insp-duration', _doc.duration || '');
   _setVal('insp-target',   _doc.target   || 0);
 
   _updateLabelSwatch(_doc.label || null);
@@ -400,6 +426,72 @@ function _populateEditingTab() {
   const hasDoc = !!(_doc && _doc.type === 'doc');
   noDoc?.classList.toggle('hidden',  hasDoc);
   docEl?.classList.toggle('hidden', !hasDoc);
+
+  if (!hasDoc) return;
+
+  // ── Flesch-Kincaid readability (local, instant) ──────────────────────────
+  const plain   = htmlToPlainText(_doc.content || '');
+  const reading = analyzeReadability(plain);
+
+  const scoreEl = document.getElementById('readability-score');
+  const gradeEl = document.getElementById('readability-grade');
+  const barEl   = document.getElementById('readability-bar');
+  const descEl  = document.getElementById('readability-desc');
+  const statsEl = document.getElementById('readability-stats');
+
+  if (scoreEl) { scoreEl.textContent = reading.score; scoreEl.style.color = reading.color; }
+  if (gradeEl)   gradeEl.textContent  = reading.grade;
+  if (barEl)   { barEl.style.width = `${reading.score}%`; barEl.style.background = reading.color; }
+  if (descEl)    descEl.textContent   = readabilityLabel(reading.score);
+  if (statsEl)   statsEl.innerHTML    = reading.words
+    ? `${reading.sentences} sentences &bull; ${reading.words} words &bull; avg ${reading.avgSentLen} words/sentence`
+    : '';
+
+  // ── AI analysis button ────────────────────────────────────────────────────
+  const aiBtn    = document.getElementById('btn-analyze-ai');
+  const aiLabel  = document.getElementById('analyze-ai-label');
+  const aiResult = document.getElementById('ai-analysis-results');
+
+  // Re-wire button (remove old listeners by cloning)
+  if (aiBtn) {
+    const fresh = aiBtn.cloneNode(true);
+    aiBtn.replaceWith(fresh);
+    fresh.addEventListener('click', async () => {
+      const lbl = document.getElementById('analyze-ai-label');
+      if (lbl) lbl.textContent = 'Analyzing…';
+      fresh.disabled = true;
+      document.getElementById('ai-analysis-results')?.classList.add('hidden');
+
+      try {
+        const result = await analyzeWithAI(plain, _doc.title || '');
+        _showAiResults(result);
+      } catch (err) {
+        // showToast is async-imported to avoid circular deps
+        import('./ui.js').then(({ showToast }) => showToast(err.message));
+      } finally {
+        if (lbl) lbl.textContent = 'Analyze Writing (AI)';
+        fresh.disabled = false;
+      }
+    });
+  }
+}
+
+function _showAiResults({ tone, suggestions }) {
+  const toneEl = document.getElementById('ai-tone-value');
+  const listEl = document.getElementById('ai-suggestions-list');
+  const wrap   = document.getElementById('ai-analysis-results');
+
+  if (toneEl)  toneEl.textContent = tone || '—';
+  if (listEl) {
+    listEl.innerHTML = (suggestions || []).map(s =>
+      `<div class="ai-suggestion">${_esc(s)}</div>`
+    ).join('');
+  }
+  wrap?.classList.remove('hidden');
+}
+
+function _esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

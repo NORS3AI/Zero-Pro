@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="css/phase7.css">
   <link rel="stylesheet" href="css/phase8.css">
   <link rel="stylesheet" href="css/phase9.css">
+  <link rel="stylesheet" href="css/phase10.css">
   <link rel="stylesheet" href="css/wizard.css">
   <link rel="stylesheet" href="css/responsive.css">
 
@@ -35,6 +36,8 @@
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <!-- Marked.js — Markdown parser used for Markdown mode preview (Phase 9) -->
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+  <!-- PDF.js — client-side PDF rendering for PDF Viewer (Phase 10) -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 </head>
 <body>
 
@@ -93,6 +96,11 @@
               title="Outline" aria-pressed="false">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg>
         <span>Outline</span>
+      </button>
+      <button class="view-btn" id="btn-view-timeline"
+              title="Timeline" aria-pressed="false">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h11A1.5 1.5 0 0 1 15 2.5v2A1.5 1.5 0 0 1 13.5 6h-11A1.5 1.5 0 0 1 1 4.5v-2zm1 0v2a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5h-11a.5.5 0 0 0-.5.5zm-1 7A1.5 1.5 0 0 1 2.5 8h11A1.5 1.5 0 0 1 15 9.5v2a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 11.5v-2zm1 0v2a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5h-11a.5.5 0 0 0-.5.5z"/></svg>
+        <span>Timeline</span>
       </button>
     </div>
 
@@ -159,7 +167,7 @@
     </button>
 
     <!-- Patch Notes — between theme and settings -->
-    <button class="btn-changelog" id="btn-changelog" title="View Patch Notes" aria-label="View patch notes">v1.9</button>
+    <button class="btn-changelog" id="btn-changelog" title="View Patch Notes" aria-label="View patch notes">v1.10</button>
 
     <!-- Settings -->
     <button class="btn btn-icon" id="btn-settings" title="Settings (Ctrl+,)" aria-label="Open settings">
@@ -365,6 +373,60 @@
         </div>
 
       </div><!-- /outline-pane -->
+
+      <!-- ── Timeline view (Phase 10) ───────────────────────────────────────── -->
+      <div id="timeline-pane" class="view-pane" role="region" aria-label="Timeline">
+
+        <div id="timeline-toolbar">
+          <div class="timeline-mode-btns" role="group" aria-label="Timeline order">
+            <button class="timeline-mode-btn active" data-mode="story">Story Order</button>
+            <button class="timeline-mode-btn" data-mode="chrono">Chronological</button>
+          </div>
+          <button id="timeline-lane-toggle" class="btn" aria-pressed="false"
+                  title="Group scenes into POV character lanes">
+            <span class="timeline-lane-toggle-label">POV Lanes: Off</span>
+          </button>
+        </div>
+
+        <div id="timeline-stage" class="timeline-stage">
+          <div id="timeline-content"></div>
+        </div>
+
+      </div><!-- /timeline-pane -->
+
+      <!-- ── PDF Viewer (Phase 10) ───────────────────────────────────────────── -->
+      <div id="pdf-viewer-pane" class="view-pane" role="region" aria-label="PDF Viewer">
+
+        <div id="pdf-toolbar">
+          <div class="pdf-page-nav">
+            <button id="pdf-prev-btn" class="btn btn-icon btn-sm" title="Previous page" aria-label="Previous page">&#8249;</button>
+            <input type="number" id="pdf-page-input" min="1" value="1"
+                   class="pdf-page-input" aria-label="Page number" style="width:50px;text-align:center">
+            <span id="pdf-page-total" class="pdf-page-total">/ 0</span>
+            <button id="pdf-next-btn" class="btn btn-icon btn-sm" title="Next page" aria-label="Next page">&#8250;</button>
+          </div>
+          <div class="pdf-zoom-wrap">
+            <label class="pdf-zoom-label" for="pdf-zoom-select">Zoom</label>
+            <select id="pdf-zoom-select" class="inspector-select" style="width:80px" aria-label="Zoom level">
+              <option value="0.75">75%</option>
+              <option value="1">100%</option>
+              <option value="1.5" selected>150%</option>
+              <option value="2">200%</option>
+            </select>
+          </div>
+          <div class="pdf-color-row">
+            <button id="pdf-highlight-mode-btn" class="btn btn-sm" title="Toggle highlight drawing mode">&#9998; Highlight</button>
+            <button class="pdf-color-btn active" data-color="yellow" title="Yellow highlight" style="background:rgba(255,230,0,0.9)"></button>
+            <button class="pdf-color-btn" data-color="green"  title="Green highlight"  style="background:rgba(80,200,120,0.9)"></button>
+            <button class="pdf-color-btn" data-color="blue"   title="Blue highlight"   style="background:rgba(100,180,255,0.9)"></button>
+            <button class="pdf-color-btn" data-color="pink"   title="Pink highlight"   style="background:rgba(255,120,150,0.9)"></button>
+          </div>
+          <button id="pdf-import-btn" class="btn btn-sm" title="Import / replace PDF file">Import PDF</button>
+        </div>
+
+        <div id="pdf-scroll" class="pdf-scroll"></div>
+
+      </div><!-- /pdf-viewer-pane -->
 
     </div><!-- /center-pane -->
 
