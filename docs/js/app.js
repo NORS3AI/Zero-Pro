@@ -54,6 +54,7 @@ const state = {
   project:              null,
   currentDocId:         null,
   currentView:          'corkboard', // 'editor' | 'corkboard' | 'outline' | 'timeline' | 'pdf'
+  previousView:         'corkboard', // last non-timeline view; used to return from timeline
   triggerDocImport:     null,
   triggerProjectImport: null,
 };
@@ -306,7 +307,7 @@ function init() {
 
   initTouch({
     onSwitchView:    view => switchView(view),
-    getViews:        () => ['corkboard', 'editor', 'outline', 'timeline'],
+    getViews:        () => ['corkboard', 'editor', 'outline'],
     getCurrentView:  () => state.currentView,
   });
 
@@ -339,16 +340,27 @@ function init() {
 // ─── View Switching ───────────────────────────────────────────────────────────
 
 function switchView(view) {
+  // Track the last non-timeline view so the timeline toggle can return to it
+  if (state.currentView !== 'timeline' && view === 'timeline') {
+    state.previousView = state.currentView;
+  }
   state.currentView = view;
 
-  // Update toolbar button states
-  ['editor', 'corkboard', 'outline', 'timeline'].forEach(v => {
+  // Update the three primary view-tab buttons (editor / corkboard / outline)
+  ['editor', 'corkboard', 'outline'].forEach(v => {
     const b = document.getElementById(`btn-view-${v}`);
     if (b) {
       b.classList.toggle('active', v === view);
       b.setAttribute('aria-pressed', v === view ? 'true' : 'false');
     }
   });
+
+  // Update the standalone Timeline icon button separately
+  const timelineBtn = document.getElementById('btn-view-timeline');
+  if (timelineBtn) {
+    timelineBtn.classList.toggle('active', view === 'timeline');
+    timelineBtn.setAttribute('aria-pressed', view === 'timeline' ? 'true' : 'false');
+  }
 
   // Show / hide view panes
   document.querySelectorAll('.view-pane').forEach(pane => {
@@ -525,7 +537,14 @@ function bindToolbar() {
   btn('btn-view-editor',    () => switchView('editor'));
   btn('btn-view-corkboard', () => switchView('corkboard'));
   btn('btn-view-outline',   () => switchView('outline'));
-  btn('btn-view-timeline',  () => switchView('timeline'));
+  // Timeline is a toggle: click again (or select any binder item) to return to the previous view
+  btn('btn-view-timeline', () => {
+    if (state.currentView === 'timeline') {
+      switchView(state.previousView || 'corkboard');
+    } else {
+      switchView('timeline');
+    }
+  });
 
   // AI panel — on compact screens close other drawers first
   btn('btn-ai', () => {
