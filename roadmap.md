@@ -15,6 +15,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | Phase 9 | Weeks 27–30 | UX modernisation & Android / PWA | **Done** |
 | Phase 10 | Weeks 31–34 | Advanced writing tools | **Done** |
 | Phase 11 | Weeks 35–38 | Quality of life & power features | **Done** |
+| Phase 12 | Weeks 39–42 | Story planning & smart templates | **Done** |
 
 ---
 
@@ -389,6 +390,39 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 - [x] Settings → Accessibility section with keyboard navigation guide
 - [ ] UI string externalisation into `strings.js` (deferred — large scope)
 - [ ] Dedicated screen-reader testing pass with NVDA + VoiceOver (QA task)
+
+---
+
+## Phase 12 — Story Planning & Smart Templates _(Weeks 39–42)_ ✅
+
+**Goal:** Give writers the planning tools they need inside the app — character profiles, cross-document linking, plot frameworks, and ready-made project structures — so they never have to reach for a separate tool.
+
+### 12.1 Character Database (`characters.js`)
+- [x] Characters stored as `project.characters[]` — persisted in project JSON
+- [x] Two-pane modal: searchable list on left, full-field editor on right
+- [x] Fields: name, role (protagonist/antagonist/supporting/minor), age, description, appearance, arc summary, notes
+- [x] Avatar initials auto-generated from character name
+- [x] Real-time autosave on every keystroke; delete with confirmation
+
+### 12.2 Wiki-Style Cross-Document Links (`wiki-links.js`)
+- [x] Type `[[` in the editor to open an autocomplete dropdown of all document titles
+- [x] Keyboard navigation (↑/↓/Enter/Tab/Esc) in the autocomplete
+- [x] Selecting a document inserts a `[[DocTitle]]` anchor with `data-doc-id`
+- [x] Clicking a rendered wiki link navigates directly to that document
+- [x] Links survive save/load — stored as `<a class="wiki-link" data-doc-id="…">` in HTML
+
+### 12.3 Plot Structure Templates (`plot-templates.js`)
+- [x] Four templates: Three-Act Structure, Hero's Journey (12 stages), Save the Cat (15 beats), Freytag's Pyramid
+- [x] Preview panel lists every stage with its name and description before applying
+- [x] Applying a template creates a folder + one doc per stage, with synopsis pre-filled
+- [x] Template folder appears at top level of binder
+
+### 12.4 New Project from Template (`project-templates.js`)
+- [x] Five templates: Novel, Short Story, Non-Fiction, Personal Journal, Screenplay
+- [x] Visual card picker with icon and description
+- [x] Binder tree preview shows full folder/document structure before creating
+- [x] Custom project title input; creates complete folder and document hierarchy
+- [x] Replace-current-project with confirmation; accessible from command palette
 
 ---
 

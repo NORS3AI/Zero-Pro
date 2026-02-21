@@ -39,6 +39,10 @@ import { openStatsPanel } from './stats.js';
 import { registerKeybindings, openShortcutsPanel } from './keybindings.js';
 import { initWebhooks, openWebhooksPanel, fireWebhook, openBatchRename } from './webhooks.js';
 import { openPromptLibrary } from './prompt-library.js';
+import { initCharacters, openCharacterDatabase, ensureCharacters } from './characters.js';
+import { initWikiLinks, activateWikiLinks } from './wiki-links.js';
+import { initPlotTemplates, openPlotTemplates } from './plot-templates.js';
+import { openProjectTemplates } from './project-templates.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -66,6 +70,7 @@ function init() {
   if (state.project.settings.uiFont) applyUiFont(state.project.settings.uiFont);
   applyHighContrast(state.project.settings);
   applyRTL(state.project.settings);
+  ensureCharacters(state.project); // Phase 12: ensure characters array exists
 
   // Init all modules
   initBinder({
@@ -148,6 +153,9 @@ function init() {
       { icon: '🔗', label: 'Webhooks & Automation', hint: '',         run: () => openWebhooksPanel() },
       { icon: '🔤', label: 'Batch Rename Scenes',  hint: '',          run: () => { const doc = currentDoc(); openBatchRename(doc?.type === 'folder' ? doc.id : (doc?.parentId ?? null)); } },
       { icon: '📋', label: 'Prompt Library',       hint: '',          run: () => openPromptLibrary(() => {}) },
+      { icon: '🧑‍🤝‍🧑', label: 'Character Database',  hint: '',          run: () => openCharacterDatabase() },
+      { icon: '🎭', label: 'Plot Templates',       hint: '',          run: () => openPlotTemplates() },
+      { icon: '✨', label: 'New Project from Template', hint: '',     run: () => _openProjectTemplateWizard() },
     ],
   });
 
@@ -219,6 +227,22 @@ function init() {
     'ai-panel':    () => toggleAIPanel(),
     'stats':       () => openStatsPanel(),
     'shortcuts':   () => openShortcutsPanel(),
+  });
+
+  // ── Phase 12 ─────────────────────────────────────────────────────────────────
+  initCharacters({
+    getProject:      () => state.project,
+    onProjectChange: handleProjectChange,
+  });
+
+  initPlotTemplates({
+    getProject:      () => state.project,
+    onProjectChange: handleProjectChange,
+  });
+
+  initWikiLinks({
+    getProject:  () => state.project,
+    onNavigate:  handleSelectDocument,
   });
 
   initPublish({
@@ -312,6 +336,8 @@ function _renderView(view, doc) {
 
     loadDocument(state.project, doc);
     _syncStatusBar(doc);
+    // Activate wiki links in the freshly-loaded editor
+    activateWikiLinks(document.getElementById('editor'));
 
     // Re-enable markdown mode if the loaded doc is in markdown mode
     if (doc?.mode === 'markdown') {
@@ -729,6 +755,17 @@ function bindToolbar() {
     fireWebhook('on_snapshot', { docTitle: currentDoc()?.title ?? '' });
   });
 
+  // ── Phase 12 ─────────────────────────────────────────────────────────────────
+
+  // Character database
+  btn('btn-characters', () => openCharacterDatabase());
+
+  // Plot structure templates
+  btn('btn-plot-templates', () => openPlotTemplates());
+
+  // New project from template
+  btn('btn-new-from-template', () => _openProjectTemplateWizard());
+
   // Double-click project title to rename
   document.getElementById('project-title')?.addEventListener('dblclick', () => {
     showPrompt('Rename Project', 'Project title', state.project.title, newTitle => {
@@ -796,6 +833,22 @@ window.matchMedia('(max-width: 1023px)').addEventListener('change', e => {
 
 function currentDoc() {
   return state.currentDocId ? getDocument(state.project, state.currentDocId) : null;
+}
+
+/** Open the project template wizard, then reload the whole app state. */
+function _openProjectTemplateWizard() {
+  openProjectTemplates({
+    onApply: (project) => {
+      state.project    = project;
+      state.currentDocId = null;
+      ensureCharacters(project);
+      applyTheme(project.settings?.theme);
+      renderBinder(project, null);
+      loadDocument(project, null);
+      updateProjectTitle();
+      switchView('corkboard');
+    },
+  });
 }
 
 /** Announce a message to screen readers via the ARIA live region. */

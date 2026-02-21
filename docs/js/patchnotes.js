@@ -5,6 +5,21 @@
 
 const PATCHES = [
   {
+    version: 'v1.12',
+    date: 'February 21, 2026',
+    title: 'Phase 12 — Story Planning & Smart Templates',
+    changes: [
+      { type: 'feat', text: 'Character Database — create and manage a full cast with name, role, age, appearance, arc, and notes' },
+      { type: 'feat', text: 'Character list with avatar initials, search, and inline editing — data stored in project.characters[]' },
+      { type: 'feat', text: 'Wiki-style cross-document links — type [[ in the editor to link to any document in your binder' },
+      { type: 'feat', text: 'Clicking a [[wiki link]] navigates directly to that document' },
+      { type: 'feat', text: 'Plot Structure Templates — apply Three-Act, Hero\'s Journey, Save the Cat, or Freytag\'s Pyramid to the binder' },
+      { type: 'feat', text: 'Templates create labelled folder/doc structures with synopsis starters for every story beat' },
+      { type: 'feat', text: 'New Project from Template wizard — start fresh with Novel, Short Story, Non-Fiction, Journal, or Screenplay structure' },
+      { type: 'feat', text: 'Template preview shows the full binder tree before creating' },
+    ],
+  },
+  {
     version: 'v1.11',
     date: 'February 21, 2026',
     title: 'Phase 11 — Quality of Life & Power Features',
