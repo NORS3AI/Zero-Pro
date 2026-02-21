@@ -13,7 +13,9 @@ import { initInspector, updateInspector } from './inspector.js';
 import { initAI, toggleAIPanel } from './ai.js';
 import { initFindReplace, openFindReplace, openProjectSearch } from './find-replace.js';
 import { initCommandPalette } from './command-palette.js';
-import { initSettings, openSettings, applyEditorSettings, applyAccentHue } from './settings.js';
+import { initSettings, openSettings, applyEditorSettings, applyAccentHue, applyPanelColors, applyUiFont } from './settings.js';
+import { openCompileWizard } from './compile.js';
+import { enableMarkdownMode, disableMarkdownMode, isMarkdownMode, getMarkdownContent, htmlToMarkdown, markdownToHtml } from './markdown-mode.js';
 import { openPatchNotes } from './patchnotes.js';
 import {
   initPublish, exportAsEpub,
@@ -53,6 +55,8 @@ function init() {
   applyTheme(state.project.settings.theme);
   applyEditorSettings(state.project.settings);
   if (state.project.settings.accentHue != null) applyAccentHue(state.project.settings.accentHue);
+  applyPanelColors(state.project.settings);
+  if (state.project.settings.uiFont) applyUiFont(state.project.settings.uiFont);
 
   // Init all modules
   initBinder({
@@ -243,12 +247,34 @@ function switchView(view) {
 
 function _renderView(view, doc) {
   if (view === 'editor') {
+    // Always clean up markdown mode before loading a new doc
+    if (isMarkdownMode()) disableMarkdownMode();
+
     loadDocument(state.project, doc);
     _syncStatusBar(doc);
+
+    // Re-enable markdown mode if the loaded doc is in markdown mode
+    if (doc?.mode === 'markdown') {
+      enableMarkdownMode(doc, md => {
+        doc.content = md;
+        handleDocChange(doc);
+      });
+    }
+
+    // Sync the MD toggle button state
+    const mdBtn = document.getElementById('btn-md-mode');
+    const isMd  = doc?.mode === 'markdown';
+    if (mdBtn) {
+      mdBtn.setAttribute('aria-pressed', String(isMd));
+      mdBtn.classList.toggle('md-active', isMd);
+    }
+
   } else if (view === 'corkboard') {
+    if (isMarkdownMode()) disableMarkdownMode();
     const parentId = _corkboardParentId(doc);
     renderCorkboard(state.project, parentId);
   } else if (view === 'outline') {
+    if (isMarkdownMode()) disableMarkdownMode();
     renderOutline(state.project);
   }
   updateInspector(state.project, doc?.type === 'doc' ? doc : null);
@@ -265,6 +291,14 @@ function _corkboardParentId(doc) {
 function handleSelectDocument(docId) {
   // Close the binder drawer on compact screens after a selection (unless pinned)
   if (_isCompact() && !isBinderPinned()) workspace().classList.remove('binder-open');
+
+  // Flush markdown textarea content before saving (bypasses the 800 ms debounce)
+  if (isMarkdownMode()) {
+    const md  = getMarkdownContent();
+    const doc = currentDoc();
+    if (doc && md !== null) { doc.content = md; handleDocChange(doc); }
+  }
+
   saveCurrentContent();
   state.currentDocId = docId;
   const doc = docId ? getDocument(state.project, docId) : null;
@@ -518,6 +552,45 @@ function bindToolbar() {
   btn('btn-pwa-dismiss', () => {
     document.getElementById('pwa-install-banner')?.classList.remove('visible');
     localStorage.setItem('zp_pwa_dismissed', '1');
+  });
+
+  // ── Phase 9 ─────────────────────────────────────────────────────────────────
+
+  // Compile wizard
+  btn('btn-compile', () => openCompileWizard(state.project));
+
+  // Markdown mode toggle
+  btn('btn-md-mode', () => {
+    const doc = currentDoc();
+    if (!doc) { showToast('Select a document first'); return; }
+
+    if (doc.mode !== 'markdown') {
+      // Switch to Markdown mode — convert existing HTML to plain text Markdown
+      saveCurrentContent();
+      const md = htmlToMarkdown(doc.content || '');
+      doc.mode    = 'markdown';
+      doc.content = md;
+      handleDocChange(doc);
+      if (isMarkdownMode()) disableMarkdownMode();
+      enableMarkdownMode(doc, newMd => {
+        doc.content = newMd;
+        handleDocChange(doc);
+      });
+      document.getElementById('btn-md-mode')?.classList.add('md-active');
+      document.getElementById('btn-md-mode')?.setAttribute('aria-pressed', 'true');
+      showToast('Markdown mode — editing as plain text');
+    } else {
+      // Switch back to rich text — parse Markdown → HTML
+      const md   = getMarkdownContent() ?? doc.content ?? '';
+      doc.mode    = 'rich';
+      doc.content = markdownToHtml(md);
+      handleDocChange(doc);
+      disableMarkdownMode();
+      loadDocument(state.project, doc);
+      document.getElementById('btn-md-mode')?.classList.remove('md-active');
+      document.getElementById('btn-md-mode')?.setAttribute('aria-pressed', 'false');
+      showToast('Rich text mode restored');
+    }
   });
 
   // Double-click project title to rename

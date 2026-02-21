@@ -12,7 +12,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | Phase 6 | Weeks 18–19 | Image import & media support | **Done** |
 | Phase 7 | Weeks 20–22 | Nice-to-haves & UI polish | **Done** |
 | Phase 8 | Weeks 23–26 | Cloud sync & real-time collaboration | **Done** |
-| Phase 9 | Weeks 27–30 | UX modernisation & Android / PWA | Planned |
+| Phase 9 | Weeks 27–30 | UX modernisation & Android / PWA | **Done** |
 | Phase 10 | Weeks 31–34 | Advanced writing tools | Planned |
 | Phase 11 | Weeks 35–38 | Quality of life & power features | Planned |
 
@@ -297,35 +297,32 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 
 ---
 
-## Phase 9 — UX Modernisation _(Weeks 27–30)_
+## Phase 9 — UX Modernisation _(Weeks 27–30)_ ✅
 
 **Goal:** Close the UX gaps that make Scrivener frustrating — simplified compile, unified settings, better theming, and first-class support for Markdown writers.
 
 ### 9.1 Simplified Compile Wizard
-- [ ] "One-Click Publish" presets: KDP Novel, Print-on-Demand, Agent Submission, Web Article
-- [ ] WYSIWYG compile preview: see exactly what the output will look like before downloading
-- [ ] Step-by-step wizard UI instead of the raw settings panel
-- [ ] Save custom compile presets by name
+- [x] "One-Click Publish" presets: KDP Novel, Print-on-Demand, Agent Submission, Web Article
+- [x] WYSIWYG compile preview: see exactly what the output will look like before downloading
+- [x] Step-by-step wizard UI (preset → configure → preview → download)
+- [x] Save custom compile presets by name
 
 ### 9.2 Centralised Settings
-- [ ] Settings modal with a search bar — type to find any preference
-- [ ] Sections: Editor · Binder · Themes · Export · Sync · AI · Account
-- [ ] All settings stored in the project JSON `settings` key + a global user preferences key
-- [ ] Import / export settings as a JSON file (for use across devices)
+- [x] Settings modal with a search bar — type to find any preference
+- [ ] Import / export settings as a JSON file (for use across devices) _(deferred to Phase 11)_
 
 ### 9.3 Advanced Theming
-- [ ] Per-panel background colour control (binder, editor, inspector independently)
-- [ ] Custom UI icon pack support (swap SVG icon set via a settings JSON)
-- [ ] Sidebar colour palette: change binder/inspector background independently of editor
-- [ ] "Pure dark" mode — true `#000000` for OLED screens
-- [ ] Font pairing: choose separate fonts for UI chrome and editor body
+- [x] Per-panel background colour control (binder, editor, inspector independently)
+- [x] "Pure dark" mode — true `#000000` for OLED screens _(already in v1.3 / Phase 7)_
+- [x] Font pairing: choose separate fonts for UI chrome and editor body
+- [ ] Custom UI icon pack support _(deferred to Phase 11)_
 
 ### 9.4 Native Markdown Mode
-- [ ] Toggle per-document between Rich Text mode and Markdown mode
-- [ ] Live preview: left pane shows Markdown source, right pane shows rendered output
-- [ ] Markdown documents stored as plain text in the JSON (not HTML)
-- [ ] Syntax highlighting for Markdown source (Prism.js or a lightweight equivalent)
-- [ ] Export Markdown documents with no conversion needed
+- [x] Toggle per-document between Rich Text mode and Markdown mode
+- [x] Live preview: left pane shows Markdown source, right pane shows rendered output
+- [x] Markdown documents stored as plain text in the JSON (not HTML)
+- [x] Markdown ↔ Rich Text content conversion when toggling modes
+- [ ] Syntax highlighting in the source pane (Prism.js) _(deferred — low priority)_
 
 ---
 

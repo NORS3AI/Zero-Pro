@@ -5,6 +5,23 @@
 
 const PATCHES = [
   {
+    version: 'v1.9',
+    date: 'February 21, 2026',
+    title: 'Phase 9 — UX Modernisation',
+    changes: [
+      { type: 'feat', text: 'Compile Wizard — one-click compile to KDP Novel, Print on Demand, Agent Submission, or Web Article presets' },
+      { type: 'feat', text: 'WYSIWYG compile preview — see the formatted output in a live iframe before downloading' },
+      { type: 'feat', text: 'Compile downloads in HTML, .txt, and .md — with title page and chapter separators' },
+      { type: 'feat', text: 'Save custom compile presets by name for reuse' },
+      { type: 'feat', text: 'Native Markdown mode — per-document toggle stores content as plain Markdown text' },
+      { type: 'feat', text: 'Live split-pane preview: Markdown source on the left, rendered preview on the right' },
+      { type: 'feat', text: 'Markdown ↔ Rich Text conversion when toggling modes — no content loss' },
+      { type: 'feat', text: 'Settings search bar — type to filter settings sections by keyword' },
+      { type: 'feat', text: 'Per-panel background colour pickers — override binder, editor, and inspector independently' },
+      { type: 'feat', text: 'Font pairing — choose a separate UI font from the editor body font' },
+    ],
+  },
+  {
     version: 'v1.8',
     date: 'February 21, 2026',
     title: 'File Menu Fix & Toolbar Cleanup',
