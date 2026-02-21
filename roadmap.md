@@ -16,6 +16,7 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 | Phase 10 | Weeks 31–34 | Advanced writing tools | **Done** |
 | Phase 11 | Weeks 35–38 | Quality of life & power features | **Done** |
 | Phase 12 | Weeks 39–42 | Story planning & smart templates | **Done** |
+| Phase 13 | Weeks 43–46 | Focus, sessions & smart editing | **Done** |
 
 ---
 
@@ -423,6 +424,45 @@ Each phase delivers a usable, shippable product. Phases build on each other but 
 - [x] Binder tree preview shows full folder/document structure before creating
 - [x] Custom project title input; creates complete folder and document hierarchy
 - [x] Replace-current-project with confirmation; accessible from command palette
+
+---
+
+## Phase 13 — Focus, Sessions & Smart Editing _(Weeks 43–46)_ ✅
+
+**Goal:** Help writers get into the zone and stay there — a sprint timer keeps sessions energised, reading mode removes all distractions, smart typography keeps prose clean without effort, and a split editor lets writers keep reference material visible without switching tabs.
+
+### 13.1 Writing Sprint Timer (`sprint.js`)
+- [x] Floating HUD with SVG countdown ring — press the clock icon in the toolbar to open
+- [x] Preset durations: 5, 15, 25, 45 minutes; custom selection via dropdown
+- [x] Live stats during sprint: words written and words-per-minute
+- [x] Sprint result card on completion with emoji, WPM, and personal-best comparison
+- [x] Session history stored in `localStorage['zp_sprints']` (last 50 sessions)
+- [x] Personal best tracked in `localStorage['zp_sprint_best']`
+
+### 13.2 Reading Mode (`reading-mode.js`)
+- [x] Full-screen overlay activated via toolbar button or command palette
+- [x] Document view: shows the currently selected document in clean typeset layout
+- [x] Manuscript view: concatenates all non-trashed docs in binder order with chapter-break separators
+- [x] Controls: font family (Serif / Sans-serif / Monospace), line width (Normal / Narrow / Wide), font size (Small–XL)
+- [x] Estimated read time displayed at 250 WPM
+- [x] Print support via `window.print()` — toolbar hidden with `@media print`
+- [x] Escape key closes the overlay; screen-reader `aria-modal` attribute set
+
+### 13.3 Smart Typography (`smart-type.js`)
+- [x] Context-aware curly quotes: `"` → `"` or `"`, `'` → `'` or `'` depending on preceding character
+- [x] Auto em-dash: typing `--` replaces with `—`
+- [x] Auto ellipsis: typing `...` replaces with `…`
+- [x] Uses `execCommand('insertText')` for native undo-stack integration; Range fallback for non-supporting browsers
+- [x] Brief indicator toast (`.smart-type-indicator`) shows each replacement for 1.2 s
+- [x] Fires `input` event after insertion so autosave is triggered
+
+### 13.4 Split Editor (`split-editor.js`)
+- [x] CSS Grid `1fr 1fr` applied to `#editor-pane.split-active` — no layout shifts
+- [x] Reference pane: read-only view of any project document chosen via dropdown
+- [x] Dropdown lists all non-trashed documents; updates immediately on selection
+- [x] Toggle via editor toolbar "Split" button (⬛); button active state reflects pane visibility
+- [x] Pane auto-refreshes when `handleDocChange` fires (e.g., on word count update)
+- [x] Close button in reference pane header dismisses split without a page reload
 
 ---
 

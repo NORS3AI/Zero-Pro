@@ -43,6 +43,10 @@ import { initCharacters, openCharacterDatabase, ensureCharacters } from './chara
 import { initWikiLinks, activateWikiLinks } from './wiki-links.js';
 import { initPlotTemplates, openPlotTemplates } from './plot-templates.js';
 import { openProjectTemplates } from './project-templates.js';
+import { initSprint, toggleSprintPanel, sprintOnDocChange } from './sprint.js';
+import { initReadingMode, openReadingMode, openManuscriptView, closeReadingMode } from './reading-mode.js';
+import { initSmartType, updateSmartTypeSettings } from './smart-type.js';
+import { initSplitEditor, toggleSplitEditor, refreshSplitPane } from './split-editor.js';
 
 // ─── Application State ────────────────────────────────────────────────────────
 
@@ -156,6 +160,10 @@ function init() {
       { icon: '🧑‍🤝‍🧑', label: 'Character Database',  hint: '',          run: () => openCharacterDatabase() },
       { icon: '🎭', label: 'Plot Templates',       hint: '',          run: () => openPlotTemplates() },
       { icon: '✨', label: 'New Project from Template', hint: '',     run: () => _openProjectTemplateWizard() },
+      { icon: '⏱️', label: 'Writing Sprint Timer',      hint: '',     run: () => document.getElementById('btn-sprint')?.click() },
+      { icon: '📖', label: 'Reading Mode',              hint: '',     run: () => openReadingMode() },
+      { icon: '📜', label: 'Manuscript View',           hint: '',     run: () => openManuscriptView() },
+      { icon: '⬛', label: 'Split Editor',              hint: '',     run: () => document.getElementById('btn-split')?.click() },
     ],
   });
 
@@ -243,6 +251,31 @@ function init() {
   initWikiLinks({
     getProject:  () => state.project,
     onNavigate:  handleSelectDocument,
+  });
+
+  // ── Phase 13 ─────────────────────────────────────────────────────────────────
+  initSprint({
+    getCurrentWordCount: () => {
+      const doc = currentDoc();
+      return doc?.wordCount ?? 0;
+    },
+  });
+
+  initReadingMode({
+    getProject:    () => state.project,
+    getCurrentDoc: () => currentDoc(),
+  });
+
+  initSplitEditor({
+    getProject: () => state.project,
+  });
+
+  // Smart typography — attach after editor DOM is ready
+  requestAnimationFrame(() => {
+    const editorEl = document.getElementById('editor');
+    if (editorEl) {
+      initSmartType(editorEl, state.project.settings ?? {});
+    }
   });
 
   initPublish({
@@ -434,6 +467,10 @@ function handleDocChange(project, doc) {
   updateInspector(state.project, doc?.type === 'doc' ? doc : null);
   // Track words for writing streak
   if (doc?.wordCount) trackWordsWritten(doc.wordCount);
+  // Update sprint timer word count
+  sprintOnDocChange(doc?.wordCount ?? 0);
+  // Refresh split pane if open
+  refreshSplitPane();
   // Notify collaborators
   notifyTyping();
   // Debounced cloud sync
@@ -765,6 +802,24 @@ function bindToolbar() {
 
   // New project from template
   btn('btn-new-from-template', () => _openProjectTemplateWizard());
+
+  // ── Phase 13 ─────────────────────────────────────────────────────────────────
+
+  // Writing Sprint Timer
+  btn('btn-sprint', () => {
+    const open = toggleSprintPanel();
+    document.getElementById('btn-sprint')?.classList.toggle('active', open);
+  });
+
+  // Reading Mode
+  btn('btn-reading-mode', () => openReadingMode());
+
+  // Split Editor
+  btn('btn-split', () => {
+    const active = toggleSplitEditor();
+    document.getElementById('btn-split')?.classList.toggle('active', active);
+    document.getElementById('btn-split')?.setAttribute('aria-pressed', String(active));
+  });
 
   // Double-click project title to rename
   document.getElementById('project-title')?.addEventListener('dblclick', () => {

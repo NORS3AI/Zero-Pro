@@ -5,6 +5,24 @@
 
 const PATCHES = [
   {
+    version: 'v1.13',
+    date: 'February 21, 2026',
+    title: 'Phase 13 — Focus, Sessions & Smart Editing',
+    changes: [
+      { type: 'feat', text: 'Writing Sprint Timer — countdown ring HUD with 5/15/25/45-minute presets and custom duration' },
+      { type: 'feat', text: 'Sprint live stats — real-time words written and WPM during the sprint session' },
+      { type: 'feat', text: 'Sprint result card — words written, WPM, personal best tracking stored in localStorage' },
+      { type: 'feat', text: 'Reading Mode — full-screen typeset overlay with font family, line width, and font size controls' },
+      { type: 'feat', text: 'Reading Mode: view current document or the entire manuscript in chapter order' },
+      { type: 'feat', text: 'Reading Mode: estimated read time display and Print support via @media print' },
+      { type: 'feat', text: 'Smart Typography — auto-converts straight quotes to curly quotes (context-aware opening/closing)' },
+      { type: 'feat', text: 'Smart Typography — auto-converts -- to em-dash (—) and ... to ellipsis (…)' },
+      { type: 'feat', text: 'Smart Typography: brief indicator toast shows each replacement; integrates with browser undo' },
+      { type: 'feat', text: 'Split Editor — open any reference document side-by-side with the active editor in a two-pane grid' },
+      { type: 'feat', text: 'Split Editor: dropdown to switch reference document; auto-closes when split is dismissed' },
+    ],
+  },
+  {
     version: 'v1.12',
     date: 'February 21, 2026',
     title: 'Phase 12 — Story Planning & Smart Templates',
