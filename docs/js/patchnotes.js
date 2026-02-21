@@ -5,6 +5,15 @@
 
 const PATCHES = [
   {
+    version: 'v1.8',
+    date: 'February 21, 2026',
+    title: 'File Menu Fix & Toolbar Cleanup',
+    changes: [
+      { type: 'fix',  text: 'File dropdown now opens correctly — toolbar scroll track overflow was clipping it' },
+      { type: 'fix',  text: 'Removed "💾 Local" sync status pill from the toolbar' },
+    ],
+  },
+  {
     version: 'v1.7',
     date: 'February 20, 2026',
     title: 'UX Polish, Templates & Data Protection',

@@ -377,9 +377,18 @@ function bindToolbar() {
     document.getElementById('btn-focus')?.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
 
-  // Export dropdown toggle
+  // Export dropdown toggle — position: fixed so overflow-y: hidden on the
+  // toolbar scroll track can't clip it
   btn('btn-export', () => {
-    document.getElementById('export-dropdown')?.classList.toggle('open');
+    const dropdown = document.getElementById('export-dropdown');
+    const btnEl    = document.getElementById('btn-export');
+    if (!dropdown) return;
+    const isOpen = dropdown.classList.toggle('open');
+    if (isOpen && btnEl) {
+      const r = btnEl.getBoundingClientRect();
+      dropdown.style.top  = (r.bottom + 4) + 'px';
+      dropdown.style.left = r.left + 'px';
+    }
   });
 
   // Close export dropdown on outside click
@@ -492,9 +501,6 @@ function bindToolbar() {
   btn('btn-cork-split', () => toggleSplitCorkboard());
 
   // ── Phase 8 ─────────────────────────────────────────────────────────────────
-
-  // Sync status pill → open sync panel
-  btn('sync-status-pill', () => openSyncPanel());
 
   // Collab / Share button
   btn('btn-collab', () => openCollabPanel());

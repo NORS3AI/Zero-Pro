@@ -162,6 +162,7 @@ svg { display: block; }
 #workspace {
   display: grid;
   grid-template-columns: var(--binder-w) 1fr var(--inspector-w) var(--ai-panel-w);
+  grid-template-rows: 1fr;   /* one row that fills workspace height — panels can scroll internally */
   overflow: hidden;
   transition: grid-template-columns var(--transition);
 }
@@ -228,16 +229,16 @@ svg { display: block; }
 
 .dropdown-menu {
   display: none;
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
+  position: fixed;
+  top: 0;    /* overridden by JS on open */
+  left: 0;   /* overridden by JS on open */
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 4px;
   min-width: 180px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-  z-index: 200;
+  z-index: 1000;
 }
 
 .dropdown-menu.open { display: block; }
