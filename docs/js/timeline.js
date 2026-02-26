@@ -32,26 +32,6 @@ const POV_COLORS = [
 export function initTimeline({ getProject, onSelectDoc, onProjectChange }) {
   _onSelectDoc     = onSelectDoc;
   _onProjectChange = onProjectChange;
-
-  // Wire toolbar buttons (they live in index.html inside #timeline-pane)
-  document.addEventListener('click', e => {
-    const btn = e.target.closest('.timeline-mode-btn');
-    if (btn) {
-      _mode = btn.dataset.mode;
-      document.querySelectorAll('.timeline-mode-btn').forEach(b =>
-        b.classList.toggle('active', b.dataset.mode === _mode));
-      renderTimeline(getProject());
-    }
-
-    const laneToggle = e.target.closest('#timeline-lane-toggle');
-    if (laneToggle) {
-      _povLanes = !_povLanes;
-      laneToggle.setAttribute('aria-pressed', String(_povLanes));
-      laneToggle.querySelector('.timeline-lane-toggle-label').textContent =
-        _povLanes ? 'POV Lanes: On' : 'POV Lanes: Off';
-      renderTimeline(getProject());
-    }
-  });
 }
 
 /** Render the timeline into #timeline-content. */
