@@ -5,6 +5,7 @@
 #editor-pane {
   /* display/flex-direction/overflow handled by .view-pane.active in main.css */
   background: var(--bg);
+  position: relative;   /* anchors the floating #status-bar overlay */
 }
 
 /* ─── Formatting Toolbar ─────────────────────────────────────────────────────── */
@@ -55,6 +56,7 @@
 
 #editor-container {
   flex: 1;
+  min-height: 0;          /* prevents flex overflow; ensures container truly fills pane */
   overflow-y: auto;
   position: relative;
   display: flex;
@@ -68,7 +70,6 @@
   width: 100%;
   max-width: 680px;
   flex: 1;
-  min-height: 100%;
   padding: 48px 40px 80px;
   font-family: var(--editor-font, Georgia, 'Times New Roman', serif);
   font-size: var(--editor-size, 18px);
@@ -133,20 +134,30 @@
 
 #editor-placeholder.hidden { display: none; }
 
-/* ─── Status Bar ─────────────────────────────────────────────────────────────── */
+/* ─── Status Bar — floating word-count pill ──────────────────────────────────── */
 
 #status-bar {
-  display: none;
+  position: absolute;
+  bottom: 14px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--text-muted);
+  z-index: 10;
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
 }
 
-#current-doc-title {
-  font-weight: 500;
-  color: var(--text-muted);
-  max-width: 260px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+/* hide title — pill shows only word count */
+#current-doc-title { display: none; }
+#status-bar .status-sep { display: none; }
 
 .status-sep {
   width: 1px;
