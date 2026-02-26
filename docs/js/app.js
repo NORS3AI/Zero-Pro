@@ -26,7 +26,7 @@ import { initMedia } from './media.js';
 import { initSnapshots, openSnapshots, takeSnapshot } from './snapshots.js';
 import { initSnapshotBrowser, openSnapshotBrowser } from './snapshot-browser.js';
 import { initTimeline, renderTimeline } from './timeline.js';
-import { initPdfViewer, loadPdfDoc, refreshPdfView, triggerPdfImport, togglePdfHighlightMode, setPdfColor, goPdfPage, setPdfScale } from './pdf-viewer.js';
+import { initPdfViewer, loadPdfDoc, refreshPdfView } from './pdf-viewer.js';
 import { initAmbient, openAmbientPanel } from './ambient.js';
 import { initStreak, openStreakCalendar, trackWordsWritten, resetWordBaseline } from './streak.js';
 import { initSync, pushProject, openSyncPanel, isSyncEnabled } from './sync.js';
@@ -756,39 +756,6 @@ function bindToolbar() {
   });
 
   // ── Phase 10 ─────────────────────────────────────────────────────────────────
-
-  // PDF viewer controls
-  btn('pdf-highlight-mode-btn', () => togglePdfHighlightMode());
-
-  document.querySelectorAll('.pdf-color-btn').forEach(b => {
-    b.addEventListener('click', () => setPdfColor(b.dataset.color));
-  });
-
-  btn('pdf-prev-btn', () => {
-    const inp = document.getElementById('pdf-page-input');
-    const cur = parseInt(inp?.value ?? '1', 10);
-    goPdfPage(cur - 1);
-  });
-
-  btn('pdf-next-btn', () => {
-    const inp = document.getElementById('pdf-page-input');
-    const cur = parseInt(inp?.value ?? '1', 10);
-    goPdfPage(cur + 1);
-  });
-
-  document.getElementById('pdf-page-input')?.addEventListener('change', e => {
-    goPdfPage(parseInt(e.target.value, 10) || 1);
-  });
-
-  document.getElementById('pdf-zoom-select')?.addEventListener('change', e => {
-    setPdfScale(parseFloat(e.target.value) || 1.5);
-  });
-
-  btn('pdf-import-btn', () => {
-    const doc = currentDoc();
-    if (doc?.type === 'pdf') triggerPdfImport(doc, state.project);
-    else showToast('Select a PDF document in the binder first');
-  });
 
   // Snapshot Browser
   btn('btn-snapshot-browser', () => openSnapshotBrowser());
