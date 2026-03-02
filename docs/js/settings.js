@@ -11,6 +11,7 @@ import {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const FONT_MAP = {
+  sitka:   "'Sitka Text', Georgia, 'Times New Roman', serif",
   georgia: "Georgia, 'Times New Roman', serif",
   system:  "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
   mono:    "'Courier New', Courier, monospace",
@@ -78,7 +79,7 @@ export function openSettings(section) {
  */
 export function applyTypography(settings) {
   const root = document.documentElement;
-  root.style.setProperty('--editor-font', FONT_MAP[settings?.font] ?? FONT_MAP.georgia);
+  root.style.setProperty('--editor-font', FONT_MAP[settings?.font] ?? FONT_MAP.sitka);
   root.style.setProperty('--editor-size', `${settings?.fontSize ?? 18}px`);
   root.style.setProperty('--editor-lh',   String(settings?.lineHeight ?? 1.8));
 }
@@ -398,7 +399,7 @@ function _bindAppearanceEvents(settings) {
 // ─── Editor Section ───────────────────────────────────────────────────────────
 
 function _buildEditorSection(settings) {
-  const font      = settings.font       ?? 'georgia';
+  const font      = settings.font       ?? 'sitka';
   const fontSize  = settings.fontSize   ?? 18;
   const lineHeight = settings.lineHeight ?? 1.8;
   const spellcheck = settings.spellcheck !== false;
@@ -413,6 +414,10 @@ function _buildEditorSection(settings) {
       <div class="settings-field">
         <label class="settings-label">Font Family</label>
         <div class="settings-btn-group" role="radiogroup" aria-label="Font family">
+          <button class="settings-group-btn${font === 'sitka' ? ' active' : ''}"
+                  data-font="sitka" role="radio" aria-checked="${font === 'sitka'}">
+            <span style="font-family:'Sitka Text',Georgia,serif">Sitka</span>
+          </button>
           <button class="settings-group-btn${font === 'georgia' ? ' active' : ''}"
                   data-font="georgia" role="radio" aria-checked="${font === 'georgia'}">
             <span style="font-family:Georgia,serif">Serif</span>

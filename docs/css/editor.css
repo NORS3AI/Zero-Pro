@@ -13,9 +13,10 @@
 #editor-toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 2px;
   padding: 4px 12px;
-  height: var(--fmt-toolbar-h);
+  min-height: var(--fmt-toolbar-h);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
@@ -50,6 +51,56 @@
   background: var(--border);
   margin: 0 4px;
   flex-shrink: 0;
+}
+
+/* Toolbar dropdowns (font family, font size, line spacing) */
+.fmt-select {
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-ui);
+  padding: 0 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color var(--transition);
+}
+.fmt-select:hover  { color: var(--text); }
+.fmt-select:focus  { outline: 2px solid var(--accent); outline-offset: 1px; }
+.fmt-font-family   { width: 110px; }
+.fmt-font-size     { width: 52px; text-align: center; }
+.fmt-line-spacing   { width: 58px; }
+
+/* Font color picker */
+.fmt-color-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 30px;
+  height: 28px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.fmt-color-icon {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  border-bottom: 3px solid currentColor;
+  line-height: 1;
+  padding-bottom: 1px;
+}
+.fmt-color-wrap input[type="color"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
 }
 
 /* ─── Editor Container ───────────────────────────────────────────────────────── */

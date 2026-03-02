@@ -293,11 +293,50 @@
 
         <!-- Formatting toolbar -->
         <div id="editor-toolbar" role="toolbar" aria-label="Text formatting">
+          <!-- Font family -->
+          <select id="fmt-font-family" class="fmt-select fmt-font-family" title="Font Family" aria-label="Font family">
+            <option value="Sitka Text" selected>Sitka Text</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Garamond">Garamond</option>
+            <option value="Palatino Linotype">Palatino</option>
+            <option value="Cambria">Cambria</option>
+            <option value="Arial">Arial</option>
+            <option value="Calibri">Calibri</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Courier New">Courier New</option>
+          </select>
+          <!-- Font size -->
+          <select id="fmt-font-size" class="fmt-select fmt-font-size" title="Font Size" aria-label="Font size">
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12" selected>12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            <option value="20">20</option>
+            <option value="22">22</option>
+            <option value="24">24</option>
+            <option value="28">28</option>
+            <option value="36">36</option>
+            <option value="48">48</option>
+            <option value="72">72</option>
+          </select>
+          <div class="fmt-sep"></div>
+          <!-- Text style -->
           <button class="fmt-btn" data-format="bold"          title="Bold (Ctrl+B)"      aria-label="Bold"          aria-pressed="false"><strong>B</strong></button>
           <button class="fmt-btn" data-format="italic"        title="Italic (Ctrl+I)"    aria-label="Italic"        aria-pressed="false"><em>I</em></button>
           <button class="fmt-btn" data-format="underline"     title="Underline (Ctrl+U)" aria-label="Underline"     aria-pressed="false"><u>U</u></button>
           <button class="fmt-btn" data-format="strikethrough" title="Strikethrough"       aria-label="Strikethrough" aria-pressed="false"><s>S</s></button>
+          <!-- Font color -->
+          <label class="fmt-color-wrap" title="Font Color" aria-label="Font color">
+            <span class="fmt-color-icon" id="fmt-color-preview">A</span>
+            <input type="color" id="fmt-font-color" value="#ede9e1">
+          </label>
           <div class="fmt-sep"></div>
+          <!-- Headings -->
           <button class="fmt-btn" data-format="h1" title="Heading 1" aria-label="Heading 1">H1</button>
           <button class="fmt-btn" data-format="h2" title="Heading 2" aria-label="Heading 2">H2</button>
           <button class="fmt-btn" data-format="h3" title="Heading 3" aria-label="Heading 3">H3</button>
@@ -315,6 +354,23 @@
           <button class="fmt-btn" data-format="justifyFull"    title="Justify"       aria-label="Justify"       aria-pressed="false">
             <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>
           </button>
+          <div class="fmt-sep"></div>
+          <!-- Lists -->
+          <button class="fmt-btn" id="btn-list-ul" title="Bullet List" aria-label="Bullet list" aria-pressed="false">
+            <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg>
+          </button>
+          <button class="fmt-btn" id="btn-list-ol" title="Numbered List" aria-label="Numbered list" aria-pressed="false">
+            <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5z"/><path d="M1.713 11.865v.29c0 .107.29.197.29.197h.927v.31H1v-.308l.93-.954c.17-.174.28-.33.28-.496 0-.2-.14-.32-.36-.32-.2 0-.36.13-.36.35h-.5c0-.5.37-.81.87-.81.52 0 .87.32.87.76 0 .29-.15.56-.47.85l-.54.5zM1.5 7.5a.5.5 0 0 1 .5-.5h.5a.5.5 0 0 1 0 1H2.5v.5a.5.5 0 0 1-1 0v-1zm.5-5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 1 0V3.5h.5a.5.5 0 0 0 0-1h-1z"/></svg>
+          </button>
+          <!-- Line spacing -->
+          <select id="fmt-line-spacing" class="fmt-select fmt-line-spacing" title="Line Spacing" aria-label="Line spacing">
+            <option value="1.0" selected>1.0x</option>
+            <option value="1.15">1.15x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2.0">2.0x</option>
+            <option value="2.5">2.5x</option>
+            <option value="3.0">3.0x</option>
+          </select>
           <div class="fmt-sep"></div>
           <button class="fmt-btn" id="btn-insert-image" title="Insert Image" aria-label="Insert image">
             <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/></svg>

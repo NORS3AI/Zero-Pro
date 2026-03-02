@@ -46,6 +46,45 @@ export function initEditor({ onDocChange }) {
     });
   });
 
+  // Font family dropdown
+  el('fmt-font-family')?.addEventListener('change', e => {
+    editor.focus();
+    document.execCommand('fontName', false, e.target.value);
+  });
+
+  // Font size dropdown
+  el('fmt-font-size')?.addEventListener('change', e => {
+    editor.focus();
+    _setFontSize(parseInt(e.target.value, 10));
+  });
+
+  // Font color picker
+  el('fmt-font-color')?.addEventListener('input', e => {
+    editor.focus();
+    document.execCommand('foreColor', false, e.target.value);
+    const preview = el('fmt-color-preview');
+    if (preview) preview.style.borderBottomColor = e.target.value;
+  });
+
+  // List buttons
+  el('btn-list-ul')?.addEventListener('mousedown', e => {
+    e.preventDefault();
+    editor.focus();
+    document.execCommand('insertUnorderedList');
+    _updateToolbar();
+  });
+  el('btn-list-ol')?.addEventListener('mousedown', e => {
+    e.preventDefault();
+    editor.focus();
+    document.execCommand('insertOrderedList');
+    _updateToolbar();
+  });
+
+  // Line spacing dropdown
+  el('fmt-line-spacing')?.addEventListener('change', e => {
+    _setLineSpacing(e.target.value);
+  });
+
   // Track selection changes to update toolbar state
   document.addEventListener('selectionchange', _updateToolbar);
 
@@ -264,6 +303,32 @@ function _applyFormat(format) {
   _updateToolbar();
 }
 
+/** Apply an arbitrary pixel font-size to the selection. */
+function _setFontSize(px) {
+  const editor = el('editor');
+  if (!editor || editor.contentEditable !== 'true') return;
+  editor.focus();
+  // Use fontSize command with dummy value, then replace with CSS px
+  document.execCommand('fontSize', false, '7');
+  editor.querySelectorAll('font[size="7"]').forEach(font => {
+    font.removeAttribute('size');
+    font.style.fontSize = px + 'px';
+  });
+}
+
+/** Set line-height on the current block element. */
+function _setLineSpacing(value) {
+  const editor = el('editor');
+  if (!editor || editor.contentEditable !== 'true') return;
+  editor.focus();
+  const sel = window.getSelection();
+  if (!sel?.rangeCount) return;
+  const node = sel.anchorNode;
+  const block = (node?.nodeType === 1 ? node : node?.parentElement)
+    ?.closest('p, div, h1, h2, h3, li');
+  if (block) block.style.lineHeight = value;
+}
+
 function _updateToolbar() {
   ['bold', 'italic', 'underline', 'strikethrough'].forEach(fmt => {
     const btn = document.querySelector(`[data-format="${fmt}"]`);
@@ -283,6 +348,55 @@ function _updateToolbar() {
     btn.classList.toggle('active', state);
     btn.setAttribute('aria-pressed', state ? 'true' : 'false');
   });
+
+  // List state
+  const ulBtn = el('btn-list-ul');
+  const olBtn = el('btn-list-ol');
+  if (ulBtn) {
+    const ulOn = document.queryCommandState('insertUnorderedList');
+    ulBtn.classList.toggle('active', ulOn);
+    ulBtn.setAttribute('aria-pressed', ulOn ? 'true' : 'false');
+  }
+  if (olBtn) {
+    const olOn = document.queryCommandState('insertOrderedList');
+    olBtn.classList.toggle('active', olOn);
+    olBtn.setAttribute('aria-pressed', olOn ? 'true' : 'false');
+  }
+
+  // Sync font family dropdown with current selection
+  const fontFamily = el('fmt-font-family');
+  if (fontFamily) {
+    const cur = document.queryCommandValue('fontName').replace(/['"]/g, '');
+    for (const opt of fontFamily.options) {
+      if (cur.toLowerCase().includes(opt.value.toLowerCase())) {
+        fontFamily.value = opt.value;
+        break;
+      }
+    }
+  }
+
+  // Sync font size dropdown (approximate from computed style)
+  const fontSize = el('fmt-font-size');
+  if (fontSize) {
+    const sel = window.getSelection();
+    if (sel?.rangeCount && sel.anchorNode) {
+      const node = sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement;
+      if (node) {
+        const px = Math.round(parseFloat(getComputedStyle(node).fontSize));
+        for (const opt of fontSize.options) {
+          if (parseInt(opt.value, 10) === px) { fontSize.value = opt.value; break; }
+        }
+      }
+    }
+  }
+
+  // Sync font color preview
+  const colorPreview = el('fmt-color-preview');
+  const colorInput   = el('fmt-font-color');
+  if (colorPreview) {
+    const cur = document.queryCommandValue('foreColor');
+    if (cur) colorPreview.style.borderBottomColor = cur;
+  }
 }
 
 // ─── Word Count ───────────────────────────────────────────────────────────────
