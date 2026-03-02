@@ -17,11 +17,11 @@
   --green:         #5f9e6e;
 
   --font-ui:     -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-editor: Georgia, 'Times New Roman', serif;
+  --font-editor: 'Sitka Text', Georgia, 'Times New Roman', serif;
   --font-mono:   'Courier New', Courier, monospace;
 
   /* Runtime-overridable typography (set by settings.js) */
-  --editor-font: Georgia, 'Times New Roman', serif;
+  --editor-font: 'Sitka Text', Georgia, 'Times New Roman', serif;
   --editor-size: 18px;
   --editor-lh:   1.8;
 

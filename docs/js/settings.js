@@ -11,6 +11,7 @@ import {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const FONT_MAP = {
+  sitka:   "'Sitka Text', Georgia, 'Times New Roman', serif",
   georgia: "Georgia, 'Times New Roman', serif",
   system:  "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
   mono:    "'Courier New', Courier, monospace",
@@ -78,7 +79,7 @@ export function openSettings(section) {
  */
 export function applyTypography(settings) {
   const root = document.documentElement;
-  root.style.setProperty('--editor-font', FONT_MAP[settings?.font] ?? FONT_MAP.georgia);
+  root.style.setProperty('--editor-font', FONT_MAP[settings?.font] ?? FONT_MAP.sitka);
   root.style.setProperty('--editor-size', `${settings?.fontSize ?? 18}px`);
   root.style.setProperty('--editor-lh',   String(settings?.lineHeight ?? 1.8));
 }
@@ -398,11 +399,12 @@ function _bindAppearanceEvents(settings) {
 // ─── Editor Section ───────────────────────────────────────────────────────────
 
 function _buildEditorSection(settings) {
-  const font      = settings.font       ?? 'georgia';
+  const font      = settings.font       ?? 'sitka';
   const fontSize  = settings.fontSize   ?? 18;
   const lineHeight = settings.lineHeight ?? 1.8;
   const spellcheck = settings.spellcheck !== false;
   const indent     = settings.indent !== false;
+  const tabSize    = settings.tabSize    ?? 3;
   const spellLang  = settings.spellLang  ?? '';
 
   return `
@@ -412,6 +414,10 @@ function _buildEditorSection(settings) {
       <div class="settings-field">
         <label class="settings-label">Font Family</label>
         <div class="settings-btn-group" role="radiogroup" aria-label="Font family">
+          <button class="settings-group-btn${font === 'sitka' ? ' active' : ''}"
+                  data-font="sitka" role="radio" aria-checked="${font === 'sitka'}">
+            <span style="font-family:'Sitka Text',Georgia,serif">Sitka</span>
+          </button>
           <button class="settings-group-btn${font === 'georgia' ? ' active' : ''}"
                   data-font="georgia" role="radio" aria-checked="${font === 'georgia'}">
             <span style="font-family:Georgia,serif">Serif</span>
@@ -465,6 +471,16 @@ function _buildEditorSection(settings) {
                 aria-checked="${indent}">
           <span class="settings-toggle-thumb"></span>
         </button>
+      </div>
+
+      <div class="settings-field settings-field-row">
+        <div class="settings-toggle-label">
+          <span class="settings-label">Tab / Indent Size</span>
+          <span class="settings-sublabel">Spaces inserted per Tab press and new line</span>
+        </div>
+        <input type="number" id="settings-tab-size" class="settings-number-input"
+               min="1" max="8" step="1" value="${tabSize}"
+               aria-label="Tab size in spaces">
       </div>
 
       <div class="settings-field">
@@ -537,6 +553,13 @@ function _bindEditorEvents(settings) {
     btn.setAttribute('aria-checked', on ? 'true' : 'false');
     _saveSetting('indent', on);
     applyEditorSettings(_project?.settings);
+  });
+
+  // Tab size
+  document.getElementById('settings-tab-size')?.addEventListener('change', e => {
+    const val = Math.max(1, Math.min(8, parseInt(e.target.value, 10) || 3));
+    e.target.value = val;
+    _saveSetting('tabSize', val);
   });
 
   // Spellcheck language

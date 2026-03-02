@@ -269,8 +269,8 @@ function _buildItem(doc) {
 
   // Events — image items open a lightbox; clips open the source URL; docs select into the editor
   const handleActivate = (e) => {
-    // Shift+click for multi-select
-    if (e?.shiftKey) {
+    // Shift+click or Ctrl/Cmd+click for multi-select
+    if (e?.shiftKey || e?.ctrlKey || e?.metaKey) {
       e.preventDefault();
       if (_multiSelect.has(doc.id)) {
         _multiSelect.delete(doc.id);
@@ -899,17 +899,57 @@ function _updateMultiSelectBar() {
 
   bar.innerHTML = `
     <span class="multi-count">${_multiSelect.size} selected</span>
+    <button class="multi-btn" data-action="merge">Merge</button>
     <button class="multi-btn" data-action="label">Label</button>
     <button class="multi-btn" data-action="trash">Trash</button>
     <button class="multi-btn" data-action="clear">Clear</button>
   `;
 
+  bar.querySelector('[data-action="merge"]').addEventListener('click', _bulkMerge);
   bar.querySelector('[data-action="label"]').addEventListener('click', _bulkLabel);
   bar.querySelector('[data-action="trash"]').addEventListener('click', _bulkTrash);
   bar.querySelector('[data-action="clear"]').addEventListener('click', () => {
     _multiSelect.clear();
     document.querySelectorAll('.binder-item-row.multi-selected').forEach(el => el.classList.remove('multi-selected'));
     _updateMultiSelectBar();
+  });
+}
+
+function _bulkMerge() {
+  const ids = [..._multiSelect]; // preserves selection order
+  const docs = ids.map(id => getDocument(_project, id)).filter(d => d && d.type === 'doc');
+
+  if (docs.length < 2) {
+    showToast('Select at least 2 text documents to merge');
+    return;
+  }
+
+  const names = docs.map(d => d.title).join(', ');
+  showConfirm(`Merge ${docs.length} documents (${names})?\nContent will be combined into "${docs[0].title}" and the others moved to Trash.`, () => {
+    const target = docs[0];
+    let merged = target.content || '';
+    for (let i = 1; i < docs.length; i++) {
+      if (docs[i].content) {
+        merged += '<p><br></p>' + docs[i].content;
+      }
+    }
+    updateDocument(_project, target.id, { content: merged });
+
+    for (let i = 1; i < docs.length; i++) {
+      trashDocument(_project, docs[i].id);
+      if (_currentDocId === docs[i].id) {
+        _currentDocId = null;
+        _onSelectDoc?.(null);
+      }
+    }
+
+    saveProject(_project);
+    _multiSelect.clear();
+    renderBinder(_project, target.id);
+    _selectDocument(target.id);
+    _onProjectChange?.(_project);
+    _updateMultiSelectBar();
+    showToast(`Merged ${docs.length} documents into "${target.title}"`);
   });
 }
 
