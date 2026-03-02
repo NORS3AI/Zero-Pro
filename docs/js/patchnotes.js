@@ -5,6 +5,18 @@
 
 const PATCHES = [
   {
+    version: 'v1.15',
+    date: 'March 2, 2026',
+    title: 'Free AI & Comprehensive Writing Analysis',
+    changes: [
+      { type: 'feat', text: 'Free AI only \u2014 removed Claude, OpenAI, and Gemini provider options; the app now uses free ChatGPT (Pollinations.ai) exclusively with no API key required' },
+      { type: 'feat', text: 'Full-document synopsis \u2014 Auto-Synopsis now analyzes the entire document, not just the first paragraph' },
+      { type: 'feat', text: 'Comprehensive AI analysis \u2014 "Analyze Writing" now evaluates grammar, style, readability, pacing, consistency, and dialogue with scores (1\u201310) and notes for each' },
+      { type: 'feat', text: 'Tappable readability score \u2014 tap the score number in the Editing tab to see a reference popup explaining the Flesch Reading Ease scale and what your score means' },
+      { type: 'fix', text: 'Removed all API key management UI (key input, save/test/clear buttons, provider selector, key banner) since only the free provider is used' },
+    ],
+  },
+  {
     version: 'v1.14',
     date: 'March 2, 2026',
     title: 'Editor Polish & AI Quality of Life',

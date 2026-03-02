@@ -3,7 +3,7 @@
 
 import { updateDocument, saveProject, getProjectWordCount } from './storage.js';
 import { LABEL_COLORS } from './corkboard.js';
-import { analyzeReadability, readabilityLabel, analyzeWithAI, htmlToPlainText } from './ai-analysis.js';
+import { analyzeReadability, readabilityLabel, readabilityScale, htmlToPlainText } from './ai-analysis.js';
 import { generateText } from './ai.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -16,13 +16,23 @@ const STATUSES = [
 ];
 
 const LABELS = [
-  { value: '',       label: '— None'  },
+  { value: '',       label: '\u2014 None'  },
   { value: 'red',    label: 'Red'     },
   { value: 'orange', label: 'Orange'  },
   { value: 'yellow', label: 'Yellow'  },
   { value: 'green',  label: 'Green'   },
   { value: 'blue',   label: 'Blue'    },
   { value: 'purple', label: 'Purple'  },
+];
+
+// Editing category definitions
+const EDITING_CATS = [
+  { id: 'grammar',     icon: '\u2713', name: 'Grammar',     hint: 'Errors & corrections' },
+  { id: 'style',       icon: '\u25C8', name: 'Style',       hint: 'Improvements & clarity' },
+  { id: 'readability', icon: '\u25CE', name: 'Readability', hint: 'Flesch-Kincaid level' },
+  { id: 'pacing',      icon: '\u25B8', name: 'Pacing',      hint: 'Scene rhythm & tension' },
+  { id: 'consistency', icon: '\u27F3', name: 'Consistency', hint: 'Names, facts, repetition' },
+  { id: 'dialogue',    icon: '\u275D', name: 'Dialogue',    hint: 'Tags & punctuation' },
 ];
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -84,11 +94,11 @@ function _buildUI() {
         <!-- Word & character count stats -->
         <div class="insp-stats-grid">
           <div class="insp-stat-cell">
-            <span id="insp-word-count" class="insp-stat-value">—</span>
+            <span id="insp-word-count" class="insp-stat-value">\u2014</span>
             <span class="insp-stat-name">Words</span>
           </div>
           <div class="insp-stat-cell">
-            <span id="insp-char-count" class="insp-stat-value">—</span>
+            <span id="insp-char-count" class="insp-stat-value">\u2014</span>
             <span class="insp-stat-name">Chars</span>
           </div>
         </div>
@@ -103,7 +113,7 @@ function _buildUI() {
             </button>
           </div>
           <textarea id="insp-synopsis" class="inspector-textarea" rows="4"
-                    placeholder="A brief summary of this scene…"></textarea>
+                    placeholder="A brief summary of this scene\u2026"></textarea>
         </div>
 
         <div class="inspector-field">
@@ -122,31 +132,31 @@ function _buildUI() {
         <div class="inspector-field">
           <label class="inspector-label" for="insp-pov">POV Character</label>
           <input id="insp-pov" type="text" class="inspector-input"
-                 placeholder="Character name…">
+                 placeholder="Character name\u2026">
         </div>
 
         <div class="inspector-field">
           <label class="inspector-label" for="insp-location">Location</label>
           <input id="insp-location" type="text" class="inspector-input"
-                 placeholder="Scene location…">
+                 placeholder="Scene location\u2026">
         </div>
 
         <div class="inspector-field">
           <label class="inspector-label" for="insp-keywords">Keywords</label>
           <input id="insp-keywords" type="text" class="inspector-input"
-                 placeholder="Comma-separated tags…">
+                 placeholder="Comma-separated tags\u2026">
         </div>
 
         <div class="inspector-field">
           <label class="inspector-label" for="insp-date">Scene Date</label>
           <input id="insp-date" type="text" class="inspector-input"
-                 placeholder="e.g. March 1st, 1843 or Day 14…">
+                 placeholder="e.g. March 1st, 1843 or Day 14\u2026">
         </div>
 
         <div class="inspector-field">
           <label class="inspector-label" for="insp-duration">Scene Duration</label>
           <input id="insp-duration" type="text" class="inspector-input"
-                 placeholder="e.g. 2 hours, 3 days…">
+                 placeholder="e.g. 2 hours, 3 days\u2026">
         </div>
 
         <div class="inspector-field">
@@ -168,27 +178,27 @@ function _buildUI() {
 
         <div class="inspector-field">
           <label class="inspector-label">Total Words</label>
-          <div id="insp-proj-total" class="inspector-stat">—</div>
+          <div id="insp-proj-total" class="inspector-stat">\u2014</div>
         </div>
 
         <div class="inspector-field">
           <label class="inspector-label">Documents</label>
-          <div id="insp-proj-docs" class="inspector-stat">—</div>
+          <div id="insp-proj-docs" class="inspector-stat">\u2014</div>
         </div>
 
         <div class="inspector-field">
           <label class="inspector-label">Folders</label>
-          <div id="insp-proj-folders" class="inspector-stat">—</div>
+          <div id="insp-proj-folders" class="inspector-stat">\u2014</div>
         </div>
 
         <div class="inspector-field">
           <label class="inspector-label">Created</label>
-          <div id="insp-proj-created" class="inspector-stat">—</div>
+          <div id="insp-proj-created" class="inspector-stat">\u2014</div>
         </div>
 
         <div class="inspector-field">
           <label class="inspector-label">Last Modified</label>
-          <div id="insp-proj-updated" class="inspector-stat">—</div>
+          <div id="insp-proj-updated" class="inspector-stat">\u2014</div>
         </div>
 
       </div>
@@ -205,9 +215,12 @@ function _buildUI() {
         <div class="readability-card" id="readability-card">
           <div class="readability-card-header">
             <span class="readability-card-label">Readability</span>
-            <span class="readability-grade" id="readability-grade">—</span>
+            <span class="readability-grade" id="readability-grade">\u2014</span>
           </div>
-          <div class="readability-score" id="readability-score">—</div>
+          <div class="readability-score readability-score-tap" id="readability-score"
+               role="button" tabindex="0"
+               title="Tap to see the readability scale"
+               aria-label="Readability score \u2014 tap for reference scale">\u2014</div>
           <div class="readability-bar-track">
             <div class="readability-bar" id="readability-bar" style="width:0%"></div>
           </div>
@@ -215,10 +228,22 @@ function _buildUI() {
           <div class="readability-stats" id="readability-stats"></div>
         </div>
 
-        <!-- AI tone + style analysis (uses whichever provider is active) -->
+        <!-- Readability reference popup (hidden by default) -->
+        <div id="readability-ref-popup" class="readability-ref-popup hidden" role="dialog" aria-label="Readability scale reference">
+          <div class="readability-ref-header">
+            <span class="readability-ref-title">Flesch Reading Ease Scale</span>
+            <button class="readability-ref-close" id="readability-ref-close" aria-label="Close">&times;</button>
+          </div>
+          <div class="readability-ref-body" id="readability-ref-body"></div>
+          <div class="readability-ref-footer">
+            <span class="readability-ref-your">Your score: <strong id="readability-ref-your-score">\u2014</strong></span>
+          </div>
+        </div>
+
+        <!-- AI tone + style analysis -->
         <div class="editing-cta-wrap">
           <button class="editing-cta-btn" id="btn-analyze-ai"
-                  title="Analyze tone and style with AI (requires an API key)">
+                  title="Analyze writing with AI">
             <span id="analyze-ai-label">Analyze Writing (AI)</span>
           </button>
         </div>
@@ -227,7 +252,7 @@ function _buildUI() {
         <div id="ai-analysis-results" class="hidden">
           <div class="ai-tone-row">
             <span class="ai-tone-label">Tone</span>
-            <span class="ai-tone-value" id="ai-tone-value">—</span>
+            <span class="ai-tone-value" id="ai-tone-value">\u2014</span>
           </div>
           <div id="ai-suggestions-list"></div>
         </div>
@@ -235,33 +260,20 @@ function _buildUI() {
         <div class="editing-cat-list" id="editing-cat-list"></div>
 
         <p class="editing-note">
-          Readability is calculated locally. AI features (tone analysis, auto-synopsis)
-          need an API key for Claude, ChatGPT, or Gemini.
+          Readability is calculated locally. AI analysis uses the free ChatGPT provider \u2014 no API key needed.
         </p>
-        <button class="editing-setup-btn" id="btn-open-ai-setup"
-                title="Open the AI panel to set up your API key">
-          <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8zm4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.793.793 1.025-1.025-1.5-1.5H7.163a.5.5 0 0 1-.45-.285A3 3 0 0 0 4 5z"/><path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>
-          Set Up API Key
-        </button>
 
       </div>
     </div>
   `;
 
   // Build editing category rows
-  const EDITING_CATS = [
-    { icon: '✓', name: 'Grammar',     hint: 'Errors & corrections' },
-    { icon: '◈', name: 'Style',       hint: 'Improvements & clarity' },
-    { icon: '◎', name: 'Readability', hint: 'Flesch-Kincaid level' },
-    { icon: '▸', name: 'Pacing',      hint: 'Scene rhythm & tension' },
-    { icon: '⟳', name: 'Consistency', hint: 'Names, facts, repetition' },
-    { icon: '❝', name: 'Dialogue',    hint: 'Tags & punctuation' },
-  ];
   const catList = document.getElementById('editing-cat-list');
   if (catList) {
     EDITING_CATS.forEach(cat => {
       const row = document.createElement('div');
       row.className = 'editing-cat-row';
+      row.dataset.cat = cat.id;
 
       const iconEl = document.createElement('span');
       iconEl.className   = 'editing-cat-icon';
@@ -271,11 +283,12 @@ function _buildUI() {
       const bodyEl = document.createElement('span');
       bodyEl.className = 'editing-cat-body';
       bodyEl.innerHTML = `<span class="editing-cat-name">${cat.name}</span>
-                          <span class="editing-cat-hint">${cat.hint}</span>`;
+                          <span class="editing-cat-hint" data-cat-hint="${cat.id}">${cat.hint}</span>`;
 
       const scoreEl = document.createElement('span');
       scoreEl.className   = 'editing-cat-score';
-      scoreEl.textContent = '—';
+      scoreEl.dataset.catScore = cat.id;
+      scoreEl.textContent = '\u2014';
 
       row.appendChild(iconEl);
       row.appendChild(bodyEl);
@@ -283,6 +296,9 @@ function _buildUI() {
       catList.appendChild(row);
     });
   }
+
+  // Build readability reference popup body
+  _buildReadabilityRefBody();
 
   // Populate status <select>
   const statusSel = document.getElementById('insp-status');
@@ -304,6 +320,45 @@ function _buildUI() {
 
   _bindTabs();
   _bindFields();
+  _bindReadabilityPopup();
+}
+
+function _buildReadabilityRefBody() {
+  const body = document.getElementById('readability-ref-body');
+  if (!body) return;
+  const scale = readabilityScale();
+  body.innerHTML = scale.map(s =>
+    `<div class="readability-ref-row">
+       <span class="readability-ref-dot" style="background:${s.color}"></span>
+       <span class="readability-ref-range">${s.range}</span>
+       <span class="readability-ref-grade">${s.grade}</span>
+       <span class="readability-ref-desc">${s.desc}</span>
+     </div>`
+  ).join('');
+}
+
+function _bindReadabilityPopup() {
+  const scoreEl = document.getElementById('readability-score');
+  const popup   = document.getElementById('readability-ref-popup');
+  const closeBtn = document.getElementById('readability-ref-close');
+
+  if (scoreEl && popup) {
+    const toggle = () => {
+      const isHidden = popup.classList.contains('hidden');
+      popup.classList.toggle('hidden', !isHidden);
+      // Update "your score" in the popup
+      const yourEl = document.getElementById('readability-ref-your-score');
+      if (yourEl) yourEl.textContent = scoreEl.textContent;
+    };
+    scoreEl.addEventListener('click', toggle);
+    scoreEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  }
+
+  closeBtn?.addEventListener('click', () => {
+    popup?.classList.add('hidden');
+  });
 }
 
 function _bindTabs() {
@@ -463,9 +518,12 @@ function _populateEditingTab() {
     ? `${reading.sentences} sentences &bull; ${reading.words} words &bull; avg ${reading.avgSentLen} words/sentence`
     : '';
 
+  // Update readability category score in the editing rows
+  const readabilityCatScore = document.querySelector('[data-cat-score="readability"]');
+  if (readabilityCatScore) readabilityCatScore.textContent = reading.words ? `${reading.score}` : '\u2014';
+
   // ── AI analysis button ────────────────────────────────────────────────────
   const aiBtn    = document.getElementById('btn-analyze-ai');
-  const aiLabel  = document.getElementById('analyze-ai-label');
   const aiResult = document.getElementById('ai-analysis-results');
 
   // Re-wire button (remove old listeners by cloning)
@@ -474,59 +532,111 @@ function _populateEditingTab() {
     aiBtn.replaceWith(fresh);
     fresh.addEventListener('click', async () => {
       const lbl = document.getElementById('analyze-ai-label');
-      if (lbl) lbl.textContent = 'Analyzing…';
+      if (lbl) lbl.textContent = 'Analyzing\u2026';
       fresh.disabled = true;
       document.getElementById('ai-analysis-results')?.classList.add('hidden');
 
+      // Reset category scores to "..."
+      EDITING_CATS.forEach(cat => {
+        const el = document.querySelector(`[data-cat-score="${cat.id}"]`);
+        if (el && cat.id !== 'readability') el.textContent = '\u2026';
+      });
+
       try {
-        const excerpt = plain.slice(0, 3000);
         const raw = await generateText(
-          "You are a writing analyst. Respond with ONLY valid JSON.",
-          `Analyze this passage from "${_doc.title || 'untitled'}".\n\nRespond in this exact JSON format:\n{"tone":"one short phrase","suggestions":["Suggestion 1","Suggestion 2","Suggestion 3"]}\n\nPassage:\n${excerpt}`
+          "You are an expert writing analyst and editor. Respond with ONLY valid JSON, no markdown or extra text.",
+          _buildAnalysisPrompt(plain, _doc.title || 'Untitled')
         );
         const match = raw.match(/\{[\s\S]*\}/);
         const result = match ? JSON.parse(match[0]) : { tone: 'unknown', suggestions: [raw.slice(0, 200)] };
-        _showAiResults(result);
+        _showAiResults(result, reading);
       } catch (err) {
         import('./ui.js').then(({ showToast }) => showToast(err.message));
+        // Reset scores back to "—"
+        EDITING_CATS.forEach(cat => {
+          const el = document.querySelector(`[data-cat-score="${cat.id}"]`);
+          if (el && cat.id !== 'readability') el.textContent = '\u2014';
+        });
       } finally {
-        if (lbl) lbl.textContent = 'Analyze Writing (AI)';
+        const lbl2 = document.getElementById('analyze-ai-label');
+        if (lbl2) lbl2.textContent = 'Analyze Writing (AI)';
         fresh.disabled = false;
       }
     });
   }
-
-  // "Set Up API Key" button → open AI panel with Settings expanded
-  const setupBtn = document.getElementById('btn-open-ai-setup');
-  if (setupBtn) {
-    const fresh = setupBtn.cloneNode(true);
-    setupBtn.replaceWith(fresh);
-    fresh.addEventListener('click', () => {
-      import('./ai.js').then(({ toggleAIPanel }) => {
-        const ws = document.getElementById('workspace');
-        if (!ws?.classList.contains('ai-open')) toggleAIPanel();
-        // Open the Settings details
-        setTimeout(() => {
-          const details = document.getElementById('ai-settings');
-          if (details) details.open = true;
-        }, 200);
-      });
-    });
-  }
 }
 
-function _showAiResults({ tone, suggestions }) {
+/**
+ * Build the comprehensive AI analysis prompt.
+ * Sends the FULL document text for thorough analysis.
+ */
+function _buildAnalysisPrompt(plainText, title) {
+  return `Analyze the following creative writing document titled "${title}".
+
+Evaluate it across these six categories and provide a score from 1-10 for each, plus a one-sentence summary for each category. Also identify the overall tone and give 3 specific improvement suggestions.
+
+Categories:
+1. Grammar - spelling, punctuation, sentence structure errors
+2. Style - prose quality, word choice, voice clarity, variety
+3. Readability - sentence length variation, vocabulary complexity, flow
+4. Pacing - scene rhythm, tension, balance of action/description/dialogue
+5. Consistency - character names, facts, tense consistency, repetition issues
+6. Dialogue - naturalness, distinct voices, proper formatting, tag variety
+
+Respond with ONLY valid JSON in this exact format:
+{
+  "tone": "one short phrase describing the dominant tone",
+  "grammar": { "score": 8, "note": "One sentence about grammar quality" },
+  "style": { "score": 7, "note": "One sentence about style quality" },
+  "readability": { "score": 7, "note": "One sentence about readability" },
+  "pacing": { "score": 6, "note": "One sentence about pacing" },
+  "consistency": { "score": 8, "note": "One sentence about consistency" },
+  "dialogue": { "score": 7, "note": "One sentence about dialogue" },
+  "suggestions": [
+    "Specific suggestion 1",
+    "Specific suggestion 2",
+    "Specific suggestion 3"
+  ]
+}
+
+Document:
+${plainText}`;
+}
+
+function _showAiResults(result, reading) {
   const toneEl = document.getElementById('ai-tone-value');
   const listEl = document.getElementById('ai-suggestions-list');
   const wrap   = document.getElementById('ai-analysis-results');
 
-  if (toneEl)  toneEl.textContent = tone || '—';
+  if (toneEl)  toneEl.textContent = result.tone || '\u2014';
   if (listEl) {
-    listEl.innerHTML = (suggestions || []).map(s =>
+    listEl.innerHTML = (result.suggestions || []).map(s =>
       `<div class="ai-suggestion">${_esc(s)}</div>`
     ).join('');
   }
   wrap?.classList.remove('hidden');
+
+  // Populate category scores and hints from AI results
+  EDITING_CATS.forEach(cat => {
+    const scoreEl = document.querySelector(`[data-cat-score="${cat.id}"]`);
+    const hintEl  = document.querySelector(`[data-cat-hint="${cat.id}"]`);
+
+    if (cat.id === 'readability') {
+      // Keep the local Flesch-Kincaid score for readability
+      if (scoreEl && reading) scoreEl.textContent = `${reading.score}`;
+      // But update hint with AI note if available
+      if (hintEl && result.readability?.note) hintEl.textContent = result.readability.note;
+      return;
+    }
+
+    const catData = result[cat.id];
+    if (catData && typeof catData === 'object') {
+      if (scoreEl) scoreEl.textContent = `${catData.score}/10`;
+      if (hintEl && catData.note) hintEl.textContent = catData.note;
+    } else {
+      if (scoreEl) scoreEl.textContent = '\u2014';
+    }
+  });
 }
 
 function _esc(s) {
@@ -549,10 +659,9 @@ async function _autoSynopsis() {
   btn.textContent = '...';
 
   try {
-    const excerpt = text.slice(0, 3000);
     const result = await generateText(
       "You are a writing assistant. Write a brief 1-2 sentence synopsis of the scene. Be concise and capture the key events and emotional beats. Return ONLY the synopsis text, no labels or prefixes.",
-      `Scene title: "${_doc.title || 'Untitled'}"\n\n${excerpt}`
+      `Scene title: "${_doc.title || 'Untitled'}"\n\n${text}`
     );
     const synopsis = result.trim();
     if (synopsis) {
@@ -597,7 +706,7 @@ function _setText(id, text) {
 }
 
 function _fmtDate(ts) {
-  if (!ts) return '—';
+  if (!ts) return '\u2014';
   return new Date(ts).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
   });

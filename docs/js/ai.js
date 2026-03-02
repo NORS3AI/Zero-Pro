@@ -1,132 +1,23 @@
-// ai.js — Multi-provider AI writing assistant sidebar
-// Providers: ChatGPT Free (Pollinations), Claude (Anthropic), ChatGPT (OpenAI), Gemini (Google)
+// ai.js — Free AI writing assistant sidebar (powered by Pollinations.ai)
 
-// ─── Provider Registry ────────────────────────────────────────────────────────
-// Each provider implements the same skeleton:
-//   headers(key)           → request headers object
-//   endpoint(key, model)   → URL string
-//   buildBody(msgs, sys, model) → JSON string body
-//   extractChunk(parsed)   → string | null
-//   isDone(parsed)         → boolean
-//   free (optional)        → true if no API key is required
+// ─── Provider ────────────────────────────────────────────────────────────────
 
-const PROVIDERS = {
-  'chatgpt-free': {
-    id:           'chatgpt-free',
-    name:         'ChatGPT (Free)',
-    model:        'openai',
-    free:         true,
-    keyStorage:   null,
-    keyPlaceholder: '',
-    keyHintUrl:   'https://pollinations.ai',
-    keyHintLabel: 'Pollinations AI',
-    keyHintNote:  'Free, no sign-up required',
+const PROVIDER = {
+  name:     'ChatGPT (Free)',
+  model:    'openai',
+  endpoint: 'https://text.pollinations.ai/openai',
 
-    headers: _key => ({ 'content-type': 'application/json' }),
+  headers: () => ({ 'content-type': 'application/json' }),
 
-    endpoint: (_key, _model) =>
-      'https://text.pollinations.ai/openai',
+  buildBody: (messages, system, model) => JSON.stringify({
+    model, stream: true,
+    messages: [{ role: 'system', content: system }, ...messages],
+  }),
 
-    buildBody: (messages, system, model) => JSON.stringify({
-      model, stream: true,
-      messages: [{ role: 'system', content: system }, ...messages],
-    }),
+  extractChunk: ev => ev.choices?.[0]?.delta?.content ?? null,
 
-    extractChunk: ev => ev.choices?.[0]?.delta?.content ?? null,
-
-    isDone: ev => ev.choices?.[0]?.finish_reason === 'stop',
-  },
-
-  claude: {
-    id:           'claude',
-    name:         'Claude',
-    model:        'claude-opus-4-6',
-    keyStorage:   'zeropro_api_key_claude',
-    keyPlaceholder: 'sk-ant-api03-…',
-    keyHintUrl:   'https://console.anthropic.com/settings/keys',
-    keyHintLabel: 'Anthropic Console',
-    keyHintNote:  'Sign in → Settings → API Keys → Create Key',
-
-    headers: key => ({
-      'x-api-key':          key,
-      'anthropic-version':  '2023-06-01',
-      'content-type':       'application/json',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    }),
-
-    endpoint: (_key, _model) => 'https://api.anthropic.com/v1/messages',
-
-    buildBody: (messages, system, model) => JSON.stringify({
-      model, max_tokens: 1024, stream: true, system, messages,
-    }),
-
-    extractChunk: ev =>
-      ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta'
-        ? ev.delta.text
-        : null,
-
-    isDone: ev => ev.type === 'message_stop',
-  },
-
-  openai: {
-    id:           'openai',
-    name:         'ChatGPT',
-    model:        'gpt-4o',
-    keyStorage:   'zeropro_api_key_openai',
-    keyPlaceholder: 'sk-proj-…',
-    keyHintUrl:   'https://platform.openai.com/api-keys',
-    keyHintLabel: 'OpenAI Platform',
-    keyHintNote:  'Sign in → API keys → Create new secret key',
-
-    headers: key => ({
-      'Authorization': `Bearer ${key}`,
-      'content-type':  'application/json',
-    }),
-
-    endpoint: (_key, _model) => 'https://api.openai.com/v1/chat/completions',
-
-    buildBody: (messages, system, model) => JSON.stringify({
-      model, stream: true,
-      messages: [{ role: 'system', content: system }, ...messages],
-    }),
-
-    extractChunk: ev => ev.choices?.[0]?.delta?.content ?? null,
-
-    isDone: ev => ev.choices?.[0]?.finish_reason === 'stop',
-  },
-
-  gemini: {
-    id:           'gemini',
-    name:         'Gemini',
-    model:        'gemini-2.0-flash',
-    keyStorage:   'zeropro_api_key_gemini',
-    keyPlaceholder: 'AIzaSy…',
-    keyHintUrl:   'https://aistudio.google.com/app/apikey',
-    keyHintLabel: 'Google AI Studio',
-    keyHintNote:  'Sign in → Get API key → Create API key',
-
-    headers: _key => ({ 'content-type': 'application/json' }),
-
-    endpoint: (key, model) =>
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${key}&alt=sse`,
-
-    buildBody: (messages, system, _model) => JSON.stringify({
-      system_instruction: { parts: [{ text: system }] },
-      contents: messages.map(m => ({
-        role:  m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }],
-      })),
-    }),
-
-    extractChunk: ev =>
-      ev.candidates?.[0]?.content?.parts?.[0]?.text ?? null,
-
-    isDone: ev => ev.candidates?.[0]?.finishReason === 'STOP',
-  },
+  isDone: ev => ev.choices?.[0]?.finish_reason === 'stop',
 };
-
-const PROVIDER_IDS  = Object.keys(PROVIDERS);
-const STORAGE_PROVIDER = 'zeropro_ai_provider';
 
 // ─── Prompt Templates ─────────────────────────────────────────────────────────
 
@@ -166,8 +57,6 @@ const TEMPLATES = [
 
 let _getProject    = null;
 let _getCurrentDoc = null;
-let _activeId      = localStorage.getItem(STORAGE_PROVIDER) || 'chatgpt-free';
-let _keys          = {};   // { claude: 'sk-…', openai: 'sk-…', gemini: 'AIza…' }
 let _isStreaming   = false;
 let _lastResponse  = '';
 let _onChunk       = () => {};
@@ -181,16 +70,6 @@ let _onChunk       = () => {};
 export function initAI({ getProject, getCurrentDoc }) {
   _getProject    = getProject;
   _getCurrentDoc = getCurrentDoc;
-
-  // Load all stored keys (skip free providers — they need no key)
-  PROVIDER_IDS.forEach(id => {
-    if (PROVIDERS[id].free) return;
-    _keys[id] = localStorage.getItem(PROVIDERS[id].keyStorage) || null;
-  });
-
-  // Ensure saved provider ID is still valid
-  if (!PROVIDERS[_activeId]) _activeId = 'chatgpt-free';
-
   _buildUI();
 }
 
@@ -210,53 +89,32 @@ export function toggleAIPanel() {
 }
 
 /**
- * One-shot text generation using the active provider (non-streaming).
+ * One-shot text generation (non-streaming).
  * Returns the generated text string, or throws on error.
  * @param {string} systemPrompt — system-level instruction
  * @param {string} userPrompt   — user message
  * @returns {Promise<string>}
  */
 export async function generateText(systemPrompt, userPrompt) {
-  const provider = PROVIDERS[_activeId];
-  const key = _keys[_activeId];
-  if (!provider.free && !key) throw new Error(`No API key set for ${provider.name}. Open the AI panel to add one.`);
-
-  // Build a non-streaming request body
   const messages = [{ role: 'user', content: userPrompt }];
-  const bodyStr = provider.buildBody(messages, systemPrompt, provider.model);
-  const body = JSON.parse(bodyStr);
-  body.stream = false;              // force non-streaming
-  if (body.max_tokens == null) body.max_tokens = 512;
+  const bodyStr  = PROVIDER.buildBody(messages, systemPrompt, PROVIDER.model);
+  const body     = JSON.parse(bodyStr);
+  body.stream     = false;
+  if (body.max_tokens == null) body.max_tokens = 1024;
 
-  // Gemini uses a different endpoint for non-streaming
-  let url = provider.endpoint(key, provider.model);
-  if (_activeId === 'gemini') {
-    url = url.replace(':streamGenerateContent', ':generateContent').replace('&alt=sse', '');
-  }
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: provider.headers(key),
-    body: JSON.stringify(body),
+  const res = await fetch(PROVIDER.endpoint, {
+    method:  'POST',
+    headers: PROVIDER.headers(),
+    body:    JSON.stringify(body),
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    const msg = err?.error?.message ?? `API error ${res.status}`;
-    throw new Error(msg);
+    throw new Error(err?.error?.message ?? `API error ${res.status}`);
   }
 
   const data = await res.json();
-
-  // Extract text from provider-specific response shape
-  if (_activeId === 'claude') {
-    return data.content?.[0]?.text ?? '';
-  } else if (_activeId === 'openai' || _activeId === 'chatgpt-free') {
-    return data.choices?.[0]?.message?.content ?? '';
-  } else if (_activeId === 'gemini') {
-    return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-  }
-  return '';
+  return data.choices?.[0]?.message?.content ?? '';
 }
 
 // ─── UI Construction ──────────────────────────────────────────────────────────
@@ -269,7 +127,7 @@ function _buildUI() {
     <div id="ai-header">
       <span class="ai-title">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm.5 12.5h-1v-5h1v5zm0-6.5h-1V4.5h1V6z"/></svg>
-        Ask <span id="ai-provider-name">${PROVIDERS[_activeId].name}</span>
+        Ask ${PROVIDER.name}
       </span>
       <button class="ai-close-btn" id="btn-ai-close" title="Close" aria-label="Close AI panel">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854z"/></svg>
@@ -277,12 +135,6 @@ function _buildUI() {
     </div>
 
     <div id="ai-body">
-
-      <!-- No-key banner -->
-      <div id="ai-key-banner" class="ai-key-banner hidden">
-        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8zm4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.793.793 1.025-1.025-1.5-1.5H7.163a.5.5 0 0 1-.45-.285A3 3 0 0 0 4 5z"/><path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>
-        <span id="ai-key-banner-text">Add your API key below to start.</span>
-      </div>
 
       <!-- Quick-prompt template chips -->
       <div class="ai-section-label">Quick prompts</div>
@@ -335,90 +187,10 @@ function _buildUI() {
         </div>
       </div>
 
-      <!-- Settings -->
-      <details id="ai-settings" class="ai-settings">
-        <summary class="ai-settings-toggle">Settings</summary>
-        <div class="ai-settings-body">
-
-          <div class="ai-section-label">AI Provider</div>
-          <div class="ai-provider-selector" role="group" aria-label="Choose AI provider">
-            ${PROVIDER_IDS.map(id => `
-              <button class="ai-provider-btn${id === _activeId ? ' active' : ''}"
-                      data-provider="${id}"
-                      aria-pressed="${id === _activeId ? 'true' : 'false'}">
-                ${PROVIDERS[id].name}
-              </button>`).join('')}
-          </div>
-
-          <div id="ai-key-section"></div>
-
-          <p class="ai-settings-warn">
-            Keys are stored in this browser's localStorage. Do not use on shared or public computers.
-          </p>
-
-        </div>
-      </details>
-
     </div><!-- /ai-body -->
   `;
 
-  _renderKeySection();
-  _updateBanner();
   _bindEvents();
-
-  // Auto-open Settings section when no key is saved yet (skip if free provider is active)
-  const activeIsFree = PROVIDERS[_activeId]?.free;
-  const hasAnyKey = PROVIDER_IDS.some(id => PROVIDERS[id].free || !!_keys[id]);
-  if (!activeIsFree && !hasAnyKey) {
-    const details = document.getElementById('ai-settings');
-    if (details) details.open = true;
-  }
-}
-
-function _renderKeySection() {
-  const container = document.getElementById('ai-key-section');
-  if (!container) return;
-
-  const provider = PROVIDERS[_activeId];
-
-  // Free providers need no API key — show a simple status message
-  if (provider.free) {
-    container.innerHTML = `
-      <div id="ai-key-status" class="ai-key-status ok">
-        Ready to use — no API key needed
-      </div>
-      <p class="ai-settings-hint">
-        Powered by
-        <a href="${provider.keyHintUrl}" target="_blank" rel="noopener">${provider.keyHintLabel}</a>
-        <br><span class="ai-settings-hint-note">${provider.keyHintNote}</span>
-      </p>
-    `;
-    return;
-  }
-
-  const hasKey = !!_keys[_activeId];
-
-  container.innerHTML = `
-    <div id="ai-key-status" class="ai-key-status${hasKey ? ' ok' : ''}">
-      ${hasKey ? `${provider.name} key saved` : `No ${provider.name} key set`}
-    </div>
-    <input type="password" id="ai-key-input" class="ai-key-input"
-           placeholder="${provider.keyPlaceholder}"
-           autocomplete="off"
-           aria-label="${provider.name} API key">
-    <div class="ai-settings-actions">
-      <button class="ai-action-btn primary" id="btn-ai-save-key">Save Key</button>
-      <button class="ai-action-btn"         id="btn-ai-test-key">Test Connection</button>
-      <button class="ai-action-btn danger"  id="btn-ai-clear-key">Clear Key</button>
-    </div>
-    <p class="ai-settings-hint">
-      Get your key at
-      <a href="${provider.keyHintUrl}" target="_blank" rel="noopener">${provider.keyHintLabel}</a>
-      <br><span class="ai-settings-hint-note">${provider.keyHintNote}</span>
-    </p>
-  `;
-
-  _bindKeyEvents();
 }
 
 // ─── Event Binding ────────────────────────────────────────────────────────────
@@ -453,12 +225,6 @@ function _bindEvents() {
   });
   document.getElementById('btn-ai-copy')?.addEventListener('click', _copyResponse);
 
-  // Provider selector (delegated on the panel body)
-  document.getElementById('ai-body')?.addEventListener('click', e => {
-    const btn = e.target.closest('.ai-provider-btn');
-    if (btn) _switchProvider(btn.dataset.provider);
-  });
-
   // Refresh context when panel opens
   const workspace = document.getElementById('workspace');
   if (workspace) {
@@ -466,38 +232,6 @@ function _bindEvents() {
       if (workspace.classList.contains('ai-open')) _refreshContextLabel();
     }).observe(workspace, { attributes: true, attributeFilter: ['class'] });
   }
-}
-
-function _bindKeyEvents() {
-  document.getElementById('btn-ai-save-key')?.addEventListener('click', _handleSaveKey);
-  document.getElementById('btn-ai-test-key')?.addEventListener('click', _handleTestConnection);
-  document.getElementById('btn-ai-clear-key')?.addEventListener('click', _handleClearKey);
-  document.getElementById('ai-key-input')?.addEventListener('keydown', e => {
-    if (e.key === 'Enter') _handleSaveKey();
-  });
-}
-
-// ─── Provider Switching ───────────────────────────────────────────────────────
-
-function _switchProvider(id) {
-  if (!PROVIDERS[id] || id === _activeId) return;
-
-  _activeId = id;
-  localStorage.setItem(STORAGE_PROVIDER, id);
-
-  // Update header name
-  const nameEl = document.getElementById('ai-provider-name');
-  if (nameEl) nameEl.textContent = PROVIDERS[id].name;
-
-  // Update provider button states
-  document.querySelectorAll('.ai-provider-btn').forEach(btn => {
-    const match = btn.dataset.provider === id;
-    btn.classList.toggle('active', match);
-    btn.setAttribute('aria-pressed', match ? 'true' : 'false');
-  });
-
-  _renderKeySection();
-  _updateBanner();
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -516,7 +250,7 @@ function _buildContext() {
       const tmp  = document.createElement('div');
       tmp.innerHTML = doc.content;
       const text = tmp.innerText || tmp.textContent || '';
-      excerpt = text.length > 3000 ? text.slice(0, 3000) + '…' : text;
+      excerpt = text.length > 3000 ? text.slice(0, 3000) + "\u2026" : text;
     }
   }
 
@@ -575,110 +309,6 @@ function _updateTokenEstimate() {
   if (el) el.textContent = prompt ? `~${tokens.toLocaleString()} tokens` : '';
 }
 
-// ─── API Key Management ───────────────────────────────────────────────────────
-
-function _updateBanner() {
-  const banner  = document.getElementById('ai-key-banner');
-  const textEl  = document.getElementById('ai-key-banner-text');
-  const provider = PROVIDERS[_activeId];
-  const ready   = provider.free || !!_keys[_activeId];
-
-  banner?.classList.toggle('hidden', ready);
-  if (textEl && !ready) {
-    textEl.textContent = `Add your ${provider.name} API key in Settings to start.`;
-  }
-}
-
-function _handleSaveKey() {
-  const input = document.getElementById('ai-key-input');
-  const key   = input?.value.trim();
-  if (!key) return;
-
-  const status = document.getElementById('ai-key-status');
-
-  // Basic format check per provider
-  const fmtOk = _quickFormatCheck(_activeId, key);
-  if (!fmtOk) {
-    if (status) { status.textContent = `That doesn't look like a ${PROVIDERS[_activeId].name} key. Check the format and try again.`; status.className = 'ai-key-status error'; }
-    return;
-  }
-
-  // Save immediately — no network call
-  _keys[_activeId] = key;
-  localStorage.setItem(PROVIDERS[_activeId].keyStorage, key);
-  if (input) input.value = '';
-  if (status) { status.textContent = `${PROVIDERS[_activeId].name} key saved`; status.className = 'ai-key-status ok'; }
-  _updateBanner();
-}
-
-/** Lightweight format check — no API call. */
-function _quickFormatCheck(providerId, key) {
-  if (key.length < 10) return false;
-  if (providerId === 'claude')  return key.startsWith('sk-ant-');
-  if (providerId === 'openai')  return key.startsWith('sk-');
-  if (providerId === 'gemini')  return key.startsWith('AIza');
-  return true;  // unknown provider — accept anything
-}
-
-function _handleClearKey() {
-  _keys[_activeId] = null;
-  localStorage.removeItem(PROVIDERS[_activeId].keyStorage);
-  _renderKeySection();
-  _updateBanner();
-}
-
-async function _handleTestConnection() {
-  const key = _keys[_activeId];
-  if (!key) {
-    const status = document.getElementById('ai-key-status');
-    if (status) { status.textContent = 'Save a key first, then test.'; status.className = 'ai-key-status error'; }
-    return;
-  }
-
-  const status = document.getElementById('ai-key-status');
-  const btn    = document.getElementById('btn-ai-test-key');
-  if (status) { status.textContent = 'Testing connection…'; status.className = 'ai-key-status'; }
-  if (btn) btn.disabled = true;
-
-  const provider = PROVIDERS[_activeId];
-  try {
-    const res = await fetch(provider.endpoint(key, provider.model), {
-      method:  'POST',
-      headers: provider.headers(key),
-      body:    provider.buildBody(
-        [{ role: 'user', content: 'Hello' }],
-        'Reply with just the word OK.',
-        provider.model
-      ),
-    });
-    res.body?.cancel();
-
-    if (res.ok) {
-      if (status) { status.textContent = `Connected to ${provider.name} successfully!`; status.className = 'ai-key-status ok'; }
-    } else {
-      const err = await res.json().catch(() => null);
-      const msg = err?.error?.message || `HTTP ${res.status}`;
-      if (res.status === 401 || res.status === 403) {
-        if (status) { status.textContent = `Authentication failed — double-check your ${provider.name} key. (${msg})`; status.className = 'ai-key-status error'; }
-      } else if (res.status === 429) {
-        if (status) { status.textContent = "Rate limited — your key is valid but you've hit the usage limit. Try again in a moment."; status.className = 'ai-key-status error'; }
-      } else {
-        if (status) { status.textContent = `API error: ${msg}`; status.className = 'ai-key-status error'; }
-      }
-    }
-  } catch (e) {
-    // fetch itself failed — typically CORS or network
-    if (status) {
-      status.innerHTML = `Network error — your browser may be blocking the request. ` +
-        `Check that you're online and try again. ` +
-        `<span class="ai-settings-hint-note">(${e.message})</span>`;
-      status.className = 'ai-key-status error';
-    }
-  } finally {
-    if (btn) btn.disabled = false;
-  }
-}
-
 // ─── Send & Stream ────────────────────────────────────────────────────────────
 
 async function _handleSend() {
@@ -687,26 +317,17 @@ async function _handleSend() {
   const prompt = document.getElementById('ai-prompt')?.value.trim();
   if (!prompt) return;
 
-  const provider = PROVIDERS[_activeId];
-  const key      = _keys[_activeId];
-
-  if (!provider.free && !key) {
-    document.getElementById('ai-settings')?.setAttribute('open', '');
-    document.getElementById('ai-key-input')?.focus();
-    return;
-  }
-  const ctx      = _buildContext();
-
+  const ctx = _buildContext();
   _startStreaming();
 
   try {
-    const res = await fetch(provider.endpoint(key, provider.model), {
+    const res = await fetch(PROVIDER.endpoint, {
       method:  'POST',
-      headers: provider.headers(key),
-      body:    provider.buildBody(
+      headers: PROVIDER.headers(),
+      body:    PROVIDER.buildBody(
         [{ role: 'user', content: _buildUserMessage(prompt, ctx) }],
         _buildSystemPrompt(ctx),
-        provider.model
+        PROVIDER.model
       ),
     });
 
@@ -717,7 +338,7 @@ async function _handleSend() {
       return;
     }
 
-    await _streamSSE(res.body, provider);
+    await _streamSSE(res.body);
     _stopStreaming();
   } catch (e) {
     _showError(e.message);
@@ -725,7 +346,7 @@ async function _handleSend() {
   }
 }
 
-async function _streamSSE(body, provider) {
+async function _streamSSE(body) {
   const reader  = body.getReader();
   const decoder = new TextDecoder();
   let   buffer  = '';
@@ -745,9 +366,9 @@ async function _streamSSE(body, provider) {
         if (json === '[DONE]') return;
         try {
           const ev   = JSON.parse(json);
-          const text = provider.extractChunk(ev);
+          const text = PROVIDER.extractChunk(ev);
           if (text) _onChunk(text);
-          if (provider.isDone(ev)) return;
+          if (PROVIDER.isDone(ev)) return;
         } catch { /* skip malformed */ }
       }
     }
@@ -766,7 +387,7 @@ function _startStreaming() {
 
   section?.classList.remove('hidden');
   if (responseEl) { responseEl.textContent = ''; responseEl.className = 'ai-response streaming'; }
-  if (sendBtn)    { sendBtn.disabled = true; sendBtn.textContent = 'Generating…'; }
+  if (sendBtn)    { sendBtn.disabled = true; sendBtn.textContent = 'Generating\u2026'; }
 
   _onChunk = text => {
     _lastResponse += text;

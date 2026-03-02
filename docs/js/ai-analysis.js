@@ -1,5 +1,5 @@
-// ai-analysis.js — AI Grammar/Style analysis + Flesch-Kincaid readability (Phase 10)
-// Readability is calculated locally (no API). AI analysis uses the user's Claude key.
+// ai-analysis.js — Flesch-Kincaid readability (calculated locally, no API)
+// Phase 10: readability card in inspector editing tab
 
 // ─── Readability ──────────────────────────────────────────────────────────────
 
@@ -41,17 +41,33 @@ export function analyzeReadability(text) {
  * Return a one-line description of reading ease for the inspector.
  */
 export function readabilityLabel(score) {
-  if (score >= 90) return 'Very Easy — 5th grade level';
-  if (score >= 80) return 'Easy — 6th grade level';
-  if (score >= 70) return 'Fairly Easy — 7th grade level';
-  if (score >= 60) return 'Standard — 8th–9th grade level';
-  if (score >= 50) return 'Fairly Difficult — High school level';
-  if (score >= 30) return 'Difficult — College level';
-  return 'Very Difficult — Professional / academic';
+  if (score >= 90) return 'Very Easy \u2014 5th grade level';
+  if (score >= 80) return 'Easy \u2014 6th grade level';
+  if (score >= 70) return 'Fairly Easy \u2014 7th grade level';
+  if (score >= 60) return 'Standard \u2014 8th\u20139th grade level';
+  if (score >= 50) return 'Fairly Difficult \u2014 High school level';
+  if (score >= 30) return 'Difficult \u2014 College level';
+  return 'Very Difficult \u2014 Professional / academic';
+}
+
+/**
+ * Full readability reference scale for the popup.
+ * Returns an array of { range, grade, color, desc } objects.
+ */
+export function readabilityScale() {
+  return [
+    { range: '90\u2013100', grade: 'Very Easy',        color: '#5f9e6e', desc: '5th grade \u2014 easily understood by an average 11-year-old' },
+    { range: '80\u201389',  grade: 'Easy',             color: '#7bb369', desc: '6th grade \u2014 conversational English, simple prose' },
+    { range: '70\u201379',  grade: 'Fairly Easy',      color: '#98c379', desc: '7th grade \u2014 accessible to most readers' },
+    { range: '60\u201369',  grade: 'Standard',         color: '#e5c07b', desc: '8th\u20139th grade \u2014 plain English, most fiction' },
+    { range: '50\u201359',  grade: 'Fairly Difficult', color: '#d4956a', desc: 'High school \u2014 literary fiction, longer sentences' },
+    { range: '30\u201349',  grade: 'Difficult',        color: '#e06c75', desc: 'College \u2014 complex prose, academic writing' },
+    { range: '0\u201329',   grade: 'Very Difficult',   color: '#be5046', desc: 'Professional \u2014 dense academic or legal text' },
+  ];
 }
 
 function _emptyResult() {
-  return { score: 0, grade: '—', color: '#888', sentences: 0, words: 0, avgSentLen: 0, avgSyllables: 0 };
+  return { score: 0, grade: '\u2014', color: '#888', sentences: 0, words: 0, avgSentLen: 0, avgSyllables: 0 };
 }
 
 function _gradeFromScore(score) {
@@ -86,71 +102,6 @@ function _countSyllables(word) {
   if (w.endsWith('e')) n = Math.max(1, n - 1);
   if (w.endsWith('le') && w.length > 2 && !/[aeiouy]/.test(w[w.length - 3])) n++;
   return Math.max(1, n);
-}
-
-// ─── AI Analysis ──────────────────────────────────────────────────────────────
-
-/**
- * Run AI tone + style analysis on a document using the Claude API.
- * Returns a promise resolving to { tone: string, suggestions: string[] }.
- *
- * @param {string} text         — plain text content of the document
- * @param {string} [docTitle]   — document title (for context)
- * @returns {Promise<{ tone: string, suggestions: string[] }>}
- */
-export async function analyzeWithAI(text, docTitle = '') {
-  const key = localStorage.getItem('zeropro_api_key_claude') ?? '';
-  if (!key) throw new Error('No Claude API key found. Add it in the AI panel.');
-
-  const excerpt = text.slice(0, 3000); // keep prompt short
-
-  const prompt = `Analyze the following passage from a creative writing document titled "${docTitle || 'untitled'}".
-
-Respond with ONLY valid JSON in this exact format:
-{
-  "tone": "one short phrase describing the dominant tone (e.g. tense, melancholic, hopeful, comedic, dark)",
-  "suggestions": [
-    "Suggestion 1 (one sentence)",
-    "Suggestion 2 (one sentence)",
-    "Suggestion 3 (one sentence)"
-  ]
-}
-
-Passage:
-${excerpt}`;
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type':         'application/json',
-      'x-api-key':            key,
-      'anthropic-version':    '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model:      'claude-haiku-4-5-20251001',
-      max_tokens: 400,
-      messages:   [{ role: 'user', content: prompt }],
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message ?? `API error ${res.status}`);
-  }
-
-  const data = await res.json();
-  const raw  = data.content?.[0]?.text ?? '';
-
-  try {
-    // Extract JSON from the response
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('No JSON in response');
-    return JSON.parse(match[0]);
-  } catch {
-    // Fallback: return the raw text as a single suggestion
-    return { tone: 'unknown', suggestions: [raw.slice(0, 200)] };
-  }
 }
 
 /**

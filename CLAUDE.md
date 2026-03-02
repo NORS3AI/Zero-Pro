@@ -6,7 +6,7 @@ Zero Pro is a browser-based writing application hosted on GitHub Pages. It is in
 
 The core philosophy: a writer should be able to open a URL and immediately start writing, organizing, and revising their work.
 
-**Current version: v1.14** — Phases 1–13 complete, plus ongoing polish.
+**Current version: v1.15** — Phases 1–13 complete, plus ongoing polish.
 
 ## Tech Stack
 
