@@ -15,6 +15,7 @@ const PATCHES = [
       { type: 'feat', text: 'AI Settings auto-open — the AI panel expands the Settings section automatically when no API key is saved' },
       { type: 'feat', text: 'API key save is now instant — keys are saved immediately with a format check, no network call required' },
       { type: 'feat', text: 'Test Connection button — verify your API key works with clear error messages (auth, rate limit, network)' },
+      { type: 'feat', text: 'ChatGPT (Free) — a new default AI provider that works instantly with no API key or sign-up, powered by Pollinations.ai' },
       { type: 'fix', text: 'Editor now fills the full window height — fixed a CSS specificity bug where timeline and PDF panes stole vertical space' },
       { type: 'fix', text: 'API key validation no longer falsely reports "invalid key" when the browser blocks the request (CORS)' },
     ],
