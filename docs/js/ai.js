@@ -100,7 +100,7 @@ export async function generateText(systemPrompt, userPrompt) {
   const bodyStr  = PROVIDER.buildBody(messages, systemPrompt, PROVIDER.model);
   const body     = JSON.parse(bodyStr);
   body.stream     = false;
-  if (body.max_tokens == null) body.max_tokens = 1024;
+  if (body.max_tokens == null) body.max_tokens = 2048;
 
   const res = await fetch(PROVIDER.endpoint, {
     method:  'POST',

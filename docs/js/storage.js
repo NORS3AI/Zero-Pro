@@ -60,21 +60,24 @@ export function loadProject() {
   }
 }
 
-/** Save the project to localStorage immediately */
+/** Save the project to localStorage immediately (async-friendly: yields to the event loop) */
 export function saveProject(project) {
   project.updatedAt = Date.now();
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
-  } catch (e) {
-    console.error('Save failed — localStorage may be full:', e);
-  }
+  // Yield to the event loop so the browser can process paint/input first
+  setTimeout(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+    } catch (e) {
+      console.error('Save failed — localStorage may be full:', e);
+    }
+  }, 0);
 }
 
-/** Debounced autosave (1.5 s after last call) */
+/** Debounced autosave (2 s after last call) */
 let _saveTimer = null;
 export function saveProjectDebounced(project) {
   clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => saveProject(project), 1500);
+  _saveTimer = setTimeout(() => saveProject(project), 2000);
 }
 
 /** Find a document by ID */

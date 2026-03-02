@@ -174,9 +174,12 @@ export function toggleFocusMode() {
 
 // ─── Internal Handlers ────────────────────────────────────────────────────────
 
+let _inputTimer = null;
 function _handleInput() {
   _updateWritingPlaceholder();
-  saveCurrentContent();
+  // Debounce content saves to avoid blocking the main thread on large documents
+  clearTimeout(_inputTimer);
+  _inputTimer = setTimeout(() => saveCurrentContent(), 300);
 }
 
 function _updateWritingPlaceholder() {

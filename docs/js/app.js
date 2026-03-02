@@ -317,6 +317,7 @@ function init() {
   renderBinder(state.project, null);
   switchView('corkboard');
 
+  _initResizableHandles();
   bindToolbar();
   updateProjectTitle();
 
@@ -976,6 +977,69 @@ async function _handleRestoreProject(file) {
       showToast('Project restored');
     }
   );
+}
+
+// ─── Resizable Sidebar Handles ────────────────────────────────────────────────
+
+function _initResizableHandles() {
+  const ws = document.getElementById('workspace');
+  if (!ws) return;
+
+  // Binder: drag handle on the right edge
+  _addResizeHandle(document.getElementById('binder'), 'right', (delta) => {
+    const cur = parseInt(getComputedStyle(ws).getPropertyValue('--binder-w')) || 240;
+    const next = Math.max(160, Math.min(500, cur + delta));
+    ws.style.setProperty('--binder-w', next + 'px');
+  });
+
+  // Inspector: drag handle on the left edge
+  _addResizeHandle(document.getElementById('inspector'), 'left', (delta) => {
+    const cur = parseInt(getComputedStyle(ws).getPropertyValue('--inspector-w')) || 240;
+    const next = Math.max(160, Math.min(500, cur - delta));
+    ws.style.setProperty('--inspector-w', next + 'px');
+  });
+}
+
+function _addResizeHandle(panel, side, onResize) {
+  if (!panel) return;
+  const handle = document.createElement('div');
+  handle.className = `resize-handle resize-handle-${side}`;
+  handle.setAttribute('aria-hidden', 'true');
+  panel.appendChild(handle);
+
+  let startX = 0;
+
+  const onMove = (e) => {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const delta = clientX - startX;
+    startX = clientX;
+    onResize(delta);
+  };
+
+  const onUp = () => {
+    handle.classList.remove('active');
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+  };
+
+  const onDown = (e) => {
+    e.preventDefault();
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    handle.classList.add('active');
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove);
+    document.addEventListener('touchend', onUp);
+  };
+
+  handle.addEventListener('mousedown', onDown);
+  handle.addEventListener('touchstart', onDown, { passive: false });
 }
 
 // ─── Start ────────────────────────────────────────────────────────────────────
