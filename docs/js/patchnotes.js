@@ -5,6 +5,18 @@
 
 const PATCHES = [
   {
+    version: 'v1.14',
+    date: 'March 2, 2026',
+    title: 'Editor Polish & AI Quality of Life',
+    changes: [
+      { type: 'feat', text: 'Text alignment buttons — left, centre, right, and justify added to the formatting toolbar' },
+      { type: 'feat', text: 'Auto-Synopsis — click the "Auto" button next to Synopsis in the Inspector to generate a 1-2 sentence summary using AI' },
+      { type: 'feat', text: 'Multi-provider AI setup — Inspector Editing tab now links directly to AI Settings for Claude, ChatGPT, or Gemini key entry' },
+      { type: 'feat', text: 'AI Settings auto-open — the AI panel expands the Settings section automatically when no API key is saved' },
+      { type: 'fix', text: 'Editor now fills the full window height — fixed a CSS specificity bug where timeline and PDF panes stole vertical space' },
+    ],
+  },
+  {
     version: 'v1.13',
     date: 'February 21, 2026',
     title: 'Phase 13 — Focus, Sessions & Smart Editing',
