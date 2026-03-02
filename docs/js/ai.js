@@ -1,5 +1,5 @@
 // ai.js — Multi-provider AI writing assistant sidebar
-// Providers: Claude (Anthropic), ChatGPT (OpenAI), Gemini (Google)
+// Providers: ChatGPT Free (Pollinations), Claude (Anthropic), ChatGPT (OpenAI), Gemini (Google)
 
 // ─── Provider Registry ────────────────────────────────────────────────────────
 // Each provider implements the same skeleton:
@@ -8,8 +8,35 @@
 //   buildBody(msgs, sys, model) → JSON string body
 //   extractChunk(parsed)   → string | null
 //   isDone(parsed)         → boolean
+//   free (optional)        → true if no API key is required
 
 const PROVIDERS = {
+  'chatgpt-free': {
+    id:           'chatgpt-free',
+    name:         'ChatGPT (Free)',
+    model:        'openai',
+    free:         true,
+    keyStorage:   null,
+    keyPlaceholder: '',
+    keyHintUrl:   'https://pollinations.ai',
+    keyHintLabel: 'Pollinations AI',
+    keyHintNote:  'Free, no sign-up required',
+
+    headers: _key => ({ 'content-type': 'application/json' }),
+
+    endpoint: (_key, _model) =>
+      'https://text.pollinations.ai/openai',
+
+    buildBody: (messages, system, model) => JSON.stringify({
+      model, stream: true,
+      messages: [{ role: 'system', content: system }, ...messages],
+    }),
+
+    extractChunk: ev => ev.choices?.[0]?.delta?.content ?? null,
+
+    isDone: ev => ev.choices?.[0]?.finish_reason === 'stop',
+  },
+
   claude: {
     id:           'claude',
     name:         'Claude',
@@ -139,7 +166,7 @@ const TEMPLATES = [
 
 let _getProject    = null;
 let _getCurrentDoc = null;
-let _activeId      = localStorage.getItem(STORAGE_PROVIDER) || 'claude';
+let _activeId      = localStorage.getItem(STORAGE_PROVIDER) || 'chatgpt-free';
 let _keys          = {};   // { claude: 'sk-…', openai: 'sk-…', gemini: 'AIza…' }
 let _isStreaming   = false;
 let _lastResponse  = '';
@@ -155,13 +182,14 @@ export function initAI({ getProject, getCurrentDoc }) {
   _getProject    = getProject;
   _getCurrentDoc = getCurrentDoc;
 
-  // Load all stored keys
+  // Load all stored keys (skip free providers — they need no key)
   PROVIDER_IDS.forEach(id => {
+    if (PROVIDERS[id].free) return;
     _keys[id] = localStorage.getItem(PROVIDERS[id].keyStorage) || null;
   });
 
   // Ensure saved provider ID is still valid
-  if (!PROVIDERS[_activeId]) _activeId = 'claude';
+  if (!PROVIDERS[_activeId]) _activeId = 'chatgpt-free';
 
   _buildUI();
 }
@@ -191,7 +219,7 @@ export function toggleAIPanel() {
 export async function generateText(systemPrompt, userPrompt) {
   const provider = PROVIDERS[_activeId];
   const key = _keys[_activeId];
-  if (!key) throw new Error(`No API key set for ${provider.name}. Open the AI panel to add one.`);
+  if (!provider.free && !key) throw new Error(`No API key set for ${provider.name}. Open the AI panel to add one.`);
 
   // Build a non-streaming request body
   const messages = [{ role: 'user', content: userPrompt }];
@@ -223,7 +251,7 @@ export async function generateText(systemPrompt, userPrompt) {
   // Extract text from provider-specific response shape
   if (_activeId === 'claude') {
     return data.content?.[0]?.text ?? '';
-  } else if (_activeId === 'openai') {
+  } else if (_activeId === 'openai' || _activeId === 'chatgpt-free') {
     return data.choices?.[0]?.message?.content ?? '';
   } else if (_activeId === 'gemini') {
     return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
@@ -338,9 +366,10 @@ function _buildUI() {
   _updateBanner();
   _bindEvents();
 
-  // Auto-open Settings section when no key is saved yet
-  const hasAnyKey = PROVIDER_IDS.some(id => !!_keys[id]);
-  if (!hasAnyKey) {
+  // Auto-open Settings section when no key is saved yet (skip if free provider is active)
+  const activeIsFree = PROVIDERS[_activeId]?.free;
+  const hasAnyKey = PROVIDER_IDS.some(id => PROVIDERS[id].free || !!_keys[id]);
+  if (!activeIsFree && !hasAnyKey) {
     const details = document.getElementById('ai-settings');
     if (details) details.open = true;
   }
@@ -351,7 +380,23 @@ function _renderKeySection() {
   if (!container) return;
 
   const provider = PROVIDERS[_activeId];
-  const hasKey   = !!_keys[_activeId];
+
+  // Free providers need no API key — show a simple status message
+  if (provider.free) {
+    container.innerHTML = `
+      <div id="ai-key-status" class="ai-key-status ok">
+        Ready to use — no API key needed
+      </div>
+      <p class="ai-settings-hint">
+        Powered by
+        <a href="${provider.keyHintUrl}" target="_blank" rel="noopener">${provider.keyHintLabel}</a>
+        <br><span class="ai-settings-hint-note">${provider.keyHintNote}</span>
+      </p>
+    `;
+    return;
+  }
+
+  const hasKey = !!_keys[_activeId];
 
   container.innerHTML = `
     <div id="ai-key-status" class="ai-key-status${hasKey ? ' ok' : ''}">
@@ -535,11 +580,12 @@ function _updateTokenEstimate() {
 function _updateBanner() {
   const banner  = document.getElementById('ai-key-banner');
   const textEl  = document.getElementById('ai-key-banner-text');
-  const hasKey  = !!_keys[_activeId];
+  const provider = PROVIDERS[_activeId];
+  const ready   = provider.free || !!_keys[_activeId];
 
-  banner?.classList.toggle('hidden', hasKey);
-  if (textEl && !hasKey) {
-    textEl.textContent = `Add your ${PROVIDERS[_activeId].name} API key in Settings to start.`;
+  banner?.classList.toggle('hidden', ready);
+  if (textEl && !ready) {
+    textEl.textContent = `Add your ${provider.name} API key in Settings to start.`;
   }
 }
 
@@ -641,14 +687,14 @@ async function _handleSend() {
   const prompt = document.getElementById('ai-prompt')?.value.trim();
   if (!prompt) return;
 
-  if (!_keys[_activeId]) {
+  const provider = PROVIDERS[_activeId];
+  const key      = _keys[_activeId];
+
+  if (!provider.free && !key) {
     document.getElementById('ai-settings')?.setAttribute('open', '');
     document.getElementById('ai-key-input')?.focus();
     return;
   }
-
-  const provider = PROVIDERS[_activeId];
-  const key      = _keys[_activeId];
   const ctx      = _buildContext();
 
   _startStreaming();
