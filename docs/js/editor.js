@@ -204,6 +204,10 @@ function _applyFormat(format) {
     case 'h2': document.execCommand('formatBlock', false, 'H2'); break;
     case 'h3': document.execCommand('formatBlock', false, 'H3'); break;
     case 'p':  document.execCommand('formatBlock', false, 'P'); break;
+    case 'justifyLeft':   document.execCommand('justifyLeft');   break;
+    case 'justifyCenter': document.execCommand('justifyCenter'); break;
+    case 'justifyRight':  document.execCommand('justifyRight');  break;
+    case 'justifyFull':   document.execCommand('justifyFull');   break;
   }
   _updateToolbar();
 }
@@ -215,6 +219,15 @@ function _updateToolbar() {
     const state = fmt === 'strikethrough'
       ? document.queryCommandState('strikeThrough')
       : document.queryCommandState(fmt);
+    btn.classList.toggle('active', state);
+    btn.setAttribute('aria-pressed', state ? 'true' : 'false');
+  });
+
+  // Alignment state
+  ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].forEach(cmd => {
+    const btn = document.querySelector(`[data-format="${cmd}"]`);
+    if (!btn) return;
+    const state = document.queryCommandState(cmd);
     btn.classList.toggle('active', state);
     btn.setAttribute('aria-pressed', state ? 'true' : 'false');
   });

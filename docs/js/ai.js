@@ -181,6 +181,56 @@ export function toggleAIPanel() {
   if (isOpen) _refreshContextLabel();
 }
 
+/**
+ * One-shot text generation using the active provider (non-streaming).
+ * Returns the generated text string, or throws on error.
+ * @param {string} systemPrompt — system-level instruction
+ * @param {string} userPrompt   — user message
+ * @returns {Promise<string>}
+ */
+export async function generateText(systemPrompt, userPrompt) {
+  const provider = PROVIDERS[_activeId];
+  const key = _keys[_activeId];
+  if (!key) throw new Error(`No API key set for ${provider.name}. Open the AI panel to add one.`);
+
+  // Build a non-streaming request body
+  const messages = [{ role: 'user', content: userPrompt }];
+  const bodyStr = provider.buildBody(messages, systemPrompt, provider.model);
+  const body = JSON.parse(bodyStr);
+  body.stream = false;              // force non-streaming
+  if (body.max_tokens == null) body.max_tokens = 512;
+
+  // Gemini uses a different endpoint for non-streaming
+  let url = provider.endpoint(key, provider.model);
+  if (_activeId === 'gemini') {
+    url = url.replace(':streamGenerateContent', ':generateContent').replace('&alt=sse', '');
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: provider.headers(key),
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err?.error?.message ?? `API error ${res.status}`;
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+
+  // Extract text from provider-specific response shape
+  if (_activeId === 'claude') {
+    return data.content?.[0]?.text ?? '';
+  } else if (_activeId === 'openai') {
+    return data.choices?.[0]?.message?.content ?? '';
+  } else if (_activeId === 'gemini') {
+    return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  }
+  return '';
+}
+
 // ─── UI Construction ──────────────────────────────────────────────────────────
 
 function _buildUI() {
@@ -287,6 +337,13 @@ function _buildUI() {
   _renderKeySection();
   _updateBanner();
   _bindEvents();
+
+  // Auto-open Settings section when no key is saved yet
+  const hasAnyKey = PROVIDER_IDS.some(id => !!_keys[id]);
+  if (!hasAnyKey) {
+    const details = document.getElementById('ai-settings');
+    if (details) details.open = true;
+  }
 }
 
 function _renderKeySection() {

@@ -138,6 +138,27 @@
 
 .inspector-select { cursor: pointer; }
 
+/* ─── Auto-generate button (inline with label) ─────────────────────────────── */
+
+.inspector-auto-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.inspector-auto-btn:hover { background: var(--surface-alt); color: var(--accent); }
+.inspector-auto-btn:disabled { opacity: 0.5; cursor: wait; }
+.inspector-auto-btn svg { flex-shrink: 0; }
+
 /* ─── Label row (swatch + select) ────────────────────────────────────────────── */
 
 .inspector-label-row {
@@ -400,10 +421,34 @@
 
 /* Descriptive note */
 .editing-note {
-  margin: 4px 14px 16px;
+  margin: 4px 14px 8px;
   font-size: 11px;
   color: var(--text-muted);
   line-height: 1.6;
   border-top: 1px solid var(--border);
   padding-top: 10px;
 }
+
+/* "Set Up API Key" button in editing tab */
+.editing-setup-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 14px 16px;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.editing-setup-btn:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.editing-setup-btn svg { flex-shrink: 0; }

@@ -4,6 +4,7 @@
 import { updateDocument, saveProject, getProjectWordCount } from './storage.js';
 import { LABEL_COLORS } from './corkboard.js';
 import { analyzeReadability, readabilityLabel, analyzeWithAI, htmlToPlainText } from './ai-analysis.js';
+import { generateText } from './ai.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -93,7 +94,14 @@ function _buildUI() {
         </div>
 
         <div class="inspector-field">
-          <label class="inspector-label" for="insp-synopsis">Synopsis</label>
+          <div class="inspector-label-row" style="justify-content:space-between">
+            <label class="inspector-label" for="insp-synopsis">Synopsis</label>
+            <button id="btn-auto-synopsis" class="inspector-auto-btn"
+                    title="Generate synopsis with AI" aria-label="Auto-generate synopsis">
+              <svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.421 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.421-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.116l.094-.318z"/></svg>
+              <span>Auto</span>
+            </button>
+          </div>
           <textarea id="insp-synopsis" class="inspector-textarea" rows="4"
                     placeholder="A brief summary of this scene…"></textarea>
         </div>
@@ -207,10 +215,10 @@ function _buildUI() {
           <div class="readability-stats" id="readability-stats"></div>
         </div>
 
-        <!-- AI tone + style analysis (Phase 10 — requires Claude API key) -->
+        <!-- AI tone + style analysis (uses whichever provider is active) -->
         <div class="editing-cta-wrap">
           <button class="editing-cta-btn" id="btn-analyze-ai"
-                  title="Analyze tone and style with the Claude API (requires API key in AI panel)">
+                  title="Analyze tone and style with AI (requires an API key)">
             <span id="analyze-ai-label">Analyze Writing (AI)</span>
           </button>
         </div>
@@ -227,9 +235,14 @@ function _buildUI() {
         <div class="editing-cat-list" id="editing-cat-list"></div>
 
         <p class="editing-note">
-          Readability uses Flesch-Kincaid (calculated locally). AI tone &amp; style analysis
-          uses your Claude API key — set it in the AI panel.
+          Readability is calculated locally. AI features (tone analysis, auto-synopsis)
+          need an API key for Claude, ChatGPT, or Gemini.
         </p>
+        <button class="editing-setup-btn" id="btn-open-ai-setup"
+                title="Open the AI panel to set up your API key">
+          <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8zm4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.793.793 1.025-1.025-1.5-1.5H7.163a.5.5 0 0 1-.45-.285A3 3 0 0 0 4 5z"/><path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>
+          Set Up API Key
+        </button>
 
       </div>
     </div>
@@ -317,6 +330,9 @@ function _bindTabs() {
 function _bindFields() {
   // Textarea — save on input (debounced via storage)
   _on('insp-synopsis', 'input', () => _save('synopsis', _val('insp-synopsis')));
+
+  // Auto-generate synopsis with AI
+  document.getElementById('btn-auto-synopsis')?.addEventListener('click', _autoSynopsis);
 
   // Selects — save on change
   _on('insp-status', 'change', () => _save('status', _val('insp-status')));
@@ -463,15 +479,38 @@ function _populateEditingTab() {
       document.getElementById('ai-analysis-results')?.classList.add('hidden');
 
       try {
-        const result = await analyzeWithAI(plain, _doc.title || '');
+        const excerpt = plain.slice(0, 3000);
+        const raw = await generateText(
+          "You are a writing analyst. Respond with ONLY valid JSON.",
+          `Analyze this passage from "${_doc.title || 'untitled'}".\n\nRespond in this exact JSON format:\n{"tone":"one short phrase","suggestions":["Suggestion 1","Suggestion 2","Suggestion 3"]}\n\nPassage:\n${excerpt}`
+        );
+        const match = raw.match(/\{[\s\S]*\}/);
+        const result = match ? JSON.parse(match[0]) : { tone: 'unknown', suggestions: [raw.slice(0, 200)] };
         _showAiResults(result);
       } catch (err) {
-        // showToast is async-imported to avoid circular deps
         import('./ui.js').then(({ showToast }) => showToast(err.message));
       } finally {
         if (lbl) lbl.textContent = 'Analyze Writing (AI)';
         fresh.disabled = false;
       }
+    });
+  }
+
+  // "Set Up API Key" button → open AI panel with Settings expanded
+  const setupBtn = document.getElementById('btn-open-ai-setup');
+  if (setupBtn) {
+    const fresh = setupBtn.cloneNode(true);
+    setupBtn.replaceWith(fresh);
+    fresh.addEventListener('click', () => {
+      import('./ai.js').then(({ toggleAIPanel }) => {
+        const ws = document.getElementById('workspace');
+        if (!ws?.classList.contains('ai-open')) toggleAIPanel();
+        // Open the Settings details
+        setTimeout(() => {
+          const details = document.getElementById('ai-settings');
+          if (details) details.open = true;
+        }, 200);
+      });
     });
   }
 }
@@ -492,6 +531,41 @@ function _showAiResults({ tone, suggestions }) {
 
 function _esc(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ─── Auto-Synopsis ───────────────────────────────────────────────────────────
+
+async function _autoSynopsis() {
+  if (!_doc) return;
+  const btn = document.getElementById('btn-auto-synopsis');
+  const textarea = document.getElementById('insp-synopsis');
+  if (!btn || !textarea) return;
+
+  const text = htmlToPlainText(_doc.content || '');
+  if (!text) { textarea.placeholder = 'Write something first so AI can summarise it.'; return; }
+
+  btn.disabled = true;
+  const orig = btn.innerHTML;
+  btn.textContent = '...';
+
+  try {
+    const excerpt = text.slice(0, 3000);
+    const result = await generateText(
+      "You are a writing assistant. Write a brief 1-2 sentence synopsis of the scene. Be concise and capture the key events and emotional beats. Return ONLY the synopsis text, no labels or prefixes.",
+      `Scene title: "${_doc.title || 'Untitled'}"\n\n${excerpt}`
+    );
+    const synopsis = result.trim();
+    if (synopsis) {
+      textarea.value = synopsis;
+      _save('synopsis', synopsis);
+    }
+  } catch (err) {
+    textarea.placeholder = err.message;
+    setTimeout(() => { textarea.placeholder = "A brief summary of this scene\u2026"; }, 4000);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
