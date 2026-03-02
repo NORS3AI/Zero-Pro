@@ -253,6 +253,25 @@
   cursor: pointer;
 }
 
+/* ─── Number input ────────────────────────────────────────────────────────────── */
+
+.settings-number-input {
+  width: 56px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  font-size: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.settings-number-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 /* ─── Toggle switch ───────────────────────────────────────────────────────────── */
 
 .settings-toggle {

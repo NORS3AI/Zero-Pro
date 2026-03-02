@@ -403,6 +403,7 @@ function _buildEditorSection(settings) {
   const lineHeight = settings.lineHeight ?? 1.8;
   const spellcheck = settings.spellcheck !== false;
   const indent     = settings.indent !== false;
+  const tabSize    = settings.tabSize    ?? 3;
   const spellLang  = settings.spellLang  ?? '';
 
   return `
@@ -465,6 +466,16 @@ function _buildEditorSection(settings) {
                 aria-checked="${indent}">
           <span class="settings-toggle-thumb"></span>
         </button>
+      </div>
+
+      <div class="settings-field settings-field-row">
+        <div class="settings-toggle-label">
+          <span class="settings-label">Tab / Indent Size</span>
+          <span class="settings-sublabel">Spaces inserted per Tab press and new line</span>
+        </div>
+        <input type="number" id="settings-tab-size" class="settings-number-input"
+               min="1" max="8" step="1" value="${tabSize}"
+               aria-label="Tab size in spaces">
       </div>
 
       <div class="settings-field">
@@ -537,6 +548,13 @@ function _bindEditorEvents(settings) {
     btn.setAttribute('aria-checked', on ? 'true' : 'false');
     _saveSetting('indent', on);
     applyEditorSettings(_project?.settings);
+  });
+
+  // Tab size
+  document.getElementById('settings-tab-size')?.addEventListener('change', e => {
+    const val = Math.max(1, Math.min(8, parseInt(e.target.value, 10) || 3));
+    e.target.value = val;
+    _saveSetting('tabSize', val);
   });
 
   // Spellcheck language

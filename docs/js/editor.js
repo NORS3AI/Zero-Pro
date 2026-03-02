@@ -172,13 +172,40 @@ function _handlePaste(e) {
 }
 
 function _handleKeydown(e) {
-  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'b') { e.preventDefault(); _applyFormat('bold'); }
-  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'i') { e.preventDefault(); _applyFormat('italic'); }
-  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'u') { e.preventDefault(); _applyFormat('underline'); }
+  const ctrl = e.ctrlKey || e.metaKey;
+
+  // ── Formatting shortcuts (Word-style) ─────────────────────────────────────
+  if (ctrl && !e.shiftKey && e.key === 'b') { e.preventDefault(); _applyFormat('bold'); }
+  if (ctrl && !e.shiftKey && e.key === 'i') { e.preventDefault(); _applyFormat('italic'); }
+  if (ctrl && !e.shiftKey && e.key === 'u') { e.preventDefault(); _applyFormat('underline'); }
+
+  // Alignment shortcuts (Ctrl+E/L/R/J — matches Microsoft Word)
+  if (ctrl && !e.shiftKey && e.key === 'e') { e.preventDefault(); _applyFormat('justifyCenter'); }
+  if (ctrl && !e.shiftKey && e.key === 'l') { e.preventDefault(); _applyFormat('justifyLeft'); }
+  if (ctrl && !e.shiftKey && e.key === 'r') { e.preventDefault(); _applyFormat('justifyRight'); }
+  if (ctrl && !e.shiftKey && e.key === 'j') { e.preventDefault(); _applyFormat('justifyFull'); }
+
+  // ── Tab → insert spaces / Shift+Tab → unindent ───────────────────────────
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const tabSize = _project?.settings?.tabSize ?? 3;
+    if (e.shiftKey) {
+      _unindentCurrentLine(tabSize);
+    } else {
+      document.execCommand('insertText', false, ' '.repeat(tabSize));
+    }
+  }
+
+  // ── Enter → new paragraph with auto-indent ───────────────────────────────
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     document.execCommand('insertParagraph');
+    const tabSize = _project?.settings?.tabSize ?? 3;
+    if (tabSize > 0) {
+      document.execCommand('insertText', false, ' '.repeat(tabSize));
+    }
   }
+
   // Delete/Backspace removes a selected image
   if ((e.key === 'Delete' || e.key === 'Backspace') && _selectedImg) {
     e.preventDefault();
@@ -186,6 +213,31 @@ function _handleKeydown(e) {
     _hideImageToolbar();
     saveCurrentContent();
   }
+}
+
+/** Remove up to `count` leading spaces from the current paragraph. */
+function _unindentCurrentLine(count) {
+  const sel = window.getSelection();
+  if (!sel?.rangeCount) return;
+  const node = sel.anchorNode;
+  const block = (node?.nodeType === 1 ? node : node?.parentElement)
+    ?.closest('p, div, h1, h2, h3, li');
+  if (!block) return;
+
+  const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+  const firstText = walker.nextNode();
+  if (!firstText) return;
+
+  const match = firstText.textContent.match(/^( +)/);
+  if (!match) return;
+
+  const removeCount = Math.min(match[1].length, count);
+  const range = document.createRange();
+  range.setStart(firstText, 0);
+  range.setEnd(firstText, removeCount);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  document.execCommand('delete');
 }
 
 // ─── Formatting ───────────────────────────────────────────────────────────────
