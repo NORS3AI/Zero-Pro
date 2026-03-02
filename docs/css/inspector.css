@@ -328,11 +328,11 @@
   background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--text-muted);
+  color: var(--text);
   font-size: 13px;
   font-family: var(--font-ui);
   font-weight: 500;
-  cursor: not-allowed;
+  cursor: pointer;
   transition: border-color var(--transition);
 }
 
