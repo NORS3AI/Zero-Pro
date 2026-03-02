@@ -6,7 +6,7 @@ Zero Pro is a browser-based writing application hosted on GitHub Pages. It is in
 
 The core philosophy: a writer should be able to open a URL and immediately start writing, organizing, and revising their work.
 
-**Current version: v1.13** — Phases 1–13 complete.
+**Current version: v1.14** — Phases 1–13 complete, plus ongoing polish.
 
 ## Tech Stack
 
@@ -189,6 +189,7 @@ Claude Code with Sonnet 4.6 is the primary development tool. Here is how to get 
 - Unescaped apostrophes in single-quoted strings are the most common source of `SyntaxError` — always prefer double quotes when string content may contain apostrophes
 - After each session, ask Claude Code to summarise what it built and note any open decisions
 - The `initCommandPalette` `getActions` array is the central registration point for new features — always add entries there
+- **Always update the in-app patch notes** (`docs/js/patchnotes.js`) when adding features, fixing bugs, or making any user-visible change. Writers see these notes via the version button in the toolbar, so every update should be recorded. Add a new entry to the top of the `PATCHES` array with the bumped version, today's date, and a list of changes. Also update the version string in the toolbar button (`#btn-changelog` in `index.html`) and the `CLAUDE.md` version header to match.
 
 ### Completed Build Order
 
