@@ -50,7 +50,11 @@
   padding-bottom: var(--safe-bottom);
 }
 
-/* Drawer close buttons — always visible since panels are always overlays */
+/* ─── Drawer close buttons ───────────────────────────────────────────────────── */
+/* Hidden on desktop; revealed when the drawer becomes an overlay */
+
+.binder-drawer-close,
+.inspector-drawer-close { display: none; }
 
 /* ─── Touch-device improvements (hover: none means touchscreen) ─────────────── */
 
@@ -108,10 +112,55 @@
   .toolbar-brand    { font-size: 14px; }
   .toolbar-project-title { max-width: 140px; }
 
+  /* Inspector: hide from grid; becomes a fixed right drawer */
+  #workspace {
+    grid-template-columns: var(--binder-w) 1fr !important;
+    --inspector-w: 0px;
+    --ai-panel-w:  0px;
+  }
+
+  #inspector {
+    position: fixed;
+    top: calc(var(--toolbar-h) + var(--safe-top));
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    transform: translateX(100%);
+    transition: transform 220ms ease;
+    z-index: 500;
+    overflow-y: auto;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.35);
+  }
+
+  #workspace.inspector-open #inspector {
+    transform: translateX(0);
+  }
+
+  /* Show close button inside the inspector drawer */
+  .inspector-drawer-close { display: flex; }
+
+  /* AI panel: fixed right drawer */
+  #ai-panel {
+    position: fixed;
+    top: calc(var(--toolbar-h) + var(--safe-top));
+    right: 0;
+    bottom: 0;
+    width: min(320px, 90vw);
+    transform: translateX(100%);
+    transition: transform 220ms ease;
+    z-index: 500;
+    overflow: hidden;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.35);
+  }
+
+  /* ai-open is toggled by ai.js via workspace class */
+  #workspace.ai-open #ai-panel {
+    transform: translateX(0);
+  }
+
   /* Backdrop: show whenever a drawer is open */
-  #workspace.binder-open    #mobile-backdrop,
   #workspace.inspector-open #mobile-backdrop,
-  #workspace.ai-open        #mobile-backdrop {
+  #workspace.ai-open         #mobile-backdrop {
     display: block;
   }
 
@@ -156,7 +205,38 @@
   /* Separator cleanup */
   .toolbar-sep:not(:first-of-type) { display: none; }
 
-  /* Backdrop: show for all panel drawers on mobile */
+  /* ── Workspace: single column ── */
+
+  #workspace {
+    grid-template-columns: 1fr !important;
+    --binder-w:    0px;
+    --inspector-w: 0px;
+    --ai-panel-w:  0px;
+  }
+
+  /* ── Binder: fixed left drawer ── */
+
+  #binder {
+    position: fixed;
+    top: calc(var(--toolbar-h) + var(--safe-top));
+    left: 0;
+    bottom: 0;
+    width: min(280px, 80vw);
+    transform: translateX(-100%);
+    transition: transform 220ms ease;
+    z-index: 500;
+    overflow: hidden;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+  }
+
+  #workspace.binder-open #binder {
+    transform: translateX(0);
+  }
+
+  /* Show the binder close button on mobile */
+  .binder-drawer-close { display: flex; }
+
+  /* Backdrop: also covers binder-open on mobile */
   #workspace.binder-open    #mobile-backdrop,
   #workspace.inspector-open #mobile-backdrop,
   #workspace.ai-open        #mobile-backdrop {
