@@ -3,10 +3,7 @@
 /* ─── Timeline View ──────────────────────────────────────────────────────────── */
 
 #timeline-pane {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  height: 100%;
+  /* display/flex-direction/overflow handled by .view-pane.active in main.css */
   background: var(--bg);
 }
 
@@ -222,11 +219,8 @@
 /* ─── PDF Viewer ──────────────────────────────────────────────────────────────── */
 
 #pdf-viewer-pane {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  /* display/flex-direction/overflow handled by .view-pane.active in main.css */
   background: #525659;
-  overflow: hidden;
 }
 
 .pdf-toolbar {
