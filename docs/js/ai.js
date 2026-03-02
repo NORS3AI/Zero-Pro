@@ -362,13 +362,14 @@ function _renderKeySection() {
            autocomplete="off"
            aria-label="${provider.name} API key">
     <div class="ai-settings-actions">
-      <button class="ai-action-btn primary" id="btn-ai-save-key">Save &amp; Validate</button>
-      <button class="ai-action-btn danger"   id="btn-ai-clear-key">Clear Key</button>
+      <button class="ai-action-btn primary" id="btn-ai-save-key">Save Key</button>
+      <button class="ai-action-btn"         id="btn-ai-test-key">Test Connection</button>
+      <button class="ai-action-btn danger"  id="btn-ai-clear-key">Clear Key</button>
     </div>
     <p class="ai-settings-hint">
       Get your key at
       <a href="${provider.keyHintUrl}" target="_blank" rel="noopener">${provider.keyHintLabel}</a>
-      <span class="ai-settings-hint-note">${provider.keyHintNote}</span>
+      <br><span class="ai-settings-hint-note">${provider.keyHintNote}</span>
     </p>
   `;
 
@@ -424,6 +425,7 @@ function _bindEvents() {
 
 function _bindKeyEvents() {
   document.getElementById('btn-ai-save-key')?.addEventListener('click', _handleSaveKey);
+  document.getElementById('btn-ai-test-key')?.addEventListener('click', _handleTestConnection);
   document.getElementById('btn-ai-clear-key')?.addEventListener('click', _handleClearKey);
   document.getElementById('ai-key-input')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') _handleSaveKey();
@@ -541,24 +543,35 @@ function _updateBanner() {
   }
 }
 
-async function _handleSaveKey() {
+function _handleSaveKey() {
   const input = document.getElementById('ai-key-input');
   const key   = input?.value.trim();
   if (!key) return;
 
   const status = document.getElementById('ai-key-status');
-  if (status) { status.textContent = 'Validating…'; status.className = 'ai-key-status'; }
 
-  const valid = await _validateKey(_activeId, key);
-  if (valid) {
-    _keys[_activeId] = key;
-    localStorage.setItem(PROVIDERS[_activeId].keyStorage, key);
-    if (input) input.value = '';
-    if (status) { status.textContent = `${PROVIDERS[_activeId].name} key saved`; status.className = 'ai-key-status ok'; }
-    _updateBanner();
-  } else {
-    if (status) { status.textContent = 'Invalid key — please check and try again.'; status.className = 'ai-key-status error'; }
+  // Basic format check per provider
+  const fmtOk = _quickFormatCheck(_activeId, key);
+  if (!fmtOk) {
+    if (status) { status.textContent = `That doesn't look like a ${PROVIDERS[_activeId].name} key. Check the format and try again.`; status.className = 'ai-key-status error'; }
+    return;
   }
+
+  // Save immediately — no network call
+  _keys[_activeId] = key;
+  localStorage.setItem(PROVIDERS[_activeId].keyStorage, key);
+  if (input) input.value = '';
+  if (status) { status.textContent = `${PROVIDERS[_activeId].name} key saved`; status.className = 'ai-key-status ok'; }
+  _updateBanner();
+}
+
+/** Lightweight format check — no API call. */
+function _quickFormatCheck(providerId, key) {
+  if (key.length < 10) return false;
+  if (providerId === 'claude')  return key.startsWith('sk-ant-');
+  if (providerId === 'openai')  return key.startsWith('sk-');
+  if (providerId === 'gemini')  return key.startsWith('AIza');
+  return true;  // unknown provider — accept anything
 }
 
 function _handleClearKey() {
@@ -568,22 +581,55 @@ function _handleClearKey() {
   _updateBanner();
 }
 
-async function _validateKey(providerId, key) {
-  const provider = PROVIDERS[providerId];
+async function _handleTestConnection() {
+  const key = _keys[_activeId];
+  if (!key) {
+    const status = document.getElementById('ai-key-status');
+    if (status) { status.textContent = 'Save a key first, then test.'; status.className = 'ai-key-status error'; }
+    return;
+  }
+
+  const status = document.getElementById('ai-key-status');
+  const btn    = document.getElementById('btn-ai-test-key');
+  if (status) { status.textContent = 'Testing connection…'; status.className = 'ai-key-status'; }
+  if (btn) btn.disabled = true;
+
+  const provider = PROVIDERS[_activeId];
   try {
     const res = await fetch(provider.endpoint(key, provider.model), {
       method:  'POST',
       headers: provider.headers(key),
       body:    provider.buildBody(
         [{ role: 'user', content: 'Hello' }],
-        'Say hi briefly.',
+        'Reply with just the word OK.',
         provider.model
       ),
     });
     res.body?.cancel();
-    return res.ok;
-  } catch {
-    return false;
+
+    if (res.ok) {
+      if (status) { status.textContent = `Connected to ${provider.name} successfully!`; status.className = 'ai-key-status ok'; }
+    } else {
+      const err = await res.json().catch(() => null);
+      const msg = err?.error?.message || `HTTP ${res.status}`;
+      if (res.status === 401 || res.status === 403) {
+        if (status) { status.textContent = `Authentication failed — double-check your ${provider.name} key. (${msg})`; status.className = 'ai-key-status error'; }
+      } else if (res.status === 429) {
+        if (status) { status.textContent = "Rate limited — your key is valid but you've hit the usage limit. Try again in a moment."; status.className = 'ai-key-status error'; }
+      } else {
+        if (status) { status.textContent = `API error: ${msg}`; status.className = 'ai-key-status error'; }
+      }
+    }
+  } catch (e) {
+    // fetch itself failed — typically CORS or network
+    if (status) {
+      status.innerHTML = `Network error — your browser may be blocking the request. ` +
+        `Check that you're online and try again. ` +
+        `<span class="ai-settings-hint-note">(${e.message})</span>`;
+      status.className = 'ai-key-status error';
+    }
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 

@@ -13,7 +13,10 @@ const PATCHES = [
       { type: 'feat', text: 'Auto-Synopsis — click the "Auto" button next to Synopsis in the Inspector to generate a 1-2 sentence summary using AI' },
       { type: 'feat', text: 'Multi-provider AI setup — Inspector Editing tab now links directly to AI Settings for Claude, ChatGPT, or Gemini key entry' },
       { type: 'feat', text: 'AI Settings auto-open — the AI panel expands the Settings section automatically when no API key is saved' },
+      { type: 'feat', text: 'API key save is now instant — keys are saved immediately with a format check, no network call required' },
+      { type: 'feat', text: 'Test Connection button — verify your API key works with clear error messages (auth, rate limit, network)' },
       { type: 'fix', text: 'Editor now fills the full window height — fixed a CSS specificity bug where timeline and PDF panes stole vertical space' },
+      { type: 'fix', text: 'API key validation no longer falsely reports "invalid key" when the browser blocks the request (CORS)' },
     ],
   },
   {
