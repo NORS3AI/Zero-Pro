@@ -60,7 +60,7 @@ export function initBinder({ onSelectDoc, onProjectChange, onInsertImageInEditor
   if (_binderPinned) {
     const ws = document.getElementById('workspace');
     ws?.classList.add('binder-pinned');
-    ws?.classList.add('binder-open'); // keep binder visible when pinned
+    ws?.classList.remove('binder-hidden'); // keep binder visible when pinned
   }
 
   // Add resize handle for when binder is pinned
@@ -80,8 +80,8 @@ function _togglePin() {
   if (ws) {
     ws.classList.toggle('binder-pinned', _binderPinned);
     if (_binderPinned) {
-      // Ensure the binder is visible when pinned
-      ws.classList.add('binder-open');
+      // Ensure the binder is visible when pinned — remove hidden class
+      ws.classList.remove('binder-hidden');
     }
   }
 }
@@ -1014,7 +1014,8 @@ function _initResizeHandle() {
     localStorage.setItem('zp_binder_w', w);
   });
 
-  // Restore saved width — used by binder-pinned grid override.
+  // Restore saved width — use --binder-pinned-w so it never conflicts with
+  // the --binder-w: 0px that binder-hidden sets on the workspace.
   const savedW = localStorage.getItem('zp_binder_w');
   if (savedW) document.documentElement.style.setProperty('--binder-pinned-w', savedW);
 }

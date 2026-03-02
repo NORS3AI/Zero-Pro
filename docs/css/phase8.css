@@ -443,23 +443,26 @@ body.is-offline #offline-banner { display: block; }
   border-radius: 6px;
 }
 
-/* When binder is pinned — restore inline grid layout at all sizes */
-#workspace.binder-pinned {
-  grid-template-columns: var(--binder-pinned-w, 240px) 1fr !important;
-}
-
+/* When binder is pinned — override drawer / hidden behaviour at all sizes */
+/* Use --binder-pinned-w (set by JS) so it never conflicts with --binder-w: 0px
+   that binder-hidden applies when the drawer is closed. */
 #workspace.binder-pinned #binder {
-  /* Inline column — remove fixed overlay styles */
+  /* Keep in the grid layout (not as a fixed drawer) */
   position: relative !important;
   transform: none !important;
   box-shadow: none !important;
+  /* Restore width in the grid column */
   min-width: var(--binder-pinned-w, 240px);
   width: var(--binder-pinned-w, 240px);
   display: flex !important;
   flex-direction: column;
-  top: auto;
-  left: auto;
-  bottom: auto;
+}
+
+/* On mobile, re-show the binder column when pinned */
+@media (max-width: 640px) {
+  #workspace.binder-pinned {
+    grid-template-columns: var(--binder-pinned-w, 240px) 1fr !important;
+  }
 }
 
 /* Binder is part of the layout when pinned — never show a backdrop for it */
