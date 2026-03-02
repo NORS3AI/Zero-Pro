@@ -8,8 +8,19 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-width: 0;
-  min-height: 0;   /* allow grid to constrain height so #ai-body can scroll */
+  /* Fixed right overlay on all screen sizes */
+  position: fixed;
+  top: var(--toolbar-h);
+  right: 0;
+  bottom: 0;
+  width: min(320px, 90vw);
+  transform: translateX(100%);
+  transition: transform 220ms ease;
+  z-index: 500;
+}
+
+#workspace.ai-open #ai-panel {
+  transform: translateX(0);
 }
 
 /* ─── Header ─────────────────────────────────────────────────────────────────── */

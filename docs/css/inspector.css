@@ -8,6 +8,21 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Fixed right overlay on all screen sizes */
+  position: fixed;
+  top: var(--toolbar-h);
+  right: 0;
+  bottom: 0;
+  width: 280px;
+  transform: translateX(100%);
+  transition: transform 220ms ease;
+  z-index: 500;
+  overflow-y: auto;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.35);
+}
+
+#workspace.inspector-open #inspector {
+  transform: translateX(0);
 }
 
 #inspector-header {

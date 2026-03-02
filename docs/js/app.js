@@ -510,26 +510,18 @@ function _scheduleSyncPush() {
 // ─── Toolbar Wiring ───────────────────────────────────────────────────────────
 
 function bindToolbar() {
-  // Panel toggles — compact (tablet/mobile) uses overlay drawers; desktop uses grid collapse
+  // Panel toggles — all panels are overlay drawers on every screen size
   btn('btn-toggle-binder', () => {
-    if (_isCompact()) {
-      const opening = workspace().classList.toggle('binder-open');
-      if (opening) workspace().classList.remove('inspector-open');
-    } else {
-      workspace().classList.toggle('binder-hidden');
-    }
+    const opening = workspace().classList.toggle('binder-open');
+    if (opening) workspace().classList.remove('inspector-open');
   });
 
   btn('btn-toggle-inspector', () => {
-    if (_isCompact()) {
-      const opening = workspace().classList.toggle('inspector-open');
-      if (opening) workspace().classList.remove('binder-open');
-    } else {
-      workspace().classList.toggle('inspector-hidden');
-    }
+    const opening = workspace().classList.toggle('inspector-open');
+    if (opening) workspace().classList.remove('binder-open');
   });
 
-  // Close buttons inside drawers (mobile / tablet)
+  // Close buttons inside drawers
   btn('btn-close-binder',    () => workspace().classList.remove('binder-open'));
   btn('btn-close-inspector', () => workspace().classList.remove('inspector-open'));
 
@@ -546,9 +538,9 @@ function bindToolbar() {
     }
   });
 
-  // AI panel — on compact screens close other drawers first
+  // AI panel — close other drawers first
   btn('btn-ai', () => {
-    if (_isCompact()) workspace().classList.remove('binder-open', 'inspector-open');
+    workspace().classList.remove('binder-open', 'inspector-open');
     toggleAIPanel();
   });
 
@@ -849,9 +841,9 @@ function workspace() {
   return document.getElementById('workspace');
 }
 
-/** True when in tablet or mobile layout (panels are overlay drawers). */
+/** Panels are always overlay drawers on every screen size. */
 function _isCompact() {
-  return window.matchMedia('(max-width: 1023px)').matches;
+  return true;
 }
 
 /** Close every open drawer and hide the backdrop. */
@@ -866,17 +858,6 @@ function _closeAllDrawers() {
     document.getElementById('btn-ai')?.setAttribute('aria-pressed', 'false');
   }
 }
-
-// Restore clean state when resizing between compact and desktop
-window.matchMedia('(max-width: 1023px)').addEventListener('change', e => {
-  if (e.matches) {
-    // Entering compact: remove desktop-only hidden classes
-    workspace().classList.remove('binder-hidden', 'inspector-hidden');
-  } else {
-    // Entering desktop: remove compact drawer-open classes
-    workspace().classList.remove('binder-open', 'inspector-open');
-  }
-});
 
 function currentDoc() {
   return state.currentDocId ? getDocument(state.project, state.currentDocId) : null;

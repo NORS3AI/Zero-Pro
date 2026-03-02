@@ -157,22 +157,20 @@ svg { display: block; }
 
 .btn-icon { padding: 5px; width: 30px; height: 30px; justify-content: center; }
 
-/* ─── Workspace (Three Panels) ───────────────────────────────────────────────── */
+/* ─── Workspace ──────────────────────────────────────────────────────────────── */
 
 #workspace {
   display: grid;
-  grid-template-columns: var(--binder-w) 1fr var(--inspector-w) var(--ai-panel-w);
-  grid-template-rows: 1fr;   /* one row that fills workspace height — panels can scroll internally */
+  grid-template-columns: 1fr;  /* editor always fills the full window */
+  grid-template-rows: 1fr;
   overflow: hidden;
-  transition: grid-template-columns var(--transition);
 }
 
-/* Panel visibility — override the relevant width variable */
-#workspace.binder-hidden    { --binder-w:    0px; }
-#workspace.inspector-hidden { --inspector-w: 0px; }
-#workspace.ai-open          { --ai-panel-w:  320px; }
-
 #binder, #inspector, #ai-panel { overflow: hidden; }
+
+/* Close buttons are always shown since panels are always overlay drawers */
+.binder-drawer-close,
+.inspector-drawer-close { display: flex; }
 
 /* Centre pane — holds editor, corkboard, and outline as siblings */
 #center-pane {
