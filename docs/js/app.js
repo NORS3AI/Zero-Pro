@@ -633,15 +633,27 @@ function bindToolbar() {
     document.getElementById('export-dropdown')?.classList.remove('open');
   });
 
-  btn('btn-import-docs', () => {
-    state.triggerDocImport?.();
-    document.getElementById('export-dropdown')?.classList.remove('open');
-  });
+  // Import buttons — call .click() synchronously in the tap handler so mobile
+  // browsers treat it as a user gesture (iOS blocks async file-input triggers)
+  const importDocsBtn = document.getElementById('btn-import-docs');
+  if (importDocsBtn) {
+    importDocsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('export-dropdown')?.classList.remove('open');
+      // Trigger file input synchronously within the user gesture
+      state.triggerDocImport?.();
+    });
+  }
 
-  btn('btn-import-json', () => {
-    state.triggerProjectImport?.();
-    document.getElementById('export-dropdown')?.classList.remove('open');
-  });
+  const importJsonBtn = document.getElementById('btn-import-json');
+  if (importJsonBtn) {
+    importJsonBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('export-dropdown')?.classList.remove('open');
+      // Trigger file input synchronously within the user gesture
+      state.triggerProjectImport?.();
+    });
+  }
 
   // ── Publish (Phase 5) ──────────────────────────────────────────────────────
   const _closeExport = () => document.getElementById('export-dropdown')?.classList.remove('open');

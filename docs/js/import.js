@@ -146,7 +146,7 @@ export async function importProjectJson(file) {
  * @returns {{ triggerDocImport: () => void, triggerProjectImport: () => void }}
  */
 export function initImport({ onImportDocs, onRestoreProject }) {
-  const docInput = _fileInput('.txt,.md,.markdown,text/plain', true);
+  const docInput = _fileInput('.txt,.md,.markdown,.text', true);
   docInput.addEventListener('change', () => {
     const files = Array.from(docInput.files);
     if (files.length) onImportDocs(files);
@@ -192,7 +192,9 @@ function _fileInput(accept, multiple) {
   el.type     = 'file';
   el.accept   = accept;
   el.multiple = multiple;
-  el.style.display = 'none';
+  // Use offscreen positioning instead of display:none — iOS Safari blocks
+  // programmatic .click() on display:none file inputs
+  el.style.cssText = 'position:absolute;width:0;height:0;opacity:0;overflow:hidden;pointer-events:none;';
   document.body.appendChild(el);
   return el;
 }
