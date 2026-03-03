@@ -817,6 +817,173 @@
   margin-top: 2px;
 }
 
+/* ─── Genre Selector ────────────────────────────────────────────────────────── */
+
+.editing-genre-wrap {
+  padding: 8px 14px 4px;
+}
+.editing-genre-wrap .inspector-label {
+  margin-bottom: 4px;
+}
+
+/* ─── Clickable Category Rows ───────────────────────────────────────────────── */
+
+.editing-cat-clickable {
+  cursor: pointer;
+}
+.editing-cat-clickable:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.editing-cat-chevron {
+  font-size: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color .15s;
+}
+.editing-cat-clickable:hover .editing-cat-chevron {
+  color: var(--accent);
+}
+
+/* ─── AI Tone & Suggestions (Inspector Editing Tab) ────────────────────────── */
+
+.ai-tone-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  margin-bottom: 6px;
+}
+.ai-tone-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.ai-tone-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+#ai-suggestions-list {
+  padding: 0 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ─── Clickable Tone Badge ──────────────────────────────────────────────────── */
+
+.ai-tone-clickable {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 6px;
+  transition: background .15s;
+}
+.ai-tone-clickable:hover,
+.ai-tone-clickable:focus-visible {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  outline: none;
+}
+
+/* ─── AI Detail Panels (Category + Tone drill-down) ────────────────────────── */
+
+.ai-detail-panel {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 8px 14px 12px;
+  overflow: hidden;
+}
+.ai-detail-panel.hidden { display: none; }
+
+.ai-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.ai-detail-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ai-detail-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.ai-detail-close:hover { color: var(--text); }
+
+.ai-detail-body {
+  padding: 10px 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.ai-detail-para {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+.ai-detail-para:last-child { margin-bottom: 0; }
+
+.ai-detail-summary {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+.ai-detail-loading {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.ai-detail-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.ai-detail-error {
+  font-size: 12px;
+  color: var(--danger);
+}
+.ai-detail-tone-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 6px;
+  text-transform: capitalize;
+}
+
+/* ─── Resizable Sidebar Handles ─────────────────────────────────────────────── */
+
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 20;
+  transition: background .15s;
+}
+.resize-handle:hover,
+.resize-handle.active {
+  background: var(--accent);
+}
+.resize-handle-right { right: 0; }
+.resize-handle-left  { left: 0; }
+
+#binder, #inspector {
+  position: relative;
+}
+
 /* ─── Responsive ─────────────────────────────────────────────────────────────── */
 
 @media (max-width: 640px) {

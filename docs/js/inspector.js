@@ -25,7 +25,6 @@ const LABELS = [
   { value: 'purple', label: 'Purple'  },
 ];
 
-// Editing category definitions
 const EDITING_CATS = [
   { id: 'grammar',     icon: '\u2713', name: 'Grammar',     hint: 'Errors & corrections' },
   { id: 'style',       icon: '\u25C8', name: 'Style',       hint: 'Improvements & clarity' },
@@ -35,31 +34,30 @@ const EDITING_CATS = [
   { id: 'dialogue',    icon: '\u275D', name: 'Dialogue',    hint: 'Tags & punctuation' },
 ];
 
+const GENRES = [
+  '', 'Fantasy', 'Science Fiction', 'Romance', 'Mystery', 'Thriller',
+  'Horror', 'Historical Fiction', 'Literary Fiction', 'Young Adult',
+  'Fantasy Romance', 'Dark Fantasy', 'Urban Fantasy', 'Dystopian',
+  'Contemporary', 'Memoir', 'Poetry', 'Screenplay',
+];
+
 // ─── State ────────────────────────────────────────────────────────────────────
 
 let _project         = null;
 let _doc             = null;
 let _onDocChange     = null;
 let _onProjectChange = null;
+let _lastAnalysis    = null;   // cached AI analysis result for drill-down
+let _lastPlainText   = '';     // cached plain text of current doc
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-/**
- * Build the inspector UI and wire events. Call once at app init.
- * @param {{ onDocChange: Function, onProjectChange: Function }} opts
- */
 export function initInspector({ onDocChange, onProjectChange }) {
   _onDocChange     = onDocChange;
   _onProjectChange = onProjectChange;
   _buildUI();
 }
 
-/**
- * Populate inspector fields for the given document.
- * Pass null for doc to show the empty state.
- * @param {Object} project
- * @param {Object|null} doc
- */
 export function updateInspector(project, doc) {
   _project = project;
   _doc     = doc;
@@ -90,8 +88,6 @@ function _buildUI() {
         Select a document to view its details.
       </div>
       <div id="inspector-doc-fields" class="inspector-fields hidden">
-
-        <!-- Word & character count stats -->
         <div class="insp-stats-grid">
           <div class="insp-stat-cell">
             <span id="insp-word-count" class="insp-stat-value">\u2014</span>
@@ -112,15 +108,14 @@ function _buildUI() {
               <span>Auto</span>
             </button>
           </div>
-          <textarea id="insp-synopsis" class="inspector-textarea" rows="4"
-                    placeholder="A brief summary of this scene\u2026"></textarea>
+          <textarea id="insp-synopsis" class="inspector-textarea" rows="8"
+                    placeholder="A detailed synopsis of this scene\u2026"></textarea>
         </div>
 
         <div class="inspector-field">
           <label class="inspector-label" for="insp-status">Status</label>
           <select id="insp-status" class="inspector-select"></select>
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label" for="insp-label">Label</label>
           <div class="inspector-label-row">
@@ -128,79 +123,60 @@ function _buildUI() {
             <select id="insp-label" class="inspector-select"></select>
           </div>
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label" for="insp-pov">POV Character</label>
-          <input id="insp-pov" type="text" class="inspector-input"
-                 placeholder="Character name\u2026">
+          <input id="insp-pov" type="text" class="inspector-input" placeholder="Character name\u2026">
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label" for="insp-location">Location</label>
-          <input id="insp-location" type="text" class="inspector-input"
-                 placeholder="Scene location\u2026">
+          <input id="insp-location" type="text" class="inspector-input" placeholder="Scene location\u2026">
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label" for="insp-keywords">Keywords</label>
-          <input id="insp-keywords" type="text" class="inspector-input"
-                 placeholder="Comma-separated tags\u2026">
+          <input id="insp-keywords" type="text" class="inspector-input" placeholder="Comma-separated tags\u2026">
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label" for="insp-date">Scene Date</label>
-          <input id="insp-date" type="text" class="inspector-input"
-                 placeholder="e.g. March 1st, 1843 or Day 14\u2026">
+          <input id="insp-date" type="text" class="inspector-input" placeholder="e.g. March 1st, 1843 or Day 14\u2026">
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label" for="insp-duration">Scene Duration</label>
-          <input id="insp-duration" type="text" class="inspector-input"
-                 placeholder="e.g. 2 hours, 3 days\u2026">
+          <input id="insp-duration" type="text" class="inspector-input" placeholder="e.g. 2 hours, 3 days\u2026">
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label" for="insp-target">Word Count Target</label>
-          <input id="insp-target" type="number" class="inspector-input"
-                 placeholder="0" min="0" step="100">
+          <input id="insp-target" type="number" class="inspector-input" placeholder="0" min="0" step="100">
           <div class="target-progress-wrap" id="insp-target-wrap" hidden>
             <div class="target-progress-bar" id="insp-target-bar"></div>
           </div>
           <div class="target-progress-label" id="insp-target-label"></div>
         </div>
-
       </div>
     </div>
 
     <!-- Project tab -->
     <div id="inspector-project-tab" class="inspector-panel hidden" role="tabpanel">
       <div class="inspector-fields">
-
         <div class="inspector-field">
           <label class="inspector-label">Total Words</label>
           <div id="insp-proj-total" class="inspector-stat">\u2014</div>
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label">Documents</label>
           <div id="insp-proj-docs" class="inspector-stat">\u2014</div>
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label">Folders</label>
           <div id="insp-proj-folders" class="inspector-stat">\u2014</div>
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label">Created</label>
           <div id="insp-proj-created" class="inspector-stat">\u2014</div>
         </div>
-
         <div class="inspector-field">
           <label class="inspector-label">Last Modified</label>
           <div id="insp-proj-updated" class="inspector-stat">\u2014</div>
         </div>
-
       </div>
     </div>
 
@@ -211,7 +187,16 @@ function _buildUI() {
       </div>
       <div id="editing-doc-content" class="hidden">
 
-        <!-- Readability card (Phase 10 — calculated locally) -->
+        <!-- Genre / style selector -->
+        <div class="editing-genre-wrap">
+          <label class="inspector-label" for="insp-genre">Document Style / Genre</label>
+          <select id="insp-genre" class="inspector-select">
+            <option value="">\u2014 General</option>
+            ${GENRES.filter(g => g).map(g => `<option value="${g}">${g}</option>`).join('')}
+          </select>
+        </div>
+
+        <!-- Readability card -->
         <div class="readability-card" id="readability-card">
           <div class="readability-card-header">
             <span class="readability-card-label">Readability</span>
@@ -228,7 +213,7 @@ function _buildUI() {
           <div class="readability-stats" id="readability-stats"></div>
         </div>
 
-        <!-- Readability reference popup (hidden by default) -->
+        <!-- Readability reference popup -->
         <div id="readability-ref-popup" class="readability-ref-popup hidden" role="dialog" aria-label="Readability scale reference">
           <div class="readability-ref-header">
             <span class="readability-ref-title">Flesch Reading Ease Scale</span>
@@ -240,29 +225,48 @@ function _buildUI() {
           </div>
         </div>
 
-        <!-- AI tone + style analysis -->
+        <!-- AI analysis button -->
         <div class="editing-cta-wrap">
-          <button class="editing-cta-btn" id="btn-analyze-ai"
-                  title="Analyze writing with AI">
+          <button class="editing-cta-btn" id="btn-analyze-ai" title="Analyze writing with AI">
             <span id="analyze-ai-label">Analyze Writing (AI)</span>
           </button>
         </div>
 
-        <!-- AI results appear here -->
+        <!-- AI results -->
         <div id="ai-analysis-results" class="hidden">
+          <!-- Clickable tone badge -->
           <div class="ai-tone-row">
             <span class="ai-tone-label">Tone</span>
-            <span class="ai-tone-value" id="ai-tone-value">\u2014</span>
+            <span class="ai-tone-value ai-tone-clickable" id="ai-tone-value"
+                  role="button" tabindex="0" title="Click for details">\u2014</span>
+          </div>
+          <!-- Tone detail panel (hidden) -->
+          <div id="ai-tone-detail" class="ai-detail-panel hidden">
+            <div class="ai-detail-header">
+              <span class="ai-detail-title">Tone Analysis</span>
+              <button class="ai-detail-close" data-close="ai-tone-detail" aria-label="Close">&times;</button>
+            </div>
+            <div class="ai-detail-body" id="ai-tone-detail-body">Loading\u2026</div>
           </div>
           <div id="ai-suggestions-list"></div>
         </div>
 
+        <!-- Category rows (clickable for drill-down) -->
         <div class="editing-cat-list" id="editing-cat-list"></div>
+
+        <!-- Category detail panel (shown when a category is clicked) -->
+        <div id="ai-cat-detail" class="ai-detail-panel hidden">
+          <div class="ai-detail-header">
+            <span class="ai-detail-title" id="ai-cat-detail-title">Category</span>
+            <button class="ai-detail-close" data-close="ai-cat-detail" aria-label="Close">&times;</button>
+          </div>
+          <div class="ai-detail-body" id="ai-cat-detail-body">Click "Analyze Writing" first.</div>
+        </div>
 
         <p class="editing-note">
           Readability is calculated locally. AI analysis uses the free ChatGPT provider \u2014 no API key needed.
+          Click any category after analysis for in-depth feedback.
         </p>
-
       </div>
     </div>
   `;
@@ -272,8 +276,11 @@ function _buildUI() {
   if (catList) {
     EDITING_CATS.forEach(cat => {
       const row = document.createElement('div');
-      row.className = 'editing-cat-row';
+      row.className = 'editing-cat-row editing-cat-clickable';
       row.dataset.cat = cat.id;
+      row.setAttribute('role', 'button');
+      row.setAttribute('tabindex', '0');
+      row.title = `Click for in-depth ${cat.name} analysis`;
 
       const iconEl = document.createElement('span');
       iconEl.className   = 'editing-cat-icon';
@@ -290,22 +297,25 @@ function _buildUI() {
       scoreEl.dataset.catScore = cat.id;
       scoreEl.textContent = '\u2014';
 
+      const chevron = document.createElement('span');
+      chevron.className = 'editing-cat-chevron';
+      chevron.textContent = '\u203A';
+
       row.appendChild(iconEl);
       row.appendChild(bodyEl);
       row.appendChild(scoreEl);
+      row.appendChild(chevron);
       catList.appendChild(row);
     });
   }
 
-  // Build readability reference popup body
   _buildReadabilityRefBody();
 
   // Populate status <select>
   const statusSel = document.getElementById('insp-status');
   STATUSES.forEach(({ value, label }) => {
     const opt = document.createElement('option');
-    opt.value = value;
-    opt.textContent = label;
+    opt.value = value; opt.textContent = label;
     statusSel?.appendChild(opt);
   });
 
@@ -313,14 +323,17 @@ function _buildUI() {
   const labelSel = document.getElementById('insp-label');
   LABELS.forEach(({ value, label }) => {
     const opt = document.createElement('option');
-    opt.value = value;
-    opt.textContent = label;
+    opt.value = value; opt.textContent = label;
     labelSel?.appendChild(opt);
   });
 
   _bindTabs();
   _bindFields();
   _bindReadabilityPopup();
+  _bindCategoryClicks();
+  _bindToneClick();
+  _bindDetailCloseButtons();
+  _bindGenreSelector();
 }
 
 function _buildReadabilityRefBody() {
@@ -346,7 +359,6 @@ function _bindReadabilityPopup() {
     const toggle = () => {
       const isHidden = popup.classList.contains('hidden');
       popup.classList.toggle('hidden', !isHidden);
-      // Update "your score" in the popup
       const yourEl = document.getElementById('readability-ref-your-score');
       if (yourEl) yourEl.textContent = scoreEl.textContent;
     };
@@ -355,20 +367,61 @@ function _bindReadabilityPopup() {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
     });
   }
+  closeBtn?.addEventListener('click', () => popup?.classList.add('hidden'));
+}
 
-  closeBtn?.addEventListener('click', () => {
-    popup?.classList.add('hidden');
+function _bindCategoryClicks() {
+  const catList = document.getElementById('editing-cat-list');
+  if (!catList) return;
+  catList.addEventListener('click', e => {
+    const row = e.target.closest('.editing-cat-row');
+    if (!row) return;
+    _showCategoryDetail(row.dataset.cat);
+  });
+  catList.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const row = e.target.closest('.editing-cat-row');
+      if (row) _showCategoryDetail(row.dataset.cat);
+    }
+  });
+}
+
+function _bindToneClick() {
+  const toneEl = document.getElementById('ai-tone-value');
+  if (!toneEl) return;
+  const handler = () => _showToneDetail();
+  toneEl.addEventListener('click', handler);
+  toneEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); }
+  });
+}
+
+function _bindDetailCloseButtons() {
+  document.querySelectorAll('.ai-detail-close').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.dataset.close;
+      if (targetId) document.getElementById(targetId)?.classList.add('hidden');
+    });
+  });
+}
+
+function _bindGenreSelector() {
+  const sel = document.getElementById('insp-genre');
+  if (!sel) return;
+  sel.addEventListener('change', () => {
+    if (_doc) {
+      _save('genre', sel.value);
+    }
   });
 }
 
 function _bindTabs() {
   const content = document.getElementById('inspector-content');
   if (!content) return;
-
   content.addEventListener('click', e => {
     const tab = e.target.closest('.inspector-tab');
     if (!tab) return;
-
     const name = tab.dataset.tab;
     content.querySelectorAll('.inspector-tab').forEach(t => {
       t.classList.toggle('active', t.dataset.tab === name);
@@ -383,28 +436,19 @@ function _bindTabs() {
 }
 
 function _bindFields() {
-  // Textarea — save on input (debounced via storage)
   _on('insp-synopsis', 'input', () => _save('synopsis', _val('insp-synopsis')));
-
-  // Auto-generate synopsis with AI
   document.getElementById('btn-auto-synopsis')?.addEventListener('click', _autoSynopsis);
-
-  // Selects — save on change
   _on('insp-status', 'change', () => _save('status', _val('insp-status')));
   _on('insp-label', 'change', () => {
     const label = _val('insp-label') || null;
     _save('label', label);
     _updateLabelSwatch(label);
   });
-
-  // Text inputs — save on change (blur/enter)
   _on('insp-pov',      'change', () => _save('pov',      _val('insp-pov')));
   _on('insp-location', 'change', () => _save('location', _val('insp-location')));
   _on('insp-keywords', 'change', () => _save('keywords', _val('insp-keywords')));
   _on('insp-date',     'change', () => _save('date',     _val('insp-date')));
   _on('insp-duration', 'change', () => _save('duration', _val('insp-duration')));
-
-  // Target word count
   _on('insp-target', 'change', () => {
     const val = parseInt(_val('insp-target'), 10) || 0;
     _save('target', val);
@@ -417,17 +461,14 @@ function _bindFields() {
 function _populateDocTab() {
   const noDoc = document.getElementById('inspector-no-doc');
   const fields = document.getElementById('inspector-doc-fields');
-
   if (!_doc || _doc.type !== 'doc') {
     noDoc?.classList.remove('hidden');
     fields?.classList.add('hidden');
     return;
   }
-
   noDoc?.classList.add('hidden');
   fields?.classList.remove('hidden');
 
-  // Word count & character count stats
   const wc    = _doc.wordCount || 0;
   const chars = _charCount(_doc.content);
   _setText('insp-word-count', wc.toLocaleString());
@@ -442,18 +483,15 @@ function _populateDocTab() {
   _setVal('insp-date',     _doc.date     || '');
   _setVal('insp-duration', _doc.duration || '');
   _setVal('insp-target',   _doc.target   || 0);
-
   _updateLabelSwatch(_doc.label || null);
   _updateTargetProgress();
 }
 
 function _populateProjectTab() {
   if (!_project) return;
-
   const total      = getProjectWordCount(_project);
   const docCount   = _project.documents.filter(d => !d.inTrash && d.type === 'doc').length;
   const folderCount = _project.documents.filter(d => !d.inTrash && d.type === 'folder').length;
-
   _setText('insp-proj-total',   `${total.toLocaleString()} words`);
   _setText('insp-proj-docs',    `${docCount}`);
   _setText('insp-proj-folders', `${folderCount}`);
@@ -474,16 +512,9 @@ function _updateTargetProgress() {
   const bar   = document.getElementById('insp-target-bar');
   const label = document.getElementById('insp-target-label');
   if (!wrap || !bar || !label) return;
-
   const target = _doc?.target || 0;
   const count  = _doc?.wordCount || 0;
-
-  if (!target) {
-    wrap.hidden = true;
-    label.textContent = '';
-    return;
-  }
-
+  if (!target) { wrap.hidden = true; label.textContent = ''; return; }
   const pct = Math.min(100, Math.round((count / target) * 100));
   wrap.hidden = false;
   bar.style.width = `${pct}%`;
@@ -497,12 +528,15 @@ function _populateEditingTab() {
   const hasDoc = !!(_doc && _doc.type === 'doc');
   noDoc?.classList.toggle('hidden',  hasDoc);
   docEl?.classList.toggle('hidden', !hasDoc);
-
   if (!hasDoc) return;
 
-  // ── Flesch-Kincaid readability (local, instant) ──────────────────────────
-  const plain   = htmlToPlainText(_doc.content || '');
-  const reading = analyzeReadability(plain);
+  // Restore genre selection
+  const genreSel = document.getElementById('insp-genre');
+  if (genreSel) genreSel.value = _doc.genre || '';
+
+  // Readability (local)
+  _lastPlainText = htmlToPlainText(_doc.content || '');
+  const reading = analyzeReadability(_lastPlainText);
 
   const scoreEl = document.getElementById('readability-score');
   const gradeEl = document.getElementById('readability-grade');
@@ -518,15 +552,11 @@ function _populateEditingTab() {
     ? `${reading.sentences} sentences &bull; ${reading.words} words &bull; avg ${reading.avgSentLen} words/sentence`
     : '';
 
-  // Update readability category score in the editing rows
   const readabilityCatScore = document.querySelector('[data-cat-score="readability"]');
   if (readabilityCatScore) readabilityCatScore.textContent = reading.words ? `${reading.score}` : '\u2014';
 
-  // ── AI analysis button ────────────────────────────────────────────────────
-  const aiBtn    = document.getElementById('btn-analyze-ai');
-  const aiResult = document.getElementById('ai-analysis-results');
-
-  // Re-wire button (remove old listeners by cloning)
+  // AI analysis button
+  const aiBtn = document.getElementById('btn-analyze-ai');
   if (aiBtn) {
     const fresh = aiBtn.cloneNode(true);
     aiBtn.replaceWith(fresh);
@@ -535,24 +565,26 @@ function _populateEditingTab() {
       if (lbl) lbl.textContent = 'Analyzing\u2026';
       fresh.disabled = true;
       document.getElementById('ai-analysis-results')?.classList.add('hidden');
+      document.getElementById('ai-cat-detail')?.classList.add('hidden');
+      document.getElementById('ai-tone-detail')?.classList.add('hidden');
 
-      // Reset category scores to "..."
       EDITING_CATS.forEach(cat => {
         const el = document.querySelector(`[data-cat-score="${cat.id}"]`);
         if (el && cat.id !== 'readability') el.textContent = '\u2026';
       });
 
       try {
+        const genre = _doc.genre || document.getElementById('insp-genre')?.value || '';
         const raw = await generateText(
           "You are an expert writing analyst and editor. Respond with ONLY valid JSON, no markdown or extra text.",
-          _buildAnalysisPrompt(plain, _doc.title || 'Untitled')
+          _buildAnalysisPrompt(_lastPlainText, _doc.title || 'Untitled', genre)
         );
         const match = raw.match(/\{[\s\S]*\}/);
         const result = match ? JSON.parse(match[0]) : { tone: 'unknown', suggestions: [raw.slice(0, 200)] };
+        _lastAnalysis = result;
         _showAiResults(result, reading);
       } catch (err) {
         import('./ui.js').then(({ showToast }) => showToast(err.message));
-        // Reset scores back to "—"
         EDITING_CATS.forEach(cat => {
           const el = document.querySelector(`[data-cat-score="${cat.id}"]`);
           if (el && cat.id !== 'readability') el.textContent = '\u2014';
@@ -566,12 +598,11 @@ function _populateEditingTab() {
   }
 }
 
-/**
- * Build the comprehensive AI analysis prompt.
- * Sends the FULL document text for thorough analysis.
- */
-function _buildAnalysisPrompt(plainText, title) {
-  return `Analyze the following creative writing document titled "${title}".
+// ─── AI Analysis Prompt ──────────────────────────────────────────────────────
+
+function _buildAnalysisPrompt(plainText, title, genre) {
+  const genreCtx = genre ? `\nThis document is written in the "${genre}" genre. Evaluate it with that genre's conventions in mind.\n` : '';
+  return `Analyze the following creative writing document titled "${title}".${genreCtx}
 
 Evaluate it across these six categories and provide a score from 1-10 for each, plus a one-sentence summary for each category. Also identify the overall tone and give 3 specific improvement suggestions.
 
@@ -583,9 +614,12 @@ Categories:
 5. Consistency - character names, facts, tense consistency, repetition issues
 6. Dialogue - naturalness, distinct voices, proper formatting, tag variety
 
+Also provide a brief "toneExplanation" field (2-3 sentences) explaining why you characterized the tone that way.
+
 Respond with ONLY valid JSON in this exact format:
 {
   "tone": "one short phrase describing the dominant tone",
+  "toneExplanation": "2-3 sentences explaining the tone characterization and what elements of the writing create this tone.",
   "grammar": { "score": 8, "note": "One sentence about grammar quality" },
   "style": { "score": 7, "note": "One sentence about style quality" },
   "readability": { "score": 7, "note": "One sentence about readability" },
@@ -616,19 +650,14 @@ function _showAiResults(result, reading) {
   }
   wrap?.classList.remove('hidden');
 
-  // Populate category scores and hints from AI results
   EDITING_CATS.forEach(cat => {
     const scoreEl = document.querySelector(`[data-cat-score="${cat.id}"]`);
     const hintEl  = document.querySelector(`[data-cat-hint="${cat.id}"]`);
-
     if (cat.id === 'readability') {
-      // Keep the local Flesch-Kincaid score for readability
       if (scoreEl && reading) scoreEl.textContent = `${reading.score}`;
-      // But update hint with AI note if available
       if (hintEl && result.readability?.note) hintEl.textContent = result.readability.note;
       return;
     }
-
     const catData = result[cat.id];
     if (catData && typeof catData === 'object') {
       if (scoreEl) scoreEl.textContent = `${catData.score}/10`;
@@ -637,6 +666,111 @@ function _showAiResults(result, reading) {
       if (scoreEl) scoreEl.textContent = '\u2014';
     }
   });
+}
+
+// ─── Category Drill-Down ────────────────────────────────────────────────────
+
+async function _showCategoryDetail(catId) {
+  const cat = EDITING_CATS.find(c => c.id === catId);
+  if (!cat) return;
+
+  const panel = document.getElementById('ai-cat-detail');
+  const title = document.getElementById('ai-cat-detail-title');
+  const body  = document.getElementById('ai-cat-detail-body');
+  if (!panel || !body) return;
+
+  title.textContent = `${cat.name} \u2014 In-Depth Analysis`;
+  panel.classList.remove('hidden');
+
+  // If we have a cached note, show it while we fetch the full analysis
+  const cached = _lastAnalysis?.[catId];
+  if (cached?.note) {
+    body.innerHTML = `<div class="ai-detail-summary">${_esc(cached.note)} (Score: ${cached.score}/10)</div><div class="ai-detail-loading">Loading detailed analysis\u2026</div>`;
+  } else {
+    body.innerHTML = '<div class="ai-detail-loading">Loading detailed analysis\u2026</div>';
+  }
+
+  if (!_lastPlainText) {
+    body.innerHTML = '<div class="ai-detail-empty">Open a document and run "Analyze Writing" first.</div>';
+    return;
+  }
+
+  try {
+    const genre = _doc?.genre || document.getElementById('insp-genre')?.value || '';
+    const genreCtx = genre ? ` This is a "${genre}" piece.` : '';
+    const raw = await generateText(
+      "You are an expert writing editor. Give detailed, actionable feedback. Use plain text, no markdown.",
+      `Give an in-depth analysis of the ${cat.name.toLowerCase()} in this creative writing document titled "${_doc?.title || 'Untitled'}".${genreCtx}
+
+Specifically address:
+- What the writer is doing well
+- What specific issues you found (with examples from the text if possible)
+- How to improve and fix these issues
+- What score you would give (1-10) and why
+
+Be thorough, helpful, and encouraging. Write 3-5 paragraphs.
+
+Document:
+${_lastPlainText}`
+    );
+    body.innerHTML = raw.split('\n').filter(l => l.trim()).map(p =>
+      `<p class="ai-detail-para">${_esc(p)}</p>`
+    ).join('');
+  } catch (err) {
+    body.innerHTML = `<div class="ai-detail-error">Error: ${_esc(err.message)}</div>`;
+  }
+}
+
+// ─── Tone Detail ─────────────────────────────────────────────────────────────
+
+async function _showToneDetail() {
+  const panel = document.getElementById('ai-tone-detail');
+  const body  = document.getElementById('ai-tone-detail-body');
+  if (!panel || !body) return;
+
+  panel.classList.remove('hidden');
+
+  // Show cached explanation if available
+  if (_lastAnalysis?.toneExplanation) {
+    body.innerHTML = `<p class="ai-detail-para">${_esc(_lastAnalysis.toneExplanation)}</p>`;
+
+    // If we also have the tone, show it as a header
+    if (_lastAnalysis.tone) {
+      body.innerHTML = `<div class="ai-detail-tone-label">${_esc(_lastAnalysis.tone)}</div>` + body.innerHTML;
+    }
+    return;
+  }
+
+  // No cached explanation \u2014 fetch one
+  if (!_lastPlainText) {
+    body.innerHTML = '<div class="ai-detail-empty">Run "Analyze Writing" first to see tone details.</div>';
+    return;
+  }
+
+  body.innerHTML = '<div class="ai-detail-loading">Analyzing tone\u2026</div>';
+
+  try {
+    const raw = await generateText(
+      "You are an expert writing analyst. Give a detailed explanation. Use plain text, no markdown.",
+      `Explain the overall tone and mood of this creative writing document titled "${_doc?.title || 'Untitled'}".
+
+Describe:
+- What the dominant tone is and what elements create it
+- How the tone shifts throughout the piece (if at all)
+- Whether the tone is effective for the type of story being told
+- Suggestions for adjusting tone if needed
+
+Write 2-3 paragraphs.
+
+Document:
+${_lastPlainText}`
+    );
+    body.innerHTML = raw.split('\n').filter(l => l.trim()).map(p =>
+      `<p class="ai-detail-para">${_esc(p)}</p>`
+    ).join('');
+  } catch (err) {
+    body.innerHTML = `<div class="ai-detail-error">Error: ${_esc(err.message)}</div>`;
+  }
 }
 
 function _esc(s) {
@@ -660,7 +794,7 @@ async function _autoSynopsis() {
 
   try {
     const result = await generateText(
-      "You are a writing assistant. Write a brief 1-2 sentence synopsis of the scene. Be concise and capture the key events and emotional beats. Return ONLY the synopsis text, no labels or prefixes.",
+      "You are a writing assistant. Write a detailed synopsis of the scene in 3 to 5 paragraphs. Cover the key events, character motivations, emotional beats, and any important plot developments. Return ONLY the synopsis text, no labels or prefixes.",
       `Scene title: "${_doc.title || 'Untitled'}"\n\n${text}`
     );
     const synopsis = result.trim();
@@ -670,7 +804,7 @@ async function _autoSynopsis() {
     }
   } catch (err) {
     textarea.placeholder = err.message;
-    setTimeout(() => { textarea.placeholder = "A brief summary of this scene\u2026"; }, 4000);
+    setTimeout(() => { textarea.placeholder = "A detailed synopsis of this scene\u2026"; }, 4000);
   } finally {
     btn.disabled = false;
     btn.innerHTML = orig;
@@ -712,7 +846,6 @@ function _fmtDate(ts) {
   });
 }
 
-/** Count visible characters (no whitespace) from HTML content */
 function _charCount(html) {
   const tmp = document.createElement('div');
   tmp.innerHTML = html || '';

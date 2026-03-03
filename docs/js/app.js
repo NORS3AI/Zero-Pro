@@ -317,6 +317,7 @@ function init() {
   renderBinder(state.project, null);
   switchView('corkboard');
 
+  _initResizableHandles();
   bindToolbar();
   updateProjectTitle();
 
@@ -632,15 +633,27 @@ function bindToolbar() {
     document.getElementById('export-dropdown')?.classList.remove('open');
   });
 
-  btn('btn-import-docs', () => {
-    state.triggerDocImport?.();
-    document.getElementById('export-dropdown')?.classList.remove('open');
-  });
+  // Import buttons — call .click() synchronously in the tap handler so mobile
+  // browsers treat it as a user gesture (iOS blocks async file-input triggers)
+  const importDocsBtn = document.getElementById('btn-import-docs');
+  if (importDocsBtn) {
+    importDocsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('export-dropdown')?.classList.remove('open');
+      // Trigger file input synchronously within the user gesture
+      state.triggerDocImport?.();
+    });
+  }
 
-  btn('btn-import-json', () => {
-    state.triggerProjectImport?.();
-    document.getElementById('export-dropdown')?.classList.remove('open');
-  });
+  const importJsonBtn = document.getElementById('btn-import-json');
+  if (importJsonBtn) {
+    importJsonBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('export-dropdown')?.classList.remove('open');
+      // Trigger file input synchronously within the user gesture
+      state.triggerProjectImport?.();
+    });
+  }
 
   // ── Publish (Phase 5) ──────────────────────────────────────────────────────
   const _closeExport = () => document.getElementById('export-dropdown')?.classList.remove('open');
@@ -976,6 +989,69 @@ async function _handleRestoreProject(file) {
       showToast('Project restored');
     }
   );
+}
+
+// ─── Resizable Sidebar Handles ────────────────────────────────────────────────
+
+function _initResizableHandles() {
+  const ws = document.getElementById('workspace');
+  if (!ws) return;
+
+  // Binder: drag handle on the right edge
+  _addResizeHandle(document.getElementById('binder'), 'right', (delta) => {
+    const cur = parseInt(getComputedStyle(ws).getPropertyValue('--binder-w')) || 240;
+    const next = Math.max(160, Math.min(500, cur + delta));
+    ws.style.setProperty('--binder-w', next + 'px');
+  });
+
+  // Inspector: drag handle on the left edge
+  _addResizeHandle(document.getElementById('inspector'), 'left', (delta) => {
+    const cur = parseInt(getComputedStyle(ws).getPropertyValue('--inspector-w')) || 240;
+    const next = Math.max(160, Math.min(500, cur - delta));
+    ws.style.setProperty('--inspector-w', next + 'px');
+  });
+}
+
+function _addResizeHandle(panel, side, onResize) {
+  if (!panel) return;
+  const handle = document.createElement('div');
+  handle.className = `resize-handle resize-handle-${side}`;
+  handle.setAttribute('aria-hidden', 'true');
+  panel.appendChild(handle);
+
+  let startX = 0;
+
+  const onMove = (e) => {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const delta = clientX - startX;
+    startX = clientX;
+    onResize(delta);
+  };
+
+  const onUp = () => {
+    handle.classList.remove('active');
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+  };
+
+  const onDown = (e) => {
+    e.preventDefault();
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    handle.classList.add('active');
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove);
+    document.addEventListener('touchend', onUp);
+  };
+
+  handle.addEventListener('mousedown', onDown);
+  handle.addEventListener('touchstart', onDown, { passive: false });
 }
 
 // ─── Start ────────────────────────────────────────────────────────────────────

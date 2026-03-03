@@ -5,6 +5,20 @@
 
 const PATCHES = [
   {
+    version: 'v1.16',
+    date: 'March 2, 2026',
+    title: 'Deep Analysis, Resizable Panels & Performance',
+    changes: [
+      { type: 'feat', text: 'Clickable analysis categories \u2014 after running "Analyze Writing", click any category (Grammar, Style, Pacing, etc.) for a detailed in-depth AI breakdown with specific examples and improvement suggestions' },
+      { type: 'feat', text: 'Document genre/style selector \u2014 choose your genre (Fantasy, Romance, Thriller, etc.) in the Editing tab to get genre-aware AI analysis feedback' },
+      { type: 'feat', text: 'Clickable Tone badge \u2014 tap the tone label after analysis to read a full explanation of what creates the tone and how it shifts through the piece' },
+      { type: 'feat', text: 'Resizable sidebars \u2014 drag the edge of the Binder or Inspector panel to resize it (160px\u2013500px), making text easier to read in wider panels' },
+      { type: 'feat', text: 'Extended synopsis \u2014 Auto-Synopsis now generates 3\u20135 detailed paragraphs covering events, motivations, and emotional beats' },
+      { type: 'fix', text: 'Large document performance \u2014 editing 30k+ word documents no longer freezes the browser; autosave is debounced at the input level and localStorage writes yield to the event loop' },
+      { type: 'fix', text: 'Increased AI response length \u2014 max_tokens raised to 2048 for longer synopsis and analysis results' },
+    ],
+  },
+  {
     version: 'v1.15',
     date: 'March 2, 2026',
     title: 'Free AI & Comprehensive Writing Analysis',
