@@ -85,15 +85,34 @@
   background: transparent;
   border: none;
   color: var(--text-muted);
-  padding: 6px;
+  padding: 10px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
   transition: background 0.15s, color 0.15s;
 }
 
 .compile-close:hover { background: var(--surface-alt); color: var(--text); }
+
+.compile-cancel-btn {
+  color: var(--red, #e55);
+  border-color: var(--red, #e55);
+}
+
+.compile-cancel-btn:hover {
+  background: var(--red, #e55);
+  color: #fff;
+}
+
+.compile-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .compile-body {
   flex: 1;

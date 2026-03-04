@@ -633,25 +633,47 @@ function bindToolbar() {
     document.getElementById('export-dropdown')?.classList.remove('open');
   });
 
-  // Import buttons — call .click() synchronously in the tap handler so mobile
-  // browsers treat it as a user gesture (iOS blocks async file-input triggers)
+  // Import buttons — create a FRESH file input directly inside the click handler
+  // so iOS Safari treats it as a user-initiated gesture. Pre-created file inputs
+  // and indirect function calls (state.triggerDocImport) break on iOS because the
+  // gesture chain gets interrupted.
   const importDocsBtn = document.getElementById('btn-import-docs');
   if (importDocsBtn) {
     importDocsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       document.getElementById('export-dropdown')?.classList.remove('open');
-      // Trigger file input synchronously within the user gesture
-      state.triggerDocImport?.();
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.multiple = true;
+      inp.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+      document.body.appendChild(inp);
+      inp.addEventListener('change', () => {
+        const files = Array.from(inp.files);
+        if (files.length) _handleImportDocs(files);
+        inp.remove();
+      });
+      inp.click();
     });
   }
 
   const importJsonBtn = document.getElementById('btn-import-json');
   if (importJsonBtn) {
     importJsonBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       document.getElementById('export-dropdown')?.classList.remove('open');
-      // Trigger file input synchronously within the user gesture
-      state.triggerProjectImport?.();
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = '.json,application/json';
+      inp.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+      document.body.appendChild(inp);
+      inp.addEventListener('change', () => {
+        const file = inp.files[0];
+        if (file) _handleRestoreProject(file);
+        inp.remove();
+      });
+      inp.click();
     });
   }
 

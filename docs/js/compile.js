@@ -107,7 +107,7 @@ function _buildModal() {
           </div>
         </div>
         <button class="compile-close" id="compile-close-btn" aria-label="Close compile wizard">
-          <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14">
+          <svg viewBox="0 0 16 16" fill="currentColor" width="18" height="18">
             <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854z"/>
           </svg>
         </button>
@@ -183,7 +183,7 @@ function _renderStep1() {
   `;
 
   footer.innerHTML = `
-    <span></span>
+    <button class="btn compile-cancel-btn" id="compile-cancel">Cancel</button>
     <button class="btn btn-primary" id="compile-next-1"${_preset ? '' : ' disabled'}>
       Next: Configure →
     </button>
@@ -200,6 +200,7 @@ function _renderStep1() {
     });
   });
 
+  document.getElementById('compile-cancel')?.addEventListener('click', _close);
   document.getElementById('compile-next-1')?.addEventListener('click', () => {
     _step = 2;
     _render();
@@ -277,11 +278,15 @@ function _renderStep2() {
   `;
 
   footer.innerHTML = `
-    <button class="btn" id="compile-back-2">← Back</button>
-    <button class="btn btn-primary" id="compile-next-2">Preview →</button>
+    <div class="compile-footer-left">
+      <button class="btn compile-cancel-btn" id="compile-cancel">Cancel</button>
+      <button class="btn" id="compile-back-2">\u2190 Back</button>
+    </div>
+    <button class="btn btn-primary" id="compile-next-2">Preview \u2192</button>
   `;
 
   // Select all toggle
+  document.getElementById('compile-cancel')?.addEventListener('click', _close);
   document.getElementById('compile-check-all')?.addEventListener('change', e => {
     const on = e.target.checked;
     body.querySelectorAll('.compile-doc-check').forEach(cb => {
@@ -330,7 +335,10 @@ function _renderStep3() {
   `;
 
   footer.innerHTML = `
-    <button class="btn" id="compile-back-3">← Back</button>
+    <div class="compile-footer-left">
+      <button class="btn compile-cancel-btn" id="compile-cancel">Cancel</button>
+      <button class="btn" id="compile-back-3">\u2190 Back</button>
+    </div>
     <div class="compile-download-group">
       <button class="btn btn-primary" id="compile-dl-html">Download HTML</button>
       <button class="btn" id="compile-dl-txt">Download .txt</button>
@@ -343,6 +351,7 @@ function _renderStep3() {
   const frame = document.getElementById('compile-preview-frame');
   if (frame) frame.srcdoc = html;
 
+  document.getElementById('compile-cancel')?.addEventListener('click', _close);
   document.getElementById('compile-back-3')?.addEventListener('click', () => { _step = 2; _render(); });
 
   document.getElementById('compile-dl-html')?.addEventListener('click', () => {
