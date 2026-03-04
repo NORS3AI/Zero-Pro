@@ -5,6 +5,15 @@
 
 const PATCHES = [
   {
+    version: 'v1.17',
+    date: 'March 3, 2026',
+    title: 'Mobile Import Fix',
+    changes: [
+      { type: 'fix', text: "Mobile file import \u2014 file picker now opens correctly on iOS Safari and Android; fixed display:none blocking, MIME type filtering, and event propagation issues" },
+      { type: 'fix', text: "Import button on mobile \u2014 tap now reliably triggers the file chooser without the dropdown closing prematurely" },
+    ],
+  },
+  {
     version: 'v1.16',
     date: 'March 2, 2026',
     title: 'Deep Analysis, Resizable Panels & Performance',
