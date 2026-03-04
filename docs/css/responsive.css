@@ -297,6 +297,33 @@
 
   .binder-item-row   { min-height: 36px; }
   .binder-action-btn { width: 28px; height: 28px; }
+
+  /* ── Compile wizard: full-screen on mobile ── */
+
+  .compile-modal {
+    width: 100vw;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .compile-step-content { padding: 16px; }
+  .compile-preset-grid  { grid-template-columns: 1fr !important; }
+
+  .compile-footer {
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .compile-download-group {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .compile-step-2 {
+    flex-direction: column !important;
+  }
 }
 
 /* ─── Very narrow screens (≤ 400 px) — single corkboard column ──────────────── */

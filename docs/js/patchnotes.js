@@ -5,6 +5,17 @@
 
 const PATCHES = [
   {
+    version: 'v1.18',
+    date: 'March 4, 2026',
+    title: 'Mobile Fixes: Import & Compile',
+    changes: [
+      { type: 'fix', text: "Mobile file import \u2014 file picker now opens reliably on iOS Safari and Android; creates a fresh file input directly in the tap handler to preserve the user-gesture chain" },
+      { type: 'fix', text: "Compile wizard \u2014 added a visible Cancel button on every step so the wizard can be dismissed easily on mobile" },
+      { type: 'fix', text: "Compile close button \u2014 enlarged to 44\u00d744px minimum touch target for mobile usability" },
+      { type: 'fix', text: "Compile wizard \u2014 goes full-screen on mobile with single-column layout for presets and options" },
+    ],
+  },
+  {
     version: 'v1.17',
     date: 'March 3, 2026',
     title: 'Mobile Import Fix',
