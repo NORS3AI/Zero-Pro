@@ -13,6 +13,7 @@ let _active    = false;
 let _doc       = null;
 let _onSave    = null;
 let _saveTimer = null;
+let _onExit    = null;
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -21,9 +22,10 @@ let _saveTimer = null;
  * @param {Object} doc      — current document object
  * @param {Function} onSave — called with new markdown string on change (debounced)
  */
-export function enableMarkdownMode(doc, onSave) {
+export function enableMarkdownMode(doc, onSave, onExit) {
   _doc    = doc;
   _onSave = onSave;
+  _onExit = onExit ?? null;
   _active = true;
   _hideRichEditor();
   _buildSplitPane();
@@ -97,18 +99,24 @@ function _buildSplitPane() {
   const src = _doc?.content ?? '';
 
   pane.innerHTML = `
-    <div class="md-source-col">
-      <div class="md-col-label">Markdown Source</div>
-      <textarea id="md-source"
-                class="md-source-textarea"
-                spellcheck="true"
-                aria-label="Markdown source editor"
-                aria-multiline="true">${_escAttr(src)}</textarea>
+    <div class="md-mode-bar">
+      <span class="md-mode-label">Markdown Mode</span>
+      <button class="btn md-exit-btn" id="md-exit-btn" aria-label="Exit Markdown mode">Exit Markdown Mode</button>
     </div>
-    <div class="md-divider" role="separator" aria-hidden="true"></div>
-    <div class="md-preview-col">
-      <div class="md-col-label">Preview</div>
-      <div id="md-preview" class="md-preview-pane" aria-label="Rendered preview" aria-live="polite"></div>
+    <div class="md-columns">
+      <div class="md-source-col">
+        <div class="md-col-label">Markdown Source</div>
+        <textarea id="md-source"
+                  class="md-source-textarea"
+                  spellcheck="true"
+                  aria-label="Markdown source editor"
+                  aria-multiline="true">${_escAttr(src)}</textarea>
+      </div>
+      <div class="md-divider" role="separator" aria-hidden="true"></div>
+      <div class="md-preview-col">
+        <div class="md-col-label">Preview</div>
+        <div id="md-preview" class="md-preview-pane" aria-label="Rendered preview" aria-live="polite"></div>
+      </div>
     </div>
   `;
 
@@ -120,6 +128,10 @@ function _buildSplitPane() {
   document.getElementById('md-source')?.addEventListener('input', () => {
     _renderPreview();
     _scheduleSave();
+  });
+
+  document.getElementById('md-exit-btn')?.addEventListener('click', () => {
+    if (_onExit) _onExit();
   });
 }
 

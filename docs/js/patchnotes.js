@@ -5,6 +5,15 @@
 
 const PATCHES = [
   {
+    version: 'v1.19',
+    date: 'May 22, 2026',
+    title: 'Markdown Mode Exit Button',
+    changes: [
+      { type: 'fix', text: "Markdown Mode — added a visible \"Exit Markdown Mode\" button at the top of the split pane so you can easily return to the normal rich-text editor" },
+      { type: 'fix', text: "Markdown Mode — the exit button works both when toggled manually and when a document auto-loads in Markdown mode" },
+    ],
+  },
+  {
     version: 'v1.18',
     date: 'March 4, 2026',
     title: 'Mobile Fixes: Import & Compile',
