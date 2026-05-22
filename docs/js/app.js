@@ -390,7 +390,7 @@ function _renderView(view, doc) {
       enableMarkdownMode(doc, md => {
         doc.content = md;
         handleDocChange(doc);
-      });
+      }, _exitMarkdownModeGlobal);
     }
 
     // Sync the MD toggle button state
@@ -425,6 +425,20 @@ function _corkboardParentId(doc) {
 }
 
 // ─── Event Handlers ───────────────────────────────────────────────────────────
+
+function _exitMarkdownModeGlobal() {
+  const doc = getDocument(state.project, state.currentDocId);
+  if (!doc || doc.mode !== 'markdown') return;
+  const md   = getMarkdownContent() ?? doc.content ?? '';
+  doc.mode    = 'rich';
+  doc.content = markdownToHtml(md);
+  handleDocChange(doc);
+  disableMarkdownMode();
+  loadDocument(state.project, doc);
+  document.getElementById('btn-md-mode')?.classList.remove('md-active');
+  document.getElementById('btn-md-mode')?.setAttribute('aria-pressed', 'false');
+  showToast('Rich text mode restored');
+}
 
 function handleSelectDocument(docId) {
   // Close the binder drawer on compact screens after a selection (unless pinned)
@@ -762,7 +776,6 @@ function bindToolbar() {
     if (!doc) { showToast('Select a document first'); return; }
 
     if (doc.mode !== 'markdown') {
-      // Switch to Markdown mode — convert existing HTML to plain text Markdown
       saveCurrentContent();
       const md = htmlToMarkdown(doc.content || '');
       doc.mode    = 'markdown';
@@ -772,21 +785,12 @@ function bindToolbar() {
       enableMarkdownMode(doc, newMd => {
         doc.content = newMd;
         handleDocChange(doc);
-      });
+      }, _exitMarkdownModeGlobal);
       document.getElementById('btn-md-mode')?.classList.add('md-active');
       document.getElementById('btn-md-mode')?.setAttribute('aria-pressed', 'true');
       showToast('Markdown mode — editing as plain text');
     } else {
-      // Switch back to rich text — parse Markdown → HTML
-      const md   = getMarkdownContent() ?? doc.content ?? '';
-      doc.mode    = 'rich';
-      doc.content = markdownToHtml(md);
-      handleDocChange(doc);
-      disableMarkdownMode();
-      loadDocument(state.project, doc);
-      document.getElementById('btn-md-mode')?.classList.remove('md-active');
-      document.getElementById('btn-md-mode')?.setAttribute('aria-pressed', 'false');
-      showToast('Rich text mode restored');
+      _exitMarkdownModeGlobal();
     }
   });
 
