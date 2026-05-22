@@ -389,7 +389,7 @@ function _renderView(view, doc) {
     if (doc?.mode === 'markdown') {
       enableMarkdownMode(doc, md => {
         doc.content = md;
-        handleDocChange(doc);
+        handleDocChange(state.project, doc);
       }, _exitMarkdownModeGlobal);
     }
 
@@ -432,7 +432,7 @@ function _exitMarkdownModeGlobal() {
   const md   = getMarkdownContent() ?? doc.content ?? '';
   doc.mode    = 'rich';
   doc.content = markdownToHtml(md);
-  handleDocChange(doc);
+  handleDocChange(state.project, doc);
   disableMarkdownMode();
   loadDocument(state.project, doc);
   document.getElementById('btn-md-mode')?.classList.remove('md-active');
@@ -448,7 +448,7 @@ function handleSelectDocument(docId) {
   if (isMarkdownMode()) {
     const md  = getMarkdownContent();
     const doc = currentDoc();
-    if (doc && md !== null) { doc.content = md; handleDocChange(doc); }
+    if (doc && md !== null) { doc.content = md; handleDocChange(state.project, doc); }
   }
 
   saveCurrentContent();
@@ -780,11 +780,11 @@ function bindToolbar() {
       const md = htmlToMarkdown(doc.content || '');
       doc.mode    = 'markdown';
       doc.content = md;
-      handleDocChange(doc);
+      handleDocChange(state.project, doc);
       if (isMarkdownMode()) disableMarkdownMode();
       enableMarkdownMode(doc, newMd => {
         doc.content = newMd;
-        handleDocChange(doc);
+        handleDocChange(state.project, doc);
       }, _exitMarkdownModeGlobal);
       document.getElementById('btn-md-mode')?.classList.add('md-active');
       document.getElementById('btn-md-mode')?.setAttribute('aria-pressed', 'true');
